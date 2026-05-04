@@ -1,0 +1,28 @@
+name: laravel-ddd
+display_name: Laravel DDD
+description: |
+  Domain-Driven Design with a module-per-bounded-context layout at
+  `app/Modules/<Module>/(Domain|Application|Infrastructure|Presentation)/`,
+  but without CQRS command/query handler separation. Superset is
+  `laravel-ddd-cqrs`.
+
+detection:
+  signals:
+    - kind: path_exists
+      path: app/Modules/*/Domain
+      weight: 50
+    - kind: path_exists
+      path: app/Modules/*/Application
+      weight: 30
+    - kind: path_exists
+      path: app/Modules/*/Infrastructure
+      weight: 20
+
+conventions:
+  custom_bases: {}
+  custom_suffixes:
+    Aggregate: aggregate
+    ValueObject: value_object
+  modules:
+    pattern: "app/Modules/{module}/**"
+    layers: [Domain, Application, Infrastructure, Presentation]

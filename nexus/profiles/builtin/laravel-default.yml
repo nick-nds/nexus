@@ -1,0 +1,22 @@
+name: laravel-default
+display_name: Laravel (Default)
+description: |
+  Vanilla Laravel MVC project with no DDD, CQRS, or action-based
+  conventions. The fallback profile for any Laravel project that
+  doesn't match one of the more specific profiles.
+
+detection:
+  signals:
+    - kind: path_exists
+      path: app/Http/Controllers
+      weight: 40
+    - kind: path_exists
+      path: app/Models
+      weight: 30
+    - kind: composer_requires
+      package: laravel/framework
+      weight: 30
+
+conventions:
+  custom_bases: {}
+  custom_suffixes: {}

@@ -1,0 +1,37 @@
+name: laravel-ddd-cqrs
+display_name: Laravel DDD with CQRS
+description: |
+  Domain-Driven Design with CQRS command/query handler separation on
+  top of the standard DDD module layout. Detects command handlers,
+  query handlers, commands, and queries via naming suffixes.
+
+detection:
+  signals:
+    - kind: path_exists
+      path: app/Modules/*/Domain
+      weight: 40
+    - kind: path_exists
+      path: app/Modules/*/Application/CommandHandlers
+      weight: 25
+    - kind: path_exists
+      path: app/Modules/*/Application/QueryHandlers
+      weight: 15
+    - kind: class_suffix_frequency
+      suffix: Handler
+      threshold: 5
+      weight: 10
+    - kind: class_suffix_frequency
+      suffix: Command
+      threshold: 5
+      weight: 10
+
+conventions:
+  custom_bases: {}
+  custom_suffixes:
+    Handler: command_handler
+    QueryHandler: query_handler
+    Command: command
+    Query: query
+  modules:
+    pattern: "app/Modules/{module}/**"
+    layers: [Domain, Application, Infrastructure, Presentation]

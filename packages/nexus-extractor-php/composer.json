@@ -1,0 +1,65 @@
+{
+    "name": "nexus/extractor-php",
+    "description": "Laravel runtime + AST extractor that emits a complete reflection.json for the Nexus code intelligence tool.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "nexus", "code-intelligence", "reflection", "static-analysis", "ast"],
+    "authors": [
+        {
+            "name": "Nexus Maintainers"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "illuminate/console": "^10.0 || ^11.0 || ^12.0",
+        "illuminate/contracts": "^10.0 || ^11.0 || ^12.0",
+        "illuminate/support": "^10.0 || ^11.0 || ^12.0",
+        "illuminate/routing": "^10.0 || ^11.0 || ^12.0",
+        "illuminate/events": "^10.0 || ^11.0 || ^12.0",
+        "illuminate/filesystem": "^10.0 || ^11.0 || ^12.0",
+        "nikic/php-parser": "^5.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0 || ^9.0 || ^10.0",
+        "phpunit/phpunit": "^10.5 || ^11.0",
+        "phpstan/phpstan": "^1.11",
+        "larastan/larastan": "^2.9",
+        "laravel/pint": "^1.16"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nexus\\Extractor\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Nexus\\Extractor\\Tests\\": "tests/",
+            "SampleApp\\": "tests/fixtures/sample-app/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": "XDEBUG_MODE=coverage phpunit --coverage-text --coverage-html=build/coverage",
+        "lint": "pint --test",
+        "format": "pint",
+        "stan": "phpstan analyse --memory-limit=512M",
+        "check": [
+            "@lint",
+            "@stan",
+            "@test"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Nexus\\Extractor\\NexusExtractorServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

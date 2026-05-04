@@ -1,0 +1,25 @@
+name: laravel-actions
+display_name: Laravel Actions
+description: |
+  Action-based Laravel where most business logic lives in single-
+  responsibility action classes (e.g. `CreateUserAction`,
+  `SendInvoiceAction`). Popular pattern from the `lorisleiva/laravel-actions`
+  package but also used as a hand-rolled convention.
+
+detection:
+  signals:
+    - kind: path_exists
+      path: app/Actions
+      weight: 40
+    - kind: composer_requires
+      package: lorisleiva/laravel-actions
+      weight: 30
+    - kind: class_suffix_frequency
+      suffix: Action
+      threshold: 5
+      weight: 30
+
+conventions:
+  custom_bases: {}
+  custom_suffixes:
+    Action: action

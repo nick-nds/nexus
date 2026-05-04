@@ -1,0 +1,25 @@
+name: laravel-api
+display_name: Laravel API
+description: |
+  API-only applications. Heavy on API resources, transformers, and
+  route-first structure, typically without Blade views. Detected via
+  the presence of `routes/api.php` and an `Api` namespace in the
+  controllers directory.
+
+detection:
+  signals:
+    - kind: path_exists
+      path: routes/api.php
+      weight: 40
+    - kind: path_exists
+      path: app/Http/Controllers/Api
+      weight: 30
+    - kind: path_exists
+      path: app/Http/Resources
+      weight: 30
+
+conventions:
+  custom_bases: {}
+  custom_suffixes:
+    Resource: api_resource
+    Transformer: transformer

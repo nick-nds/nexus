@@ -1,0 +1,26 @@
+name: laravel-filament
+display_name: Laravel Filament
+description: |
+  Projects built primarily as Filament admin panels. Detects Filament
+  resources, pages, and widgets. Often layered on top of another
+  profile (e.g. MVC or repository) but flagged independently so
+  Filament-specific structure is visible to the graph.
+
+detection:
+  signals:
+    - kind: composer_requires
+      package: filament/filament
+      weight: 50
+    - kind: path_exists
+      path: app/Filament
+      weight: 30
+    - kind: class_suffix_frequency
+      suffix: Resource
+      threshold: 3
+      weight: 20
+
+conventions:
+  custom_bases: {}
+  custom_suffixes:
+    Resource: filament_resource
+    Widget: filament_widget

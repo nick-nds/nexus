@@ -1,0 +1,36 @@
+name: laravel-repository
+display_name: Laravel (Repository + Service)
+description: |
+  Laravel MVC augmented with a Repository pattern and a Service layer.
+  Detects repositories, contracts, services, filters, DTOs, and
+  transformers via naming conventions. Common in teams that prefer
+  traditional enterprise patterns over DDD.
+
+detection:
+  signals:
+    - kind: path_exists
+      path: app/Repositories
+      weight: 30
+    - kind: path_exists
+      path: app/Services
+      weight: 25
+    - kind: path_exists
+      path: app/Contracts
+      weight: 15
+    - kind: class_suffix_frequency
+      suffix: Repository
+      threshold: 3
+      weight: 15
+    - kind: class_suffix_frequency
+      suffix: Service
+      threshold: 3
+      weight: 15
+
+conventions:
+  custom_bases: {}
+  custom_suffixes:
+    Repository: repository
+    Service: service
+    Filter: filter
+    Transformer: transformer
+    DTO: dto

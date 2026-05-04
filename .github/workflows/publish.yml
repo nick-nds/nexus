@@ -1,0 +1,137 @@
+name: Publish to PyPI
+
+# Triggers on version tags: v1.0.0, v1.2.3, etc.
+# CI must pass before this workflow can publish.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: read
+  # Required for PyPI Trusted Publishing (OIDC — no API token needed).
+  id-token: write
+
+jobs:
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify pyproject.toml version matches tag
+        run: |
+          PKG_VERSION=$(uv run python -c "from nexus.version import __version__; print(__version__)")
+          TAG_VERSION="${{ steps.get_version.outputs.version }}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "ERROR: nexus/__version__ ($PKG_VERSION) does not match tag ($TAG_VERSION)"
+            exit 1
+          fi
+
+      - name: Run quality gate
+        run: |
+          uv run ruff format --check nexus/ tests/
+          uv run ruff check nexus/ tests/
+          uv run mypy --strict nexus/
+          uv run pytest --cov=nexus --cov-fail-under=90 -q
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Verify with twine
+        run: |
+          uv run pip install twine
+          uv run twine check dist/*
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ steps.get_version.outputs.version }}
+          path: dist/
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/nexus/${{ needs.build.outputs.version }}/
+
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ needs.build.outputs.version }}
+          path: dist/
+
+      - name: Publish to PyPI (Trusted Publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # No API token needed — uses PyPI's OIDC Trusted Publisher mechanism.
+        # Configure the Trusted Publisher in PyPI's project settings:
+        #   Publisher: GitHub Actions
+        #   Owner: <github-org-or-user>
+        #   Repository: nexus-v2 (or whatever the repo is named)
+        #   Workflow: publish.yml
+        #   Environment: pypi
+
+  create-github-release:
+    name: Create GitHub Release
+    needs: [build, publish-pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ needs.build.outputs.version }}
+          path: dist/
+
+      - name: Generate changelog from git log
+        id: changelog
+        run: |
+          # Commits since previous tag (or root if this is the first tag)
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..HEAD"
+          else
+            RANGE="HEAD"
+          fi
+          COMMITS=$(git log "$RANGE" --pretty=format:"- %s (%h)" --no-merges)
+          # Write to a file to avoid shell quoting issues
+          echo "$COMMITS" > changelog.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "nexus ${{ needs.build.outputs.version }}"
+          body_path: changelog.txt
+          files: dist/*
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') }}

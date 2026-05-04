@@ -1,0 +1,240 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nexus"
+version = "1.0.0"
+description = "Laravel-specific code intelligence: graph + vector RAG over a typed semantic graph of a Laravel codebase, exposed via MCP and CLI."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "Nexus Maintainers" }]
+keywords = ["laravel", "code-intelligence", "rag", "mcp", "graph", "embedding"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Code Generators",
+]
+
+dependencies = [
+    "pydantic>=2.7,<3",
+    "structlog>=24.1,<26",
+    "pyyaml>=6.0,<7",
+    "lancedb>=0.13,<0.30",
+    "pyarrow>=15,<22",
+    # CLI and terminal rendering. Click powers the subcommand tree;
+    # rich provides progress bars, tables, and syntax-highlighted
+    # output. Both are small, stable, and ubiquitous.
+    "click>=8.1,<10",
+    "rich>=13.7,<15",
+    # Tree-sitter is used for semantic chunking and lightweight static
+    # analysis in Phase 3. Bundled with the project grammar because
+    # the chunker is a core feature, not an optional extra.
+    "tree-sitter>=0.22,<0.26",
+    "tree-sitter-php>=0.23,<0.25",
+    # FastMCP provides the MCP server adapter (nexus mcp serve).
+    # Pinned to major version 3 — major bumps in FastMCP are likely
+    # to change the Tool API we depend on.
+    "fastmcp>=3.2,<4",
+]
+
+[project.optional-dependencies]
+# Optional embedder backends. Each extra pulls in just what that
+# backend needs so users who only want Ollama don't download the
+# fastembed ONNX runtime.
+local-embeddings = [
+    # fastembed is a lightweight ONNX-based embedder (no PyTorch).
+    # Around 100 MB for the runtime plus a small model download on
+    # first use — a far better fit for the "works out of the box, no
+    # API key, no GPU" promise than sentence-transformers' full
+    # torch+CUDA stack.
+    "fastembed>=0.4,<2",
+]
+ollama = [
+    "ollama>=0.3,<1",
+]
+openai = [
+    "openai>=1.40,<2",
+]
+voyage = [
+    "voyageai>=0.2,<1",
+]
+dev = [
+    "pytest>=8.2,<9",
+    "pytest-cov>=5.0,<7",
+    "hypothesis>=6.100,<7",
+    "ruff>=0.6,<0.20",
+    "mypy>=1.11,<2",
+    "types-PyYAML>=6.0,<7",
+    # Dev installs pull in the local embedder so the full pipeline
+    # can be exercised end-to-end in tests.
+    "fastembed>=0.4,<2",
+]
+
+[project.scripts]
+nexus = "nexus.interfaces.cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/nexus-tools/nexus"
+"Bug Tracker" = "https://github.com/nexus-tools/nexus/issues"
+Changelog = "https://github.com/nexus-tools/nexus/releases"
+
+[tool.hatch.build.targets.wheel]
+packages = ["nexus"]
+
+# ----------------------------------------------------------------------------
+# Ruff
+# ----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["nexus", "tests"]
+extend-exclude = ["packages", "internal_docs"]
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "B",     # bugbear
+    "SIM",   # simplify
+    "RUF",   # ruff-specific
+    "PT",    # pytest-style
+    "TID",   # tidy imports (no relative)
+    "PL",    # pylint
+    "TC",    # type-checking
+    "ANN",   # annotations
+    "D",     # pydocstyle
+]
+ignore = [
+    "PLR0913", # too many arguments — fine for builders/protocols
+    "D203",    # one-blank-line-before-class — conflicts with D211
+    "D213",    # multi-line-summary-second-line — conflicts with D212
+    "D107",    # __init__ docstrings — usually documented at class level
+    "D104",    # missing docstring in public package — too noisy for __init__.py
+    "D100",    # missing docstring in public module — handled by D101/D103
+    "ANN401",  # any-typed disallowed — sometimes legitimate
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "D",        # tests don't need docstrings
+    "ANN",      # tests don't need full annotations
+    "PLR2004",  # magic numbers in tests are fine
+    "S101",     # asserts in tests are the point
+    "TC003",    # TYPE_CHECKING micro-opt irrelevant in tests
+    "PLC0415",  # conditional imports inside tests are fine
+]
+"examples/**/*.py" = [
+    "D",
+    "ANN",
+    "T201",     # print() is fine in examples
+    "PLR0915",  # long straight-line scripts are fine in smoketests
+]
+# Pydantic models: the class names are the documentation. Forcing a
+# one-line docstring on every two-field data shape is noise; the module
+# docstring already explains the layout.
+"nexus/core/reflection/document.py" = ["D101"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+line-ending = "lf"
+quote-style = "double"
+
+# ----------------------------------------------------------------------------
+# Mypy
+# ----------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_return_any = true
+no_implicit_reexport = true
+disallow_untyped_decorators = true
+plugins = ["pydantic.mypy"]
+exclude = [
+    "^build/",
+    "^packages/",
+    "^internal_docs/",
+]
+
+[[tool.mypy.overrides]]
+module = ["lancedb.*", "pyarrow.*"]
+ignore_missing_imports = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# ----------------------------------------------------------------------------
+# Pytest
+# ----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-config",
+    "--strict-markers",
+    "--import-mode=importlib",
+]
+markers = [
+    "integration: tests that touch real I/O (sqlite, lancedb, filesystem)",
+    "contract: protocol contract test suites parameterised over implementations",
+    "slow: tests that take more than 1s",
+]
+filterwarnings = [
+    "error",
+    # Allow third-party deprecations through (we can't fix them)
+    "ignore::DeprecationWarning:lancedb.*",
+    "ignore::DeprecationWarning:pyarrow.*",
+]
+
+# ----------------------------------------------------------------------------
+# Coverage
+# ----------------------------------------------------------------------------
+[tool.coverage.run]
+source = ["nexus"]
+branch = true
+omit = [
+    "nexus/__main__.py",
+    # Protocols define structural types with no runtime semantics
+    # (every body is `...`). Coverage counts the declarations as
+    # unexecuted statements but there's nothing meaningful to test.
+    "nexus/core/protocols.py",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@overload",
+    "\\.\\.\\.$",
+]
+
+[dependency-groups]
+dev = [
+    "twine>=6.2.0",
+]
