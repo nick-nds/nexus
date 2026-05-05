@@ -1,0 +1,276 @@
+name: PR checks
+
+# Hardened gate for PRs into main.  These checks run *in addition* to
+# ci.yml's lint+test sweep — they exist to surface specific signals
+# that get lost inside the 800-test pass:
+#
+# * ``freeze-check`` — runs the v1.0 public-API freeze test as its
+#   own GitHub check so a CLI-name or MCP-tool-name regression shows
+#   up as a distinct red ❌, not buried in pytest output.
+# * ``error-codes-audit`` — confirms every emitted ``error_code`` is
+#   documented in ``docs/error-codes.md`` (the agent contract, per
+#   D31 in ``internal_docs/13-decision-log.md``).
+# * ``php-lint`` / ``php-stan`` / ``php-test`` — the PHP package
+#   gate, formerly only at publish time. Now path-filtered to
+#   ``packages/nexus-extractor-php/**`` so it only runs when PHP
+#   actually changed; runs a Pint / PHPStan / PHPUnit matrix in
+#   parallel across PHP 8.2/8.3 × Laravel 10/11/12 (excluding
+#   PHP 8.2 × Laravel 12 — the same exclusion publish-php.yml uses).
+
+on:
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------
+  # Path detection — single small job that all PHP jobs depend on so
+  # they no-op cleanly when only Python/docs changed.
+  # ---------------------------------------------------------------------
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      php: ${{ steps.filter.outputs.php }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            php:
+              - 'packages/nexus-extractor-php/**'
+
+  # ---------------------------------------------------------------------
+  # Python-side PR-only checks
+  # ---------------------------------------------------------------------
+  freeze-check:
+    name: Interface freeze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run interface freeze test
+        run: uv run pytest tests/unit/test_interface_freeze.py -v
+
+  error-codes-audit:
+    name: Error-codes audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # The audit script is pure stdlib — no uv sync needed.
+      - name: Run scripts/list_error_codes.py --strict
+        run: python3 scripts/list_error_codes.py --strict
+
+  # ---------------------------------------------------------------------
+  # PHP package gate.
+  #
+  # ``php-package`` is a fast metadata sanity check that runs against
+  # one PHP version with no dependency install — catches broken
+  # composer.json (bad PSR-4 namespaces, missing required fields,
+  # unresolvable constraints) before we burn cycles on the matrix.
+  #
+  # Each downstream check (Pint / PHPStan / PHPUnit) runs as its own
+  # parallel job across the full PHP × Laravel matrix.  Splitting the
+  # checks (rather than chaining them in one job) makes failures
+  # specific in the PR checks panel — a Pint failure is visibly
+  # different from a PHPUnit failure without clicking into a single
+  # job's logs.
+  # ---------------------------------------------------------------------
+  php-package:
+    name: PHP — Package validation
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/nexus-extractor-php
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+          tools: composer:v2
+      - name: Validate composer.json
+        # ``composer validate --strict`` checks metadata correctness
+        # (required fields, PSR-4 namespace shape, license string,
+        # version-constraint syntax) against the schema. It needs no
+        # dependency install, so this lights up fast — a malformed
+        # composer.json fails the PR before the matrix burns minutes.
+        run: composer validate --strict
+      - name: Check Composer dependencies resolve
+        # ``--dry-run`` doesn't write vendor/, but does run the
+        # solver against Packagist for every Laravel target. Catches
+        # impossible version pins for any matrix cell early.
+        run: |
+          composer require --dev --dry-run --no-interaction \
+            "illuminate/console:^10.0|^11.0|^12.0" \
+            "illuminate/contracts:^10.0|^11.0|^12.0" \
+            "illuminate/support:^10.0|^11.0|^12.0" \
+            "illuminate/routing:^10.0|^11.0|^12.0" \
+            "illuminate/events:^10.0|^11.0|^12.0" \
+            "illuminate/filesystem:^10.0|^11.0|^12.0"
+
+  php-lint:
+    name: PHP — Pint (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/nexus-extractor-php
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3"]
+        laravel-version: ["10.*", "11.*", "12.*"]
+        exclude:
+          - php-version: "8.2"
+            laravel-version: "12.*"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: json, mbstring
+          coverage: none
+          tools: composer:v2
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-${{ hashFiles('packages/nexus-extractor-php/composer.json') }}
+          restore-keys: |
+            composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-
+      - name: Install Composer dependencies
+        run: |
+          composer require "illuminate/console:${{ matrix.laravel-version }}" \
+                           "illuminate/contracts:${{ matrix.laravel-version }}" \
+                           "illuminate/support:${{ matrix.laravel-version }}" \
+                           "illuminate/routing:${{ matrix.laravel-version }}" \
+                           "illuminate/events:${{ matrix.laravel-version }}" \
+                           "illuminate/filesystem:${{ matrix.laravel-version }}" \
+            --no-update
+          composer update --prefer-dist --no-interaction
+      - name: Pint (formatting check)
+        run: composer lint
+
+  php-stan:
+    name: PHP — PHPStan (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/nexus-extractor-php
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3"]
+        laravel-version: ["10.*", "11.*", "12.*"]
+        exclude:
+          - php-version: "8.2"
+            laravel-version: "12.*"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: json, mbstring
+          coverage: none
+          tools: composer:v2
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-${{ hashFiles('packages/nexus-extractor-php/composer.json') }}
+          restore-keys: |
+            composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-
+      - name: Install Composer dependencies
+        run: |
+          composer require "illuminate/console:${{ matrix.laravel-version }}" \
+                           "illuminate/contracts:${{ matrix.laravel-version }}" \
+                           "illuminate/support:${{ matrix.laravel-version }}" \
+                           "illuminate/routing:${{ matrix.laravel-version }}" \
+                           "illuminate/events:${{ matrix.laravel-version }}" \
+                           "illuminate/filesystem:${{ matrix.laravel-version }}" \
+            --no-update
+          composer update --prefer-dist --no-interaction
+      - name: PHPStan (static analysis)
+        run: composer stan
+
+  php-test:
+    name: PHP — PHPUnit (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/nexus-extractor-php
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3"]
+        laravel-version: ["10.*", "11.*", "12.*"]
+        exclude:
+          - php-version: "8.2"
+            laravel-version: "12.*"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: json, mbstring
+          coverage: none
+          tools: composer:v2
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-${{ hashFiles('packages/nexus-extractor-php/composer.json') }}
+          restore-keys: |
+            composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-
+      - name: Install Composer dependencies
+        run: |
+          composer require "illuminate/console:${{ matrix.laravel-version }}" \
+                           "illuminate/contracts:${{ matrix.laravel-version }}" \
+                           "illuminate/support:${{ matrix.laravel-version }}" \
+                           "illuminate/routing:${{ matrix.laravel-version }}" \
+                           "illuminate/events:${{ matrix.laravel-version }}" \
+                           "illuminate/filesystem:${{ matrix.laravel-version }}" \
+            --no-update
+          composer update --prefer-dist --no-interaction
+      - name: PHPUnit (tests)
+        run: composer test
