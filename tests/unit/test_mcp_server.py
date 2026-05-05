@@ -146,3 +146,73 @@ class TestMcpCliSurface:
         assert result.exit_code == 0
         assert "--transport" in result.output
         assert "--port" in result.output
+
+
+# ---------------------------------------------------------------------------
+# Graph warm-up + trace env wiring (build_mcp_server side-effects)
+# ---------------------------------------------------------------------------
+
+
+class TestGraphWarmup:
+    """``build_mcp_server`` triggers a single ``graph().load()`` to amortise
+    the cold-cache penalty.  Failures must be caught and logged but never
+    raise — the agent will see the real error on its first tool call.
+
+    Uses a fully-mocked storage so we can swap ``graph()`` cleanly;
+    ``ProjectStorage`` itself is slot-defined and rejects monkey-patching.
+    """
+
+    def _engine_with_handle(self, handle: Any) -> QueryEngine:
+        from unittest.mock import MagicMock
+
+        storage = MagicMock()
+        storage.graph.return_value = handle
+        registry = ToolRegistry()
+        register_builtin_tools(registry)
+        ctx = QueryContext(storage=storage, budget=ResponseBudget())
+        return QueryEngine(registry=registry, context=ctx)
+
+    def test_warmup_calls_graph_load_on_server_build(self) -> None:
+        from unittest.mock import MagicMock
+
+        spy_handle = MagicMock()
+        spy_handle.load = MagicMock()
+
+        engine = self._engine_with_handle(spy_handle)
+        build_mcp_server(engine)
+        assert spy_handle.load.call_count == 1
+
+    def test_warmup_swallows_exceptions_and_logs(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A failing warm-up must not crash ``build_mcp_server``."""
+        from unittest.mock import MagicMock
+
+        captured: list[tuple[str, dict[str, Any]]] = []
+
+        class _StubLog:
+            def warning(self, event: str, **kw: Any) -> None:
+                captured.append((event, kw))
+
+            def info(self, event: str, **kw: Any) -> None:
+                pass
+
+        from nexus.interfaces.mcp import server as server_module
+
+        monkeypatch.setattr(server_module, "log", _StubLog())
+
+        bad_handle = MagicMock()
+        bad_handle.load.side_effect = RuntimeError("disk on fire")
+
+        engine = self._engine_with_handle(bad_handle)
+        # Must not raise.
+        build_mcp_server(engine)
+
+        warning = next(
+            (kw for event, kw in captured if event == "mcp_graph_warmup_failed"),
+            None,
+        )
+        assert warning is not None
+        assert warning["error_type"] == "RuntimeError"
+        assert warning["error"] == "disk on fire"

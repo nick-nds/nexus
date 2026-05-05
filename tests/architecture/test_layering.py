@@ -41,10 +41,24 @@ def _imported_modules(source: str) -> set[str]:
     Relative imports are not expected in this project (ruff enforces
     absolute imports via TID252) but we handle them defensively by
     skipping them.
+
+    Imports inside ``if TYPE_CHECKING:`` blocks are excluded — they're
+    erased at runtime and don't constitute a real layering dependency.
+    Type annotations crossing layer boundaries are idiomatic and don't
+    create import cycles, so the layering rule shouldn't catch them.
     """
     tree = ast.parse(source)
+    type_checking_imports: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.If) and _is_type_checking_test(node.test):
+            for child in ast.walk(ast.Module(body=node.body, type_ignores=[])):
+                if isinstance(child, (ast.Import, ast.ImportFrom)):
+                    type_checking_imports.add(id(child))
+
     imports: set[str] = set()
     for node in ast.walk(tree):
+        if id(node) in type_checking_imports:
+            continue
         if isinstance(node, ast.Import):
             for alias in node.names:
                 imports.add(alias.name)
@@ -53,6 +67,15 @@ def _imported_modules(source: str) -> set[str]:
                 continue
             imports.add(node.module)
     return imports
+
+
+def _is_type_checking_test(test: ast.expr) -> bool:
+    """Return True for the various spellings of ``TYPE_CHECKING`` guard."""
+    if isinstance(test, ast.Name):
+        return test.id == "TYPE_CHECKING"
+    if isinstance(test, ast.Attribute):
+        return test.attr == "TYPE_CHECKING"
+    return False
 
 
 class TestCoreDoesNotImportAdapters:

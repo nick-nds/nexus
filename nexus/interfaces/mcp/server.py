@@ -102,7 +102,7 @@ def _warm_graph_cache(engine: QueryEngine) -> None:
     """
     try:
         engine.context.storage.graph().load()
-    except Exception as exc:  # noqa: BLE001 — non-fatal warm-up
+    except Exception as exc:
         log.warning("mcp_graph_warmup_failed", error_type=type(exc).__name__, error=str(exc))
 
 

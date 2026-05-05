@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
-import pytest
 from nexus.core.graph.graph import Graph
 from nexus.core.graph.types import Node, NodeKind
 from nexus.core.query.budget import ResponseBudget
@@ -29,6 +29,9 @@ from nexus.core.query.trace import (
     record_tool_executed,
     trace_path_from_env,
 )
+
+if TYPE_CHECKING:
+    import pytest
 
 
 # ---------------------------------------------------------------------------
