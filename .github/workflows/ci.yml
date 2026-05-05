@@ -60,6 +60,18 @@ jobs:
         with:
           enable-cache: true
 
+      # The LSP integration tests under ``tests/integration/test_lsp_client.py``
+      # skip when no LSP binary is on PATH. Without intelephense we lose
+      # ~25 lines of coverage in nexus/adapters/lsp/lsp_client.py — enough
+      # to drop the project under the 90% gate. Installing it costs ~5s.
+      - name: Set up Node.js (for intelephense)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install intelephense
+        run: npm install -g intelephense
+
       - name: Install dependencies
         run: uv sync --all-extras
 
