@@ -1,0 +1,72 @@
+name: ✨ Feature request
+description: Propose a new capability or improvement.
+title: "[feat]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. We're more likely to act on requests
+        that describe the **problem** before the solution — what blocked
+        you, what you tried, why current tools didn't fit.
+
+        Note: requests for *new query tools* belong in the dedicated
+        "🔧 Query tool request" template; requests for new Laravel
+        project profiles belong in "🧬 Profile request".
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What were you trying to do? What got in the way?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What would you like to see happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing tools, workarounds, or patterns you tried first.
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Target tier
+      description: Where do you think this belongs?
+      options:
+        - Free / open-core
+        - Pro
+        - Not sure
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase scope
+      description: |
+        Per `internal_docs/MASTER-PLAN.md`, work happens in phases.  If
+        you know which phase this fits, mark it here; if not, leave on
+        "Not sure".
+      options:
+        - "Phase 1 — extraction"
+        - "Phase 2 — core engine"
+        - "Phase 3 — indexing pipeline"
+        - "Phase 4 — query engine"
+        - "Phase 5 — interface layer"
+        - "Post-v1 / federation"
+        - Not sure
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else

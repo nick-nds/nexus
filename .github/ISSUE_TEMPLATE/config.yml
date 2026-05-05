@@ -1,0 +1,21 @@
+# Issue chooser configuration.
+#
+# - blank_issues_enabled: false — every report comes through one of the
+#   structured templates so we capture the right context up front.
+# - contact_links: surfaced above the template list, useful for
+#   redirecting questions and discussions away from the issue tracker.
+
+blank_issues_enabled: false
+
+contact_links:
+  - name: 💬 Question or discussion
+    url: https://github.com/nexus-laravel/nexus/discussions
+    about: |
+      For open-ended questions, design discussions, or "is this the right tool for X?",
+      please post in Discussions instead of opening an issue.
+
+  - name: 📖 Documentation
+    url: https://github.com/nexus-laravel/nexus/blob/main/docs/getting-started.md
+    about: |
+      Check the docs first — installation, configuration, profiles, and the
+      error-code taxonomy are all there.

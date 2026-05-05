@@ -1,15 +1,20 @@
 name: Publish nexus/extractor-php to Packagist
 
-# Triggers in parallel with publish.yml on the same version tag.
-# Packagist is updated automatically when the tag is pushed to GitHub,
-# provided the GitHub repository is linked in the Packagist project settings.
+# DISABLED: triggers manually only (workflow_dispatch).
 #
-# This workflow tags the packages/ subdirectory as the release source and
-# runs the PHP quality gate to confirm the package is publish-ready.
+# This workflow is the documented release path for the Composer
+# package but stays dormant until the project is ready to publish.
+# Re-enable by reverting the ``on:`` block to:
+#
+#   on:
+#     push:
+#       tags:
+#         - "v[0-9]+.[0-9]+.[0-9]+"
+#
+# Manual run from GitHub UI: Actions → Publish nexus/extractor-php → Run workflow.
+# Packagist also polls GitHub automatically once the repo is linked.
 on:
-  push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
 
 defaults:
   run:

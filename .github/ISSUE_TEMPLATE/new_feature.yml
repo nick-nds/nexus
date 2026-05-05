@@ -1,0 +1,194 @@
+name: 🚀 New feature (implementation spec)
+description: Open this when you're starting work on a new feature — the spec/plan that the PR closes.
+title: "[feature]: "
+labels: ["feature", "in-progress"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for features you (or a teammate) are about to build —
+        the issue is the **spec** that the eventual PR closes.
+
+        For "we should consider X someday" with no implementation
+        plan, use the **✨ Feature request** template instead.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One paragraph — the user-facing outcome, not the implementation.
+      placeholder: |
+        Agents asking "what migrations does this model use" should get a
+        list of migration files that touch the model's table, in
+        chronological order, without falling through to semantic_search.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope-in
+    attributes:
+      label: In scope
+      description: Bullet list — what this feature WILL do.
+      placeholder: |
+        - New `find_migrations` query tool
+        - PhaseB extractor pass that reads `database/migrations/`
+        - Classifier rule for "what migrations …" phrasings
+        - Docs update + new error_code
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope-out
+    attributes:
+      label: Explicitly out of scope
+      description: |
+        What this feature WILL NOT do. Naming non-goals up front prevents
+        scope creep during review.
+      placeholder: |
+        - Running migrations or generating diff SQL
+        - Detecting destructive migrations (separate feature)
+        - Migration squashing analysis
+    validations:
+      required: true
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase scope
+      description: Per `internal_docs/MASTER-PLAN.md`. Out-of-band work needs explicit justification below.
+      options:
+        - "Phase 1 — extraction"
+        - "Phase 2 — core engine"
+        - "Phase 3 — indexing pipeline"
+        - "Phase 4 — query engine"
+        - "Phase 5 — interface layer"
+        - "Post-v1 / federation"
+        - "Out-of-band (justify in 'Notes')"
+    validations:
+      required: true
+
+  - type: textarea
+    id: design
+    attributes:
+      label: Design sketch
+      description: |
+        How will this be built? File paths, the protocol/class touched,
+        new schemas, edge kinds, classifier patterns. Focus on the parts
+        that are non-obvious or contentious — boilerplate doesn't need
+        re-stating.
+      placeholder: |
+        - New `EdgeKind.MIGRATES_TABLE` linking migration nodes to model nodes.
+        - PhaseB visitor parses `Schema::create('table', ...)` calls.
+        - New tool `nexus/core/query/tools/find_migrations.py` walks
+          incoming `MIGRATES_TABLE` edges from a model's table-name attr.
+        - Classifier rule: `r"(?:what|which) migrations? (?:for|of|on)\s+(\S+)"`.
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected
+    attributes:
+      label: Modules / files affected
+      description: Quick map so reviewers know where to look.
+      render: text
+      placeholder: |
+        New:
+          nexus/core/query/tools/find_migrations.py
+          tests/unit/test_tools_find_migrations.py
+          packages/nexus-extractor-php/src/Extraction/PhaseB/MigrationVisitor.php
+        Modified:
+          nexus/core/graph/types.py            (+ MIGRATES_TABLE)
+          nexus/core/query/classifier_patterns.py  (+ regex)
+          nexus/core/query/tools/__init__.py   (+ export)
+          tests/unit/test_interface_freeze.py  (+ tool name)
+          docs/error-codes.md                  (+ migration_not_found)
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: |
+        Concrete, testable bullets. The PR is mergeable when every item
+        ticks. Copy this list verbatim into the PR description.
+      placeholder: |
+        - [ ] `find_migrations` registered in `ToolRegistry` and exposed via MCP
+        - [ ] `nexus query find_migrations --table users` returns chronological list
+        - [ ] Classifier corpus has ≥ 4 cases routing to this tool
+        - [ ] Unit tests for: empty table, missing model, multi-migration history
+        - [ ] MCP integration test (`tests/integration/test_mcp_tools_call.py`)
+        - [ ] `mypy --strict` clean
+        - [ ] Coverage stays ≥ 90 %
+        - [ ] `docs/error-codes.md` updated with `migration_not_found`
+        - [ ] `scripts/list_error_codes.py --strict` exits 0
+        - [ ] Decision-log entry if the schema changed
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Task breakdown
+      description: |
+        Optional but recommended for multi-day features. Use GitHub
+        sub-issues / task lists so progress is visible at a glance.
+      placeholder: |
+        - [ ] Add `EdgeKind.MIGRATES_TABLE` + builder edge wiring
+        - [ ] PHP visitor + fixture migrations
+        - [ ] Tool implementation + unit tests
+        - [ ] Classifier patterns + corpus tests
+        - [ ] MCP roundtrip + freeze test
+        - [ ] Docs
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing plan
+      description: What kinds of tests, against what fixtures.
+      placeholder: |
+        - Unit (pure): edge construction, tool logic, classifier rules.
+        - Integration: full pipeline pass over the sample-laravel-app
+          fixture with two migrations on a `users` table.
+        - MCP roundtrip in `test_mcp_tools_call.py`.
+    validations:
+      required: true
+
+  - type: textarea
+    id: docs-impact
+    attributes:
+      label: Documentation / schema impact
+      description: |
+        Anything user-facing or schema-versioned that needs an update.
+        If you're bumping a `schema_version`, mention the migration.
+      placeholder: |
+        - `docs/cli-reference.md` + `docs/mcp-reference.md` get the new tool
+        - `docs/error-codes.md` gains `migration_not_found`
+        - No schema_version bump (purely additive node/edge kinds)
+
+  - type: textarea
+    id: backcompat
+    attributes:
+      label: Backwards-compatibility
+      description: |
+        Public-API impact. Renames break the freeze test
+        (`tests/unit/test_interface_freeze.py`) — call that out.
+      placeholder: |
+        Additive — new tool name, no existing tool changed.
+        Freeze test gains one entry.
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Open questions / risks
+      description: Things you'd like a reviewer to push back on.
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes / links
+      description: Related issues, design references, prior art.
+      placeholder: |
+        Discussed in #42.
+        References `internal_docs/PHASE-2-core-engine.md` §D2.7.
+        Inspired by `php artisan migrate:status` output shape.

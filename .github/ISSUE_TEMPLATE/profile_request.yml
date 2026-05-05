@@ -1,0 +1,90 @@
+name: 🧬 Profile request
+description: Add support for a Laravel project pattern (DDD, Filament, etc.).
+title: "[profile]: "
+labels: ["profile", "enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A Nexus profile teaches the classifier and graph builder about
+        your project's naming conventions, base classes, and module
+        layout.  Built-in profiles live in `nexus/profiles/builtin/`
+        (laravel-default, laravel-api, laravel-ddd, laravel-ddd-cqrs,
+        laravel-actions, laravel-filament, laravel-repository).
+
+        Read `internal_docs/11-profile-system.md` for the schema before
+        filing this request.
+
+  - type: input
+    id: pattern-name
+    attributes:
+      label: Pattern name
+      description: Short, lower-kebab. Will become the YAML filename.
+      placeholder: "laravel-event-sourcing"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Pattern description
+      description: One paragraph — what convention does this pattern represent?
+      placeholder: |
+        Event-sourced applications using EventSauce or hirethunk/verbs.
+        Aggregates live in `App\Domain\<BoundedContext>\Aggregate`,
+        commands in `App\Domain\<BoundedContext>\Command`, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: detection-signals
+    attributes:
+      label: Detection signals
+      description: |
+        Files/paths/composer dependencies that uniquely identify this
+        pattern.  These become the `detectors` block in the profile YAML.
+      placeholder: |
+        - composer.json requires `eventsauce/eventsauce` or `hirethunk/verbs`
+        - Directory `app/Domain/<X>/Aggregate` exists
+        - At least 1 class implementing `EventSauce\EventSourcing\AggregateRoot`
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: custom-bases
+    attributes:
+      label: Custom base classes / suffixes
+      description: |
+        Class-classification rules. Matches the `custom_bases` and
+        `custom_suffixes` fields in the profile schema.
+      render: yaml
+      placeholder: |
+        custom_bases:
+          App\Foundation\Aggregate: aggregate
+          App\Foundation\Projector: projector
+        custom_suffixes:
+          Aggregate: aggregate
+          Projector: projector
+
+  - type: textarea
+    id: module-detection
+    attributes:
+      label: Module detection rule
+      description: |
+        How should `list_modules` group classes for this pattern?
+        Default rule (`App\Modules\X` or `App\Y`) is in
+        `nexus/core/query/tools/list_modules.py:detect_module_prefix`.
+        Note any deviation here.
+
+  - type: input
+    id: sample-project
+    attributes:
+      label: Sample project URL
+      description: A public repo we can test against (preferred but not required).
+      placeholder: "https://github.com/..."
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else

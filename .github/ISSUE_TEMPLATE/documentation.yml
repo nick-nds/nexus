@@ -1,0 +1,39 @@
+name: 📖 Documentation
+description: Report a doc that's wrong, missing, unclear, or outdated.
+title: "[docs]: "
+labels: ["documentation", "triage"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page or file
+      description: Path under `docs/` or a heading.
+      placeholder: "docs/getting-started.md → 'Configuring an embedder'"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Issue kind
+      options:
+        - Wrong (factual error)
+        - Outdated (refers to old behaviour)
+        - Unclear (couldn't follow it)
+        - Missing (page or section doesn't exist)
+        - Typo / formatting
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: What's the problem?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested wording / structure
+      description: Optional. If you have a draft, paste it here and we'll edit.

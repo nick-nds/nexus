@@ -1,0 +1,141 @@
+name: 🐛 Bug report
+description: Something doesn't work as documented.
+title: "[bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The fields below help us
+        reproduce the issue without a follow-up round trip — please fill
+        in everything you can, even if it feels redundant.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences describing what's broken.
+      placeholder: e.g. "`describe_class` returns `class_not_found` for a class that exists in the index."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: |
+        The exact commands you ran and the question you asked.  Use the
+        ``--trace`` flag if relevant — pasting the trace file's path or
+        contents is the single best thing you can include.
+      placeholder: |
+        1. `nexus index rebuild --project-path /path/to/laravel-app`
+        2. `nexus ask --trace /tmp/t.jsonl "describe App\\Models\\User"`
+        3. Look at /tmp/t.jsonl
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include the structured output (`error_code`, `error`) where applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: trace
+    attributes:
+      label: Trace file
+      description: |
+        Output of `nexus trace inspect <path>` (or the raw JSONL).  This
+        is the single most useful artifact for debugging.  Paste it
+        here or attach as a file.
+      render: json
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: '`nexus doctor` output'
+      description: Full output of `nexus doctor`.
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: nexus-version
+    attributes:
+      label: Nexus version
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.11.13"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+    validations:
+      required: true
+
+  - type: dropdown
+    id: lsp
+    attributes:
+      label: LSP server in use
+      options:
+        - intelephense
+        - phpactor
+        - none (graph-only mode)
+        - other (describe in 'Anything else')
+    validations:
+      required: true
+
+  - type: dropdown
+    id: embedder
+    attributes:
+      label: Embedder backend
+      options:
+        - ollama
+        - fastembed
+        - voyage
+        - openai
+        - none (no semantic search)
+        - other (describe in 'Anything else')
+    validations:
+      required: true
+
+  - type: input
+    id: laravel-version
+    attributes:
+      label: Target Laravel version
+      placeholder: "12.x — see meta.json"
+
+  - type: input
+    id: profile
+    attributes:
+      label: Detected profile
+      description: From `nexus profile detect` or the `profile_source` field in `meta.json`.
+      placeholder: "laravel-default"
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Other context — fixture project URL, screenshots, hypotheses.

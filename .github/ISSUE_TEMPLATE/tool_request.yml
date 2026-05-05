@@ -1,0 +1,94 @@
+name: 🔧 Query tool request
+description: Propose a new structural or semantic query tool.
+title: "[tool]: "
+labels: ["query-tool", "enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Each tool in the registry is a small Python class with a Pydantic
+        input/output schema and a per-tool latency budget.  The bar to
+        adding one is "an agent question that the existing 22 tools
+        can't answer cleanly without `semantic_search` falling back."
+
+        Read `internal_docs/09-query-engine.md` and `docs/error-codes.md`
+        first.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What agent question does this tool answer?
+      description: Phrased as a natural-language prompt an LLM might emit.
+      placeholder: |
+        "What translations strings does this controller use?"
+        "Which view templates extend the auth layout?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: example-prompts
+    attributes:
+      label: Example phrasings the classifier should route here
+      description: 3–5 representative ways an agent might ask this question.
+      placeholder: |
+        "what translations does X use"
+        "list translation strings for the orders module"
+        "trans keys in App\\Http\\Controllers\\OrderController"
+    validations:
+      required: true
+
+  - type: textarea
+    id: input-output
+    attributes:
+      label: Proposed input / output shape
+      description: |
+        Sketch the tool's Pydantic models.  Include defaults and the
+        documented error codes (per `docs/error-codes.md`).
+      render: python
+      placeholder: |
+        class FindTranslationsInput(ToolInput):
+            class_fqn: str
+
+        class TranslationKeyRow(ToolOutput):
+            key: str
+            file: str | None
+            line: int | None
+
+        class FindTranslationsOutput(ToolOutput):
+            class_fqn: str | None = None
+            total: int = 0
+            keys: list[TranslationKeyRow] = []
+            error: str | None = None
+            error_code: str | None = None  # "class_not_found"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data-dependency
+    attributes:
+      label: Data dependency
+      description: Which indexing capability does this tool need?
+      multiple: true
+      options:
+        - Graph (always available)
+        - Static analysis findings (PhaseC visitors)
+        - LSP-fed CALLS edges
+        - Vector store / embeddings
+        - New extractor pass (requires PHP package change)
+    validations:
+      required: true
+
+  - type: textarea
+    id: existing-tools
+    attributes:
+      label: Why don't existing tools cover this?
+      description: |
+        Did you try `explore_entity` + `describe_class`?  `find_callers`?
+        `semantic_search`?  Explain why each falls short.
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
