@@ -72,6 +72,15 @@ jobs:
       - name: Install intelephense
         run: npm install -g intelephense
 
+      # Ubuntu GitHub runners ship with Composer pre-installed; macOS
+      # runners don't. Without it the ``_check_composer`` path in
+      # ``nexus/interfaces/cli/commands/doctor.py`` returns early on
+      # macOS, leaving ~2 lines uncovered and dropping the project
+      # below the 90% gate. Brew adds it in a few seconds.
+      - name: Install Composer (macOS only)
+        if: runner.os == 'macOS'
+        run: brew install composer
+
       - name: Install dependencies
         run: uv sync --all-extras
 
