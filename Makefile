@@ -9,7 +9,7 @@ PYTEST         := $(VENV)/bin/pytest
 # to a plain venv + pip otherwise.
 HAS_UV := $(shell command -v uv 2>/dev/null)
 
-.PHONY: help venv install format lint typecheck test test-unit test-integration coverage check clean
+.PHONY: help venv install format lint typecheck test test-unit test-integration coverage check ci clean
 
 help:
 	@echo "Targets:"
@@ -22,7 +22,8 @@ help:
 	@echo "  test-unit     Run only unit tests"
 	@echo "  test-integration  Run only integration tests"
 	@echo "  coverage      Run pytest with coverage report"
-	@echo "  check         Run lint + typecheck + test (the CI gate)"
+	@echo "  ci            Run the literal CI gate locally (mirrors .github/workflows/ci.yml)"
+	@echo "  check         Alias for 'ci'"
 	@echo "  clean         Remove venv and build artefacts"
 
 $(VENV)/bin/python:
@@ -64,7 +65,27 @@ test-integration: venv
 coverage: venv
 	$(PYTEST) --cov=nexus --cov-branch --cov-report=term --cov-report=html
 
-check: lint typecheck test
+# ``ci`` mirrors .github/workflows/ci.yml line-by-line.
+#
+# - Same flags (``--strict``, ``--cov-fail-under=90``)
+# - Same scope (``nexus/ tests/``, NOT ``examples/``)
+# - Uses ``uv run`` (CI's runner) instead of ``$(VENV)/bin/...`` so a
+#   green local run guarantees a green CI run and there's no
+#   "but it passed for me" gap.
+#
+# Run this before every push.  Coverage figures may differ slightly
+# from CI (LSP integration tests skip without intelephense; doctor.py
+# composer-check skips without composer) — see ci.yml for the
+# environment shape CI provides.
+ci:
+	uv run ruff format --check nexus/ tests/
+	uv run ruff check nexus/ tests/
+	uv run mypy --strict nexus/
+	uv run pytest --cov=nexus --cov-fail-under=90 --cov-report=term-missing -q
+
+# Backwards-compat alias.  Existing muscle memory (``make check``)
+# still works and now resolves to the same canonical gate as ``ci``.
+check: ci
 
 clean:
 	rm -rf $(VENV) build dist .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage
