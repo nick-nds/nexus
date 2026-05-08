@@ -37,7 +37,7 @@ Testbench is what Phase 7's server-side build pipeline *should* be using interna
 
 ## Locked-in decisions
 
-The brainstorm + self-review produced nine design decisions. Each is recorded here as a future decision-log entry candidate.
+The brainstorm + self-review + attribution review produced ten design decisions. Each is recorded here as a future decision-log entry candidate.
 
 | # | Decision | Rationale |
 |---|---|---|
@@ -50,6 +50,7 @@ The brainstorm + self-review produced nine design decisions. Each is recorded he
 | 7 | Workbench/Testbench/Orchestra namespaces are filtered from the package index by the `ExtractPackageCommand` itself | Without this, fixture routes/factories/providers that Workbench registers to make the booted skeleton usable would pollute the package's index. Filter at PHP side because it knows it's running under Testbench |
 | 8 | File paths in `reflection.json` are normalized to be `<package_root>`-relative on Python ingest | Without this, file paths reference `/some/scratch/.../vendor/orchestra/testbench-core/laravel/vendor/<vendor>/<name>/...` — useless for "where does this code live" UX, and different between in-repo and Nexus-driven modes (breaks idempotency) |
 | 9 | `kind` and `package` are new top-level fields on `ReflectionDocument` (not nested under `project`); schema bumps from 2.0.0 → 2.1.0 (additive minor) | `project` describes the booted-app identity (which is "Testbench" in package mode); `package` describes the indexed target. They're orthogonal. Minor bump matches the existing schema-version policy (`document.py` SCHEMA_MAJOR comment) |
+| 10 | **Full attribution metadata is captured from the target's `composer.json` and propagated through every layer that returns package data:** reflection.json's `package` block, `ProjectMeta.package`, every CLI/MCP query response envelope when `kind == "package"`. Fields: `vendor`, `name`, `version`, `description`, `authors[] {name, email, homepage, role}`, `license`, `homepage`. CLI pretty output renders an attribution footer; MCP responses include a structured `package` block alongside the tool result | Sourcegraph-equivalent provenance. Required for legal correctness (some licenses mandate attribution), user trust (agents must not conflate "indexed" with "authored"), and downstream UX. Composer.json already standardizes these fields, so this is metadata propagation, not capture-from-thin-air. Per-result attribution is deferred to federation (Phase 6+) since today every result in a single response shares the same source |
 
 Implementation choice: **Approach B** — a sibling artisan command `nexus:extract-package`, sharing pipeline wiring with the existing `nexus:extract` via an extracted `ExtractionRunner`. Chosen over Approach A (one command with a `--as-package` flag) because it leaves the signed-off Phase 1 command untouched, eliminates mutual-exclusion logic in the CLI surface, and forces a clean refactor that's net-positive regardless. Approach C (Python-only with vendor-allowlist + post-filtering) was rejected because runtime registry data can't be cleanly scoped by namespace post-hoc.
 
@@ -62,14 +63,14 @@ The feature spans both halves of the codebase. The boundary is unchanged: PHP do
 | Module | Status | Responsibility |
 |---|---|---|
 | `src/Console/ExtractCommand.php` | unchanged | Existing project-mode command; behavior preserved bit-for-bit |
-| `src/Console/ExtractPackageCommand.php` | new | `nexus:extract-package` artisan command. Single signature: `--package=<vendor>/<name>` (auto-detect from composer.json if omitted), `--output` (**required** — no default; the orchestrator always passes one), `--quiet-progress`. After extraction, applies the namespace-exclusion filter (decision #7) before writing JSON |
+| `src/Console/ExtractPackageCommand.php` | new | `nexus:extract-package` artisan command. Single signature: `--package=<vendor>/<name>` (auto-detect from composer.json if omitted), `--output` (**required** — no default; the orchestrator always passes one), `--quiet-progress`. Reads the **full attribution surface** from the target's `composer.json` (`name`, `version`, `description`, `authors`, `license`, `homepage`) per decision #10 and writes it into the document's `package` block. After extraction, applies the namespace-exclusion filter (decision #7) before writing JSON |
 | `src/Extraction/ExtractionRunner.php` | new (extracted) | Pulled out of `ExtractCommand::handle()`. Both commands consume it. Owns: error collector, fatal-handler installation, pipeline construction, JSON write, exit-code mapping. Caveat: the existing handler captures Symfony Console output and registers a global shutdown function — keeping behavior bit-for-bit identical requires the runner to accept these as constructor deps and to deregister cleanly between runs (matters for tests, not prod) |
 | `src/Extraction/Support/PackageScope.php` | new | Immutable value object: `vendor`, `name`, `version`, `vendor_path`, `namespaces` (resolved from package's `composer.json` `autoload.psr-4`) |
 | `src/Extraction/Support/NamespaceExclusionFilter.php` | new | Hardcoded prefix list (`Workbench\`, `Orchestra\Testbench\`, `Orchestra\Workbench\`, `Orchestra\Sidekick\`, `Orchestra\Canvas\`). Filters: classes by namespace, bindings/aliases by concrete class, listeners by listener class, routes by handler class, gate callbacks by class, static-analysis findings by enclosing class. Applied in `ExtractPackageCommand` after Phase A/B/C complete, before JSON write |
 | `src/Extraction/ExtractionContext.php` | extended | Adds optional `?PackageScope $package` field |
 | `src/Extraction/PhaseB/ClassMapWalker.php` | extended | When `PackageScope` is set, filters classmap entries to those under `vendor_path` |
 | `src/Extraction/PhaseC/StaticAnalysisExtractor.php` | extended | When `PackageScope` is set, scans only files under `vendor_path` (specifically the package's `src/` per its own `composer.json`) |
-| `src/Output/ReflectionDocument.php` | extended | **Top-level** adds `kind: "project" | "package"` (default `"project"`) and optional `package: { vendor, name, version }`. Mirrors Python-side decision #9 |
+| `src/Output/ReflectionDocument.php` | extended | **Top-level** adds `kind: "project" | "package"` (default `"project"`) and optional `package` block carrying full attribution per decision #10: `{ vendor, name, version, description?, authors?: [{ name, email?, homepage?, role? }], license?, homepage? }`. Author/license/homepage/description are optional because composer.json doesn't require them; missing fields serialize as `null`. Mirrors Python-side decisions #9 and #10 |
 | `src/Output/SchemaVersion.php` | extended | Bump constant from `"2.0.0"` to `"2.1.0"` (additive minor; old consumers ignore unknown fields, new consumers see the new fields with sensible defaults) |
 | `src/NexusExtractorServiceProvider.php` | extended | Registers the new command alongside the existing one |
 
@@ -83,12 +84,15 @@ Phase A registries are captured raw inside `ExtractPackageCommand`'s pipeline. T
 | `nexus/interfaces/cli/commands/package/index.py` | new | `nexus package index <path>` entry point. Validates input, calls orchestrator |
 | `nexus/pipeline/package_indexer.py` | new | Orchestrator. Detects in-repo vs Nexus-driven mode, manages scratch (when needed), invokes Testbench, normalizes paths, hands the resulting reflection.json to the existing pipeline |
 | `nexus/adapters/package/__init__.py` | new | |
-| `nexus/adapters/package/composer_metadata.py` | new | Reads target package's `composer.json`, resolves `vendor`, `name`, `version` (composer.json `version` → git tag → `dev-<branch>`), validates `testbench.yaml` exists, resolves `<package_root>` and `<vendor>/<name>/src/` paths |
+| `nexus/adapters/package/composer_metadata.py` | new | Reads target package's `composer.json`, resolves `vendor`, `name`, `version` (composer.json `version` → git tag → `dev-<branch>`), **plus the full attribution surface per decision #10:** `description`, `authors[]`, `license`, `homepage`. Validates `testbench.yaml` exists. Resolves `<package_root>` and `<vendor>/<name>/src/` paths. Returns a single `ComposerMetadata` dataclass that the orchestrator passes downstream |
 | `nexus/adapters/package/scratch_builder.py` | new | Owns `~/.nexus/cache/package-builds/<vendor>--<name>/<version>/`. Generates scratch `composer.json`, copies `testbench.yaml`, symlinks `workbench/` if present, runs `composer install`, writes `manifest.json` only on full success |
 | `nexus/adapters/package/fingerprint.py` | new | Computes scratch fingerprint per decision #6 — see "Cache fingerprint shape" below |
 | `nexus/adapters/package/path_normalizer.py` | new | Rewrites file paths in a loaded `ReflectionDocument` to be `<package_root>`-relative (per decision #8). Touches: `classes.items[].reflection.file`, `static_analysis.findings[].file`, `routes.items[].action.file`, `bindings.bindings[].concrete.file`, `events.listeners[].listeners[].file`, `gates_policies.gates[].callback.file`. Also rewrites `project.base_path` to `<package_root>`. Known limitation: does NOT scan `static_analysis.findings[].meta` for embedded paths (it's a free-form dict). If a future Phase C visitor stores a path in meta, this normalizer needs to be extended; today's visitors don't |
-| `nexus/core/reflection/document.py` | extended | Top-level `ReflectionDocument` Pydantic model gains `kind: Literal["project", "package"] = "project"` and `package: PackageMetadata \| None = None`. New `PackageMetadata` model with `vendor`, `name`, `version`. Model validator: `kind == "package"` requires `package` set; `kind == "project"` requires `package` is `None`. `SCHEMA_MAJOR` stays `2`; the loader now accepts `2.1.0` documents |
-| `nexus/adapters/storage/project_storage.py` | extended | `ProjectMeta` gains `kind: Literal["project", "package"] = "project"`, `package: PackageMetadata \| None = None`, `build_mode: Literal["in-repo", "nexus-driven"] \| None = None`, `source_path: str \| None = None`. Imports `PackageMetadata` from `nexus.core.reflection.document` — adapter→core import is allowed by the layering rule (only `core ↛ adapters` is forbidden). Schema bumps from `"1.0"` → `"1.1"` (additive). Existing meta files load fine — defaults fill in missing keys |
+| `nexus/core/reflection/document.py` | extended | Top-level `ReflectionDocument` Pydantic model gains `kind: Literal["project", "package"] = "project"` and `package: PackageMetadata \| None = None`. **New `PackageAuthor` sub-model**: `name: str`, `email: str \| None`, `homepage: str \| None`, `role: str \| None` (matches composer.json's authors entry shape). **`PackageMetadata` carries the full attribution per decision #10:** `vendor: str`, `name: str`, `version: str`, `description: str \| None`, `authors: list[PackageAuthor]` (default empty), `license: str \| None`, `homepage: str \| None`. Model validator: `kind == "package"` requires `package` set; `kind == "project"` requires `package` is `None`. `SCHEMA_MAJOR` stays `2`; the loader now accepts `2.1.0` documents |
+| `nexus/adapters/storage/project_storage.py` | extended | `ProjectMeta` gains `kind: Literal["project", "package"] = "project"`, `package: PackageMetadata \| None = None` (full attribution), `build_mode: Literal["in-repo", "nexus-driven"] \| None = None`, `source_path: str \| None = None`. Imports `PackageMetadata` from `nexus.core.reflection.document` — adapter→core import is allowed by the layering rule (only `core ↛ adapters` is forbidden). Schema bumps from `"1.0"` → `"1.1"` (additive). Existing meta files load fine — defaults fill in missing keys |
+| `nexus/core/query/attribution.py` | new | Builds the response-envelope `package` block from a `ProjectMeta` when `kind == "package"`. Shape: `{ vendor, name, version, description?, authors?, license?, homepage? }` — same as ReflectionDocument's `package` block. Returns `None` when `kind == "project"` so the wrapper logic stays trivial. Pure function, no I/O — the only consumer is the CLI/MCP adapter layer |
+| `nexus/interfaces/cli/output.py` | extended | When the active project's `ProjectMeta.kind == "package"`, every JSON-mode response gets a top-level `package` field alongside the tool result; pretty-mode output renders an attribution footer (e.g., `"Indexed from spatie/laravel-permission@v6.18.0 by Freek Van der Herten <freek@spatie.be> · MIT · https://github.com/spatie/laravel-permission"`) |
+| `nexus/interfaces/mcp/handlers.py` | extended | When the project is a package, MCP tool responses include a structured `package` content-block alongside the tool's primary result block. Per MCP spec, the response is a content array; we add a JSON content block describing the package. Doesn't modify any tool's output schema (so the v1.0 freeze test isn't broken) |
 
 ### Storage
 
@@ -114,10 +118,23 @@ When `vendor/bin/testbench` boots the skeleton, the `app.name` config value read
   "package": {
     "vendor": "spatie",
     "name": "laravel-permission",
-    "version": "v6.18.0"
+    "version": "v6.18.0",
+    "description": "Permission handling for Laravel 8.0 and up",
+    "authors": [
+      {
+        "name": "Freek Van der Herten",
+        "email": "freek@spatie.be",
+        "homepage": "https://spatie.be",
+        "role": null
+      }
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/spatie/laravel-permission"
   }
 }
 ```
+
+Attribution fields (`description`, `authors`, `license`, `homepage`) are populated from the target's `composer.json`. When a package's composer.json is missing one of these (e.g., no `homepage`), the corresponding field is `null` (or `[]` for `authors`) — never invented or inferred.
 
 The `project` block describes the *boot context* (Testbench skeleton); `package` describes the *indexed target*. They're orthogonal. Note that `project.base_path` is rewritten to `<package_root>` by the Python-side path normalizer (decision #8), so downstream consumers can resolve relative file paths back to the user's filesystem.
 
@@ -130,6 +147,45 @@ display_name = (
     else meta.project_slug
 )
 ```
+
+### Query response attribution (decision #10)
+
+Every CLI and MCP tool response, when run against a project where `ProjectMeta.kind == "package"`, includes an attribution block alongside the tool's primary result. The block is built once per response by `nexus.core.query.attribution.build_attribution(meta)` and surfaces at the adapter layer — no tool's output schema changes (so the v1.0 freeze test stays green).
+
+**JSON output (CLI default and `--json`):**
+
+```json
+{
+  "tool": "list_routes",
+  "result": { ... tool's normal output ... },
+  "package": {
+    "vendor": "spatie",
+    "name": "laravel-permission",
+    "version": "v6.18.0",
+    "description": "Permission handling for Laravel 8.0 and up",
+    "authors": [
+      {"name": "Freek Van der Herten", "email": "freek@spatie.be",
+       "homepage": "https://spatie.be", "role": null}
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/spatie/laravel-permission"
+  }
+}
+```
+
+**Pretty output (CLI `--pretty` or interactive TTY):** the tool's normal pretty rendering, then a footer:
+
+```
+Indexed from spatie/laravel-permission@v6.18.0
+by Freek Van der Herten <freek@spatie.be> · MIT
+https://github.com/spatie/laravel-permission
+```
+
+When `authors` has multiple entries, the footer joins them with `, ` and truncates to a sensible length (e.g., first three then `+N more`). When `license` is missing, the footer omits the `· <license>` segment. When the `homepage` is missing, the footer omits the trailing URL.
+
+**MCP responses:** the tool's primary result is the first content block; an additional JSON content block carries the `package` attribution. Agents render or surface this however they like; the data is structured so they can.
+
+**Project mode (`kind == "project"`):** the response envelope has no `package` field; CLI footer is suppressed. Existing v1.0 contract is preserved bit-for-bit.
 
 ## Data flow
 
@@ -237,7 +293,24 @@ F. write/update ProjectMeta:
        "project_slug": "<slug>",
        "project_path": "<package_root>",
        "kind": "package",
-       "package": {"vendor": ..., "name": ..., "version": ...},
+       "package": {                  # full attribution per decision #10;
+                                     # mirrored from reflection.json's
+                                     # package block so query response
+                                     # envelopes don't need to re-load
+                                     # the reflection JSON.
+         "vendor": "spatie",
+         "name": "laravel-permission",
+         "version": "v6.18.0",
+         "description": "Permission handling for Laravel 8.0 and up",
+         "authors": [
+           {"name": "Freek Van der Herten",
+            "email": "freek@spatie.be",
+            "homepage": "https://spatie.be",
+            "role": null}
+         ],
+         "license": "MIT",
+         "homepage": "https://github.com/spatie/laravel-permission"
+       },
        "build_mode": "in-repo" | "nexus-driven",
        "source_path": "<path>",
        "indexed_at": <ISO-8601 UTC>,
@@ -247,7 +320,7 @@ F. write/update ProjectMeta:
                                     # null is explicit, not a missing field.
        ...other existing ProjectMeta fields stay defaulted...
      }
-G. report: "Indexed package <vendor>/<name>@<version> as project <slug> (<n> chunks, <m> nodes)"
+G. report: "Indexed package <vendor>/<name>@<version> by <author> · <license> as project <slug> (<n> chunks, <m> nodes)"
 ```
 
 The query layer doesn't care this is a package — `nexus query`, `nexus mcp serve`, every tool from Phase 4 works because the index is a regular project on disk. The "package-ness" surfaces as `ProjectMeta.kind`, useful for future filters and for `nexus project list` rendering.
@@ -314,7 +387,10 @@ Add `tests/fixtures/sample-package/` — a hand-crafted minimal Laravel package 
 
 ```
 tests/fixtures/sample-package/
-├── composer.json          # name: "nexus-fixtures/sample", version: "1.2.0", psr-4 autoload
+├── composer.json          # name: "nexus-fixtures/sample", version: "1.2.0",
+│                          # description, authors[2] (one with email/homepage,
+│                          # one minimal), license: "MIT", homepage URL —
+│                          # exercises every attribution field
 ├── testbench.yaml         # providers: [
 │                          #   NexusFixtures\Sample\SamplePackageServiceProvider,
 │                          #   Workbench\App\Providers\WorkbenchServiceProvider,
@@ -365,9 +441,12 @@ PHP coverage: `PackageScope` 100%, scoped extractors ≥ 95%, `ExtractPackageCom
 - `test_cli_package_commands.py` — Click parsing, `--name` and `--version` overrides, exit codes per error class
 - `test_slug.py` — `<vendor>--<name>` computed correctly for edge-case names (`php-imap/php-imap`, `pestphp/pest`, names with digits)
 - `test_reflection_document_kind_validation.py` — `kind="package"` requires `package` field set; `kind="project"` requires `package=None`; cross-validation rejects mismatched docs
+- `test_attribution.py` — `build_attribution(meta)` returns the correct envelope for kind=package (full attribution); `None` for kind=project; CLI footer rendering with all attribution fields, with missing license, with missing homepage, with multiple authors (joins correctly + truncates), with no authors at all; MCP envelope shape is correct (separate content block, doesn't mutate primary result)
+- `test_composer_metadata_attribution.py` — composer.json with full attribution → `ComposerMetadata` carries every field; missing `authors` → `[]`; missing `license` → `None`; missing `homepage` → `None`; malformed `authors[].email` doesn't raise (logged warning, field stays as captured)
 
 **Integration (`tests/integration/package/`)** — gated behind `RUN_PACKAGE_INTEGRATION=1`
-- `test_inrepo_mode_end_to_end.py` — sample-package pre-set-up, run `nexus package index .` from inside, assert ingest, ProjectMeta (with kind/package/build_mode/source_path), reflection.json (with kind/package), file paths normalized to package-relative
+- `test_inrepo_mode_end_to_end.py` — sample-package pre-set-up, run `nexus package index .` from inside, assert ingest, ProjectMeta (with kind/package/build_mode/source_path **and full attribution**), reflection.json (with kind/package + attribution), file paths normalized to package-relative
+- `test_attribution_end_to_end.py` — index sample-package, then run `nexus query list_routes --json` and assert response has top-level `package` block with the fixture's vendor/name/version + authors + license; run `nexus query list_routes --pretty` and assert footer text is present; index sample-package, then call MCP `tools/call list_routes` and assert the MCP response includes the package content block
 - `test_nexus_driven_mode_end_to_end.py` — same fixture, scratch is fresh; assert composer install runs, scratch manifest written, project dir populated, **same reflection.json output as in-repo mode** (same fingerprint after normalization → idempotency across modes)
 - `test_workbench_filter.py` — fixture has Workbench provider + fixture route; assert resulting index has neither the Workbench provider class nor the fixture route
 - `test_cache_hit_path.py` — second run after first; assert composer install does *not* run; assert fast-path produces correct output
@@ -418,9 +497,12 @@ A check (`[x]`) means the criterion is met. The phase exits when all are checked
 - [ ] **In-repo mode** works: against a sample package with `vendor/bin/testbench` and `vendor/nexus/extractor-php` already installed, indexing completes in ≤ 15 s on a typical dev laptop.
 - [ ] **Nexus-driven mode** works: against a sample package with only `composer.json` and `testbench.yaml`, indexing completes from cold cache (composer install runs) and warm cache (composer install skipped) successfully.
 - [ ] Cache hit on warm run completes in ≤ 30 s (vs ≤ 90 s cold).
-- [ ] Reflection.json has top-level `kind = "package"` and top-level `package = {vendor, name, version}` populated correctly.
+- [ ] Reflection.json has top-level `kind = "package"` and top-level `package` block carrying the **full attribution** (`vendor`, `name`, `version`, `description`, `authors[]`, `license`, `homepage`) populated correctly from the target's composer.json. Optional fields (`description`, `license`, `homepage`) are `null` when composer.json doesn't supply them; `authors` defaults to `[]`.
 - [ ] Reflection.json `schema_version` is `"2.1.0"` for package-mode documents; `"2.0.0"` documents still load (back-compat).
-- [ ] `ProjectMeta` on disk has `schema_version = "1.1"`, `kind = "package"`, `package = {...}`, `build_mode`, `source_path`, `indexed_at`. Existing `1.0` meta files load fine after this change.
+- [ ] `ProjectMeta` on disk has `schema_version = "1.1"`, `kind = "package"`, full `package` attribution mirrored from reflection.json, `build_mode`, `source_path`, `indexed_at`. Existing `1.0` meta files load fine after this change.
+- [ ] **Query response attribution** (decision #10): every `nexus query <tool>` and MCP `tools/call` against a package-kind project returns a `package` block alongside the tool's primary result. JSON output has the block as a top-level field; pretty-mode renders an attribution footer; MCP responses include a structured content block. Project-mode responses are unchanged (no `package` field).
+- [ ] CLI footer renders `Indexed from <vendor>/<name>@<version> by <author> · <license> · <homepage>`. Missing optional fields are gracefully omitted (no double-spaces, trailing dots, or `· null`). Multiple authors join with `, `, truncated to first three then `+N more`.
+- [ ] MCP responses do not modify any tool's output schema — the v1.0 freeze test (`tests/unit/test_interface_freeze.py`) remains green. The package block is added as a separate content block per the MCP response-array contract.
 - [ ] **All file paths in reflection.json are `<package_root>`-relative** (no `vendor/orchestra/...` paths leaking through). Verified across both modes — same package, same fingerprint, same paths.
 - [ ] **Workbench/Testbench/Orchestra noise is filtered**. Sample-package fixture has a Workbench-registered fixture route + WorkbenchServiceProvider; neither appears in the resulting index.
 - [ ] Slug computation: `<vendor>--<name>` (verified for vendors and names containing dots, dashes, digits, including `php-imap/php-imap`, `pestphp/pest`).
@@ -455,7 +537,7 @@ A check (`[x]`) means the criterion is met. The phase exits when all are checked
 ### Documentation
 
 - [ ] `internal_docs/PHASE-5.5-package-indexing.md` written, listing scope, decisions, deliverables, acceptance, risks (acceptance section here becomes its acceptance block).
-- [ ] `internal_docs/13-decision-log.md` gains entries for: D32 ("Package indexing requires testbench.yaml — no scaffolding"), D33 ("Cache scratch dirs by fingerprint that includes target source state"), D34 ("Single slug per package, latest-version-wins"), D35 ("Workbench/Testbench/Orchestra namespaces filtered from package indexes"), D36 ("Reflection.json paths normalized to `<package_root>`-relative on Python ingest"), D37 ("`kind` and `package` are top-level fields on `ReflectionDocument`; schema bump 2.0.0 → 2.1.0").
+- [ ] `internal_docs/13-decision-log.md` gains entries for: D32 ("Package indexing requires testbench.yaml — no scaffolding"), D33 ("Cache scratch dirs by fingerprint that includes target source state"), D34 ("Single slug per package, latest-version-wins"), D35 ("Workbench/Testbench/Orchestra namespaces filtered from package indexes"), D36 ("Reflection.json paths normalized to `<package_root>`-relative on Python ingest"), D37 ("`kind` and `package` are top-level fields on `ReflectionDocument`; schema bump 2.0.0 → 2.1.0"), D38 ("Full attribution metadata captured from composer.json and propagated through every layer that returns package data — Sourcegraph-equivalent provenance").
 - [ ] `internal_docs/03-feature-matrix.md` gains a row for `nexus package index` under OSS.
 - [ ] `internal_docs/15-non-goals.md` notes that scaffolding `testbench.yaml` and supporting non-Testbench packages are explicit non-goals for v1.
 - [ ] `internal_docs/MASTER-PLAN.md` lists Phase 5.5 in the timeline.
@@ -485,6 +567,8 @@ A check (`[x]`) means the criterion is met. The phase exits when all are checked
 - Hosted catalog / signed package indexes (Phase 7 territory).
 - Pruning the scratch cache by age/size (manual `nexus cache clean` only; auto-prune is a follow-up).
 - Mutation-style testing (Stryker/Infection); not in project's existing toolchain.
+- License-compatibility checks. We capture the package's `license` string and surface it in attribution; we do **not** validate it, warn about copyleft, or refuse indexing on incompatible licenses. Users are responsible for understanding the licenses of packages they index. Document this in `15-non-goals.md`.
+- Per-result attribution. Every result in a single response shares the same package source, so response-level attribution suffices today. When federation lands (Phase 6+) and a single response can span multiple packages, per-result attribution becomes necessary — defer to that phase.
 
 ## Risks & mitigations
 
@@ -500,6 +584,9 @@ A check (`[x]`) means the criterion is met. The phase exits when all are checked
 | Path normalization fails on edge cases (absolute paths in testbench.yaml, custom workbench locations, files outside `<vendor_path>`) | Medium | Low | Idempotent normalizer: paths NOT under `<vendor_path>` pass through unchanged. Test coverage for: absolute paths, relative paths already package-relative, paths with `..` components |
 | Real-world packages have edge cases the synthetic fixture doesn't (closure listeners, custom kernels, deferred providers, paid-license packages) | High | Medium | External validation criterion forces three real packages through before sign-off; synthetic fixture is the inner loop, real packages are the truth |
 | Refactoring `ExtractionRunner` reveals hidden coupling that breaks Phase 1 tests (e.g., shutdown handlers leaking across test cases) | Medium | High | Treat the refactor as its own milestone; merge it green against the existing Phase 1 test suite *before* adding `ExtractPackageCommand`. Don't let the new feature ride along on a flaky refactor |
+| Composer.json attribution fields are missing or malformed in real-world packages (no `authors`, no `license`, malformed email addresses) | Medium | Low | Every attribution field except `vendor`/`name`/`version` is optional. Pydantic validators must accept `None`/`[]` gracefully and never raise on a malformed-but-non-fatal entry (e.g., author with no email). Test against three real packages whose composer.json varies in completeness |
+| Adding the `package` block to MCP responses breaks the v1.0 freeze test if implemented as a tool-output-schema change | Low | High | Implement as an adapter-layer envelope (separate MCP content block, separate CLI top-level field) — never mutate any tool's `output_model`. Acceptance criterion explicitly checks this |
+| License-mismatch surprise: user indexes a package whose license they didn't realise required attribution; downstream they accidentally redistribute the index assuming it's their own work | Low | Medium | The CLI footer is the explicit "this is from someone else, here's their license" reminder. Document in `15-non-goals.md`: Nexus does not perform license compatibility checks, validate license strings, or warn about copyleft licenses. Users are responsible for understanding the licenses of packages they index |
 
 ## References
 
