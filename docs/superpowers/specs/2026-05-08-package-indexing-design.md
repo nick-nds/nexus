@@ -86,9 +86,9 @@ Phase A registries are captured raw inside `ExtractPackageCommand`'s pipeline. T
 | `nexus/adapters/package/composer_metadata.py` | new | Reads target package's `composer.json`, resolves `vendor`, `name`, `version` (composer.json `version` → git tag → `dev-<branch>`), validates `testbench.yaml` exists, resolves `<package_root>` and `<vendor>/<name>/src/` paths |
 | `nexus/adapters/package/scratch_builder.py` | new | Owns `~/.nexus/cache/package-builds/<vendor>--<name>/<version>/`. Generates scratch `composer.json`, copies `testbench.yaml`, symlinks `workbench/` if present, runs `composer install`, writes `manifest.json` only on full success |
 | `nexus/adapters/package/fingerprint.py` | new | Computes scratch fingerprint per decision #6 — see "Cache fingerprint shape" below |
-| `nexus/adapters/package/path_normalizer.py` | new | Rewrites file paths in a loaded `ReflectionDocument` to be `<package_root>`-relative (per decision #8). Touches: `classes.items[].reflection.file`, `static_analysis.findings[].file`, `routes.items[].action.file`, `bindings.bindings[].concrete.file`, `events.listeners[].listeners[].file`, `gates_policies.gates[].callback.file`. Also rewrites `project.base_path` to `<package_root>` for downstream consumers |
+| `nexus/adapters/package/path_normalizer.py` | new | Rewrites file paths in a loaded `ReflectionDocument` to be `<package_root>`-relative (per decision #8). Touches: `classes.items[].reflection.file`, `static_analysis.findings[].file`, `routes.items[].action.file`, `bindings.bindings[].concrete.file`, `events.listeners[].listeners[].file`, `gates_policies.gates[].callback.file`. Also rewrites `project.base_path` to `<package_root>`. Known limitation: does NOT scan `static_analysis.findings[].meta` for embedded paths (it's a free-form dict). If a future Phase C visitor stores a path in meta, this normalizer needs to be extended; today's visitors don't |
 | `nexus/core/reflection/document.py` | extended | Top-level `ReflectionDocument` Pydantic model gains `kind: Literal["project", "package"] = "project"` and `package: PackageMetadata \| None = None`. New `PackageMetadata` model with `vendor`, `name`, `version`. Model validator: `kind == "package"` requires `package` set; `kind == "project"` requires `package` is `None`. `SCHEMA_MAJOR` stays `2`; the loader now accepts `2.1.0` documents |
-| `nexus/adapters/storage/project_storage.py` | extended | `ProjectMeta` gains `kind: Literal["project", "package"] = "project"`, `package: PackageMetadata \| None = None`, `build_mode: Literal["in-repo", "nexus-driven"] \| None = None`, `source_path: str \| None = None`. Schema bumps from `"1.0"` → `"1.1"` (additive). Existing meta files load fine — defaults fill in missing keys |
+| `nexus/adapters/storage/project_storage.py` | extended | `ProjectMeta` gains `kind: Literal["project", "package"] = "project"`, `package: PackageMetadata \| None = None`, `build_mode: Literal["in-repo", "nexus-driven"] \| None = None`, `source_path: str \| None = None`. Imports `PackageMetadata` from `nexus.core.reflection.document` — adapter→core import is allowed by the layering rule (only `core ↛ adapters` is forbidden). Schema bumps from `"1.0"` → `"1.1"` (additive). Existing meta files load fine — defaults fill in missing keys |
 
 ### Storage
 
@@ -209,7 +209,9 @@ fingerprint = sha256(
             git rev-parse HEAD       # commit hash
             git status --porcelain   # working-tree dirty marker
         else:
-            recursive sha256 of <path>/<psr-4 src dir>/  # falls back to content hash
+            recursive sha256 of every directory listed in
+            composer.json autoload.psr-4 (production code only,
+            NOT autoload-dev) under <path>
 )
 ```
 
@@ -240,7 +242,10 @@ F. write/update ProjectMeta:
        "source_path": "<path>",
        "indexed_at": <ISO-8601 UTC>,
        "last_indexed_commit": <git HEAD if <path> is a git repo, else null>,
-       ...other existing ProjectMeta fields...
+       "detected_profile": null,    # packages don't auto-detect a profile;
+                                    # the profile system is for app projects.
+                                    # null is explicit, not a missing field.
+       ...other existing ProjectMeta fields stay defaulted...
      }
 G. report: "Indexed package <vendor>/<name>@<version> as project <slug> (<n> chunks, <m> nodes)"
 ```
@@ -367,8 +372,9 @@ PHP coverage: `PackageScope` 100%, scoped extractors ≥ 95%, `ExtractPackageCom
 - `test_workbench_filter.py` — fixture has Workbench provider + fixture route; assert resulting index has neither the Workbench provider class nor the fixture route
 - `test_cache_hit_path.py` — second run after first; assert composer install does *not* run; assert fast-path produces correct output
 - `test_scratch_invalidation_version.py` — bump fixture version, re-run, assert composer install runs again
-- `test_scratch_invalidation_source.py` — modify a `.php` file under fixture's `src/`, re-run, assert composer install runs again (cache fingerprint catches source changes)
-- `test_dirty_working_tree.py` — fixture is a git repo, `git status` is dirty, fingerprint reflects that, edits to the dirty tree bust the cache
+- `test_scratch_invalidation_source_git.py` — fixture *is* a git repo with a clean working tree; commit a change to a `.php` file under `src/` (HEAD changes), re-run, assert composer install runs again
+- `test_scratch_invalidation_source_nongit.py` — fixture is *not* a git repo (or git history removed); modify a `.php` file under `src/`, re-run, assert composer install runs again (recursive content hash catches it)
+- `test_dirty_working_tree.py` — fixture is a git repo, working tree is dirty (uncommitted edits); fingerprint reflects that; reverting the edit restores the prior fingerprint
 
 **E2E (`tests/e2e/package/`)** — gated behind `RUN_E2E=1` and a real embedder
 - `test_query_package_index.py` — full pipeline: index sample-package → run `list_routes` → assert `/sample` appears (and `/workbench-fixture` does NOT) → run `find_listeners SampleEvent` → assert `SampleListener` returned
@@ -396,7 +402,7 @@ PHP coverage: `PackageScope` 100%, scoped extractors ≥ 95%, `ExtractPackageCom
 
 ### Idempotency guarantee
 
-Two consecutive `nexus package index <path>` runs against an unchanged fixture must produce byte-identical reflection JSON (modulo `extracted_at` timestamps), byte-identical scratch manifest fingerprint, byte-identical ProjectMeta (modulo `indexed_at`). Phase 1 already enforces deterministic ordering for the existing extractor; we extend that guarantee to package mode. This catches whole categories of subtle bugs (non-deterministic class iteration, unstable composer.lock, env leakage into output).
+Two consecutive `nexus package index <path>` runs against an unchanged fixture must produce byte-identical reflection JSON (modulo `generated_at` timestamp), byte-identical scratch manifest fingerprint, byte-identical ProjectMeta (modulo `indexed_at`/`updated_at`). Phase 1 already enforces deterministic ordering for the existing extractor; we extend that guarantee to package mode. This catches whole categories of subtle bugs (non-deterministic class iteration, unstable composer.lock, env leakage into output).
 
 ## Acceptance criteria
 
