@@ -91,3 +91,47 @@ jobs:
             --cov-report=term-missing \
             --cov-fail-under=90 \
             -q
+
+  smoke:
+    # Phase 5 test strategy calls for an end-to-end smoke test exercising
+    # the full ``pip install`` → ``nexus init`` → query path. The "full"
+    # version drives ``nexus index rebuild`` against a sample Laravel app
+    # — but that fixture (``tests/fixtures/sample-laravel-app/``) doesn't
+    # exist yet, so this is the **lite** variant: it exercises the CLI
+    # surface and the Python ingestion path (via a known reflection.json
+    # from ``tests/fixtures/reflection-samples/``), skipping the PHP
+    # extractor. Catches CLI plumbing regressions before they reach
+    # users.
+    name: Smoke (CLI surface + reflection ingestion)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      # Doctor's LSP probe expects intelephense on PATH; without it the
+      # ``lsp`` check reports a warning, which the smoke script accepts
+      # (it tolerates exit 1 = "checks failed but command succeeded").
+      # Installing it just keeps the smoke output cleaner and matches
+      # the test job's behavior.
+      - name: Set up Node.js (for intelephense)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install intelephense
+        run: npm install -g intelephense
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run smoke check
+        run: uv run python scripts/smoke_check.py

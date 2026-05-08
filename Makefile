@@ -82,6 +82,7 @@ ci:
 	uv run ruff check nexus/ tests/
 	uv run mypy --strict nexus/
 	uv run pytest --cov=nexus --cov-fail-under=90 --cov-report=term-missing -q
+	uv run python scripts/smoke_check.py
 
 # Backwards-compat alias.  Existing muscle memory (``make check``)
 # still works and now resolves to the same canonical gate as ``ci``.
