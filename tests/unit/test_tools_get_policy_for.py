@@ -149,6 +149,15 @@ class TestGetPolicyForExecute:
         assert by_name["view"].visibility == "public"
         assert by_name["view"].line == 20
 
+    def test_methods_carry_node_id_passable_to_get_node_body(self) -> None:
+        g = _build_graph_with_policy()
+        ctx = _make_ctx(g)
+        result = self.tool.execute(GetPolicyForInput(model_fqn=_MODEL_FQN), ctx)
+
+        for method in result.methods:
+            assert method.node_id.startswith(f"method:{_POLICY_FQN}::")
+            assert method.node_id.endswith(f"::{method.name}")
+
     def test_model_not_found_returns_error(self) -> None:
         g = Graph()
         ctx = _make_ctx(g)

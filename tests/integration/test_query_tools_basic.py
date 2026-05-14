@@ -158,6 +158,27 @@ class TestDescribeClass:
         method_names = [m.name for m in result.methods]
         assert method_names == sorted(method_names)
 
+    def test_methods_carry_node_id_passable_to_get_node_body(
+        self,
+        engine: QueryEngine,
+    ) -> None:
+        """The node_id surfaced on each method must be the exact id a
+        downstream ``get_node_body`` call expects, so an agent doesn't
+        have to reconstruct it."""
+        result = engine.query(
+            "describe_class",
+            {"fqn": "App\\Http\\Controllers\\CustomersController"},
+        )
+        assert len(result.methods) > 0
+        for method in result.methods:
+            assert method.node_id.startswith(
+                "method:App\\Http\\Controllers\\CustomersController::"
+            ), (
+                f"Method {method.name!r} node_id {method.node_id!r} doesn't "
+                f"match the expected ``method:<fqn>::<name>`` shape."
+            )
+            assert method.node_id.endswith(f"::{method.name}")
+
 
 # ---------------------------------------------------------------------------
 # get_model_context
@@ -175,6 +196,17 @@ class TestGetModelContext:
         result = engine.query("get_model_context", {"fqn": "App\\Models\\RefreshToken"})
         assert result.error is None
         assert result.is_model is True
+
+    def test_methods_carry_node_id_passable_to_get_node_body(
+        self,
+        engine: QueryEngine,
+    ) -> None:
+        result = engine.query("get_model_context", {"fqn": "App\\Models\\RefreshToken"})
+        assert result.error is None
+        assert len(result.methods) > 0
+        for method in result.methods:
+            assert method.node_id.startswith("method:App\\Models\\RefreshToken::")
+            assert method.node_id.endswith(f"::{method.name}")
 
 
 # ---------------------------------------------------------------------------

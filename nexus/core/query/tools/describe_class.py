@@ -48,6 +48,14 @@ class DescribeClassInput(ToolInput):
 class MethodSummary(ToolOutput):
     """One method row inside a ``describe_class`` response."""
 
+    node_id: str = Field(
+        description=(
+            "Graph node id (e.g. ``method:App\\Models\\User::scopeActive``). "
+            "Pass directly to ``get_node_body`` without reconstructing — the "
+            "kind prefix and the ``::`` separator are already in the right "
+            "shape."
+        ),
+    )
     name: str
     visibility: str | None = None
     static: bool = False
@@ -176,6 +184,7 @@ class DescribeClassTool:
             info = read_method_attributes(method_node)
             methods.append(
                 MethodSummary(
+                    node_id=method_id,
                     name=info.name,
                     visibility=info.visibility,
                     static=info.static,

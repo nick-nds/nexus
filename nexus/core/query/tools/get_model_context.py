@@ -42,6 +42,13 @@ class GetModelContextInput(ToolInput):
 class ModelMethod(ToolOutput):
     """One method row in the model-context response."""
 
+    node_id: str = Field(
+        description=(
+            "Graph node id (e.g. "
+            "``method:App\\Models\\User::scopeActive``). Pass directly to "
+            "``get_node_body`` to read the method's source."
+        ),
+    )
     name: str
     visibility: str | None = None
     return_type: str | None = None
@@ -173,6 +180,7 @@ class GetModelContextTool:
             )
             methods.append(
                 ModelMethod(
+                    node_id=method_node.id,
                     name=info.name,
                     visibility=info.visibility,
                     return_type=info.return_type,

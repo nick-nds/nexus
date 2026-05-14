@@ -34,6 +34,13 @@ class GetPolicyForInput(ToolInput):
 class PolicyMethod(ToolOutput):
     """One ability method on the policy class."""
 
+    node_id: str = Field(
+        description=(
+            "Graph node id (e.g. "
+            "``method:App\\Policies\\OrderPolicy::view``). Pass directly to "
+            "``get_node_body`` to read the ability's source."
+        ),
+    )
     name: str
     visibility: str | None = None
     line: int | None = None
@@ -106,6 +113,7 @@ class GetPolicyForTool:
             info = read_method_attributes(method_node)
             method_rows.append(
                 PolicyMethod(
+                    node_id=method_node.id,
                     name=info.name,
                     visibility=info.visibility,
                     line=info.line,
