@@ -50,6 +50,9 @@ class FakeVectorStore:
     def count(self) -> int:
         return 0
 
+    def iter_records(self):
+        return iter([])
+
     def close(self) -> None:
         pass
 

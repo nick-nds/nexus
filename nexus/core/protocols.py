@@ -30,7 +30,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Iterable, Iterator, Sequence
     from pathlib import Path
 
     from nexus.core.graph.graph import Graph
@@ -138,6 +138,21 @@ class VectorStore(Protocol):
 
     def count(self) -> int:
         """Number of records currently in the store."""
+        ...
+
+    def iter_records(self) -> Iterator[VectorRecord]:
+        """Yield every stored record in unspecified order.
+
+        Used by query-time tools that need to look up a chunk by an
+        attribute in :attr:`VectorRecord.payload` (e.g.
+        ``get_node_body`` walks every chunk to find the one whose
+        ``node_id`` matches). The contract does not promise any
+        particular order; callers must build their own lookup table.
+
+        Implementations may stream from a cursor or load eagerly.
+        Implementations whose store is empty should yield nothing
+        (not raise).
+        """
         ...
 
     def close(self) -> None:

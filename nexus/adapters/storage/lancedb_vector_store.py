@@ -30,7 +30,7 @@ import lancedb
 import pyarrow as pa
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Iterable, Iterator, Sequence
     from pathlib import Path
 
 
@@ -226,3 +226,28 @@ class LanceDbVectorStore:
             return 0
         table = db.open_table(self._TABLE_NAME)
         return int(table.count_rows())
+
+    def iter_records(self) -> Iterator[LanceVectorRecord]:
+        """Yield every stored record in table-scan order.
+
+        Loads the whole table into Arrow in one pass and yields each
+        row. For the v1 scale (helm-v7: ~20k chunks) the working set
+        is ~10-20 MB of payload bytes, comfortably below the budget
+        of a query-time tool that needs a full scan (currently only
+        ``get_node_body``'s node→chunk lookup).
+        """
+        db = self._connection()
+        if self._TABLE_NAME not in self._existing_tables(db):
+            return
+        table = db.open_table(self._TABLE_NAME)
+        arrow = table.to_arrow()
+        ids = arrow.column("id").to_pylist()
+        vectors = arrow.column("vector").to_pylist()
+        payload_strings = arrow.column("payload").to_pylist()
+        for chunk_id, vector, payload_raw in zip(ids, vectors, payload_strings, strict=False):
+            payload = json.loads(payload_raw) if isinstance(payload_raw, str) else {}
+            yield LanceVectorRecord(
+                id=str(chunk_id),
+                vector=vector,
+                payload=payload,
+            )

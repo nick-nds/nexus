@@ -129,3 +129,48 @@ class TestPersistence:
         assert hits[0].id == "a"
         assert hits[0].payload == {"x": 1}
         store2.close()
+
+
+class TestIterRecords:
+    def test_iter_on_empty_store_yields_nothing(self, store: LanceDbVectorStore) -> None:
+        assert list(store.iter_records()) == []
+
+    def test_iter_yields_every_upserted_row(self, store: LanceDbVectorStore) -> None:
+        store.upsert(
+            [
+                LanceVectorRecord(id="a", vector=vec(1, 0, 0, 0), payload={"k": "first"}),
+                LanceVectorRecord(id="b", vector=vec(0, 1, 0, 0), payload={"k": "second"}),
+                LanceVectorRecord(id="c", vector=vec(0, 0, 1, 0), payload={"k": "third"}),
+            ]
+        )
+
+        records = list(store.iter_records())
+
+        # Order is unspecified by the protocol — sort to compare.
+        records.sort(key=lambda r: r.id)
+        assert [r.id for r in records] == ["a", "b", "c"]
+        payloads = {r.id: r.payload for r in records}
+        assert payloads["a"] == {"k": "first"}
+        assert payloads["b"] == {"k": "second"}
+        assert payloads["c"] == {"k": "third"}
+
+    def test_iter_yields_payload_dicts_not_raw_strings(
+        self,
+        store: LanceDbVectorStore,
+    ) -> None:
+        """The payload comes back already JSON-decoded; callers don't need to."""
+        store.upsert(
+            [
+                LanceVectorRecord(
+                    id="x",
+                    vector=vec(1, 0, 0, 0),
+                    payload={"node_id": "method:Foo::bar", "start_line": 10},
+                ),
+            ],
+        )
+
+        record = next(iter(store.iter_records()))
+
+        assert isinstance(record.payload, dict)
+        assert record.payload["node_id"] == "method:Foo::bar"
+        assert record.payload["start_line"] == 10

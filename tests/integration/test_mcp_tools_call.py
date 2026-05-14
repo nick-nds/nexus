@@ -298,6 +298,37 @@ class TestMcpToolsCall:
         )
         assert result is not None
 
+    def test_get_full_block_missing_file_returns_structured_error(
+        self,
+        engine: QueryEngine,
+    ) -> None:
+        # No project_path stamped on this engine's coverage, so the
+        # containment gate is bypassed. The file simply doesn't exist
+        # → file_not_found.
+        mcp = build_mcp_server(engine)
+        result = _call(
+            mcp,
+            "get_full_block",
+            {
+                "file_path": "/nonexistent/path/Foo.php",
+                "start_line": 1,
+                "end_line": 10,
+            },
+        )
+        assert result is not None
+
+    def test_get_node_body_unknown_node_returns_structured_error(
+        self,
+        engine: QueryEngine,
+    ) -> None:
+        mcp = build_mcp_server(engine)
+        result = _call(
+            mcp,
+            "get_node_body",
+            {"node_id": "method:Does\\Not::Exist"},
+        )
+        assert result is not None
+
     def test_all_tools_covered_by_this_suite(self, engine: QueryEngine) -> None:
         """Canary: fail loudly if a new tool is added to the registry
         but not covered by a dedicated test above."""
@@ -326,6 +357,8 @@ class TestMcpToolsCall:
             "find_cache_users",
             "expand_call_tree",
             "semantic_search",
+            "get_full_block",
+            "get_node_body",
         }
         missing = expected_tools - tested_tools
         assert not missing, (

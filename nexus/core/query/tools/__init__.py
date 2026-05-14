@@ -19,7 +19,9 @@ from nexus.core.query.tools.find_handlers import FindHandlersTool
 from nexus.core.query.tools.find_implementations import FindImplementationsTool
 from nexus.core.query.tools.find_jobs_dispatching import FindJobsDispatchingTool
 from nexus.core.query.tools.find_listeners import FindListenersTool
+from nexus.core.query.tools.get_full_block import GetFullBlockTool
 from nexus.core.query.tools.get_model_context import GetModelContextTool
+from nexus.core.query.tools.get_node_body import GetNodeBodyTool
 from nexus.core.query.tools.get_policy_for import GetPolicyForTool
 from nexus.core.query.tools.get_request_flow import GetRequestFlowTool
 from nexus.core.query.tools.list_by_kind import ListByKindTool
@@ -45,7 +47,9 @@ __all__ = [
     "FindImplementationsTool",
     "FindJobsDispatchingTool",
     "FindListenersTool",
+    "GetFullBlockTool",
     "GetModelContextTool",
+    "GetNodeBodyTool",
     "GetPolicyForTool",
     "GetRequestFlowTool",
     "ListByKindTool",

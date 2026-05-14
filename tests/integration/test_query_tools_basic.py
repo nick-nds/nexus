@@ -194,6 +194,8 @@ class TestBuiltInRegistry:
         assert "trace_route" in names
         assert "get_request_flow" in names
         assert "find_handlers" in names
+        assert "get_full_block" in names
+        assert "get_node_body" in names
 
     def test_each_tool_declares_latency_budget(self) -> None:
         registry = ToolRegistry()
