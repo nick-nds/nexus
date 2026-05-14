@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Nexus\Extractor\Extraction\ExtractionContext;
+use Nexus\Extractor\Extraction\ExtractionRunner;
 use Nexus\Extractor\Extraction\Extractor;
 use Nexus\Extractor\Extraction\ExtractorPipeline;
 use Nexus\Extractor\Extraction\PhaseA\BindingExtractor;
@@ -24,10 +25,8 @@ use Nexus\Extractor\Output\JsonWriter;
 use Nexus\Extractor\Output\ReflectionDocument;
 use Nexus\Extractor\Support\CurrentClassTracker;
 use Nexus\Extractor\Support\ErrorCollector;
-use Nexus\Extractor\Support\ExtractionError;
 use Nexus\Extractor\Support\FatalErrorHandler;
 use Nexus\Extractor\Support\ProgressReporter;
-use Throwable;
 
 /**
  * Artisan command that runs the full Nexus extraction pipeline.
@@ -75,9 +74,6 @@ final class ExtractCommand extends Command
             quiet: (bool) $this->option('quiet-progress'),
         );
 
-        // Install the fatal-error shutdown handler BEFORE Phase B runs so
-        // that an uncatchable class-declaration fatal still results in a
-        // persisted partial reflection.json with a structured error entry.
         $tracker = new CurrentClassTracker;
         (new FatalErrorHandler($document, $tracker, $writer, $output))->register();
 
@@ -94,29 +90,17 @@ final class ExtractCommand extends Command
         );
 
         $pipeline = new ExtractorPipeline($this->buildExtractors());
+        $runner = new ExtractionRunner($pipeline, $writer);
 
-        try {
-            $pipeline->run($context);
-        } catch (Throwable $e) {
-            $errors->fail(new ExtractionError(
-                code: 'pipeline_failed',
-                message: $e->getMessage(),
-                file: $e->getFile(),
-                line: $e->getLine(),
-            ));
+        $exit = $runner->run($context, $document, $output);
+
+        if ($exit === 0 || $errors->hasErrors()) {
+            $this->reportSummary($document, $output);
+        } else {
+            $this->error('Failed to write reflection document.');
         }
 
-        try {
-            $writer->write($document, $output);
-        } catch (Throwable $e) {
-            $this->error('Failed to write reflection document: '.$e->getMessage());
-
-            return 1;
-        }
-
-        $this->reportSummary($document, $output);
-
-        return $errors->hasErrors() ? 1 : 0;
+        return $exit;
     }
 
     /**
