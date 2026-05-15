@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexus\Extractor\Extraction\PhaseB;
 
 use Composer\Autoload\ClassLoader;
+use Nexus\Extractor\Extraction\Support\PackageScope;
 use Throwable;
 
 /**
@@ -25,7 +26,7 @@ final class ClassMapWalker
      * @param  list<string>  $vendorAllowlist  e.g. ['spatie/laravel-permission']
      * @return list<array{class: string, file: string, source: 'project'|'vendor'}>
      */
-    public function walk(string $basePath, bool $includeVendor, array $vendorAllowlist, bool $includeTests = false): array
+    public function walk(string $basePath, bool $includeVendor, array $vendorAllowlist, bool $includeTests = false, ?PackageScope $scope = null): array
     {
         $loader = $this->locateLoader($basePath);
 
@@ -69,7 +70,11 @@ final class ClassMapWalker
             // ride.
             $isVendor = str_starts_with($absolute, $vendorDir);
 
-            if ($isVendor && ! $includeVendor && ! $this->matchesAllowlist($absolute, $vendorDir, $vendorAllowlist)) {
+            // In package-extraction mode ($scope is set), the scope's vendorPath
+            // is the sole inclusion filter applied below; the vendor/allowlist
+            // guard would otherwise exclude the very package we are indexing, so
+            // we skip it when a scope is active.
+            if ($scope === null && $isVendor && ! $includeVendor && ! $this->matchesAllowlist($absolute, $vendorDir, $vendorAllowlist)) {
                 continue;
             }
 
@@ -92,6 +97,15 @@ final class ClassMapWalker
             // into the consumer's classmap. We never want those in the
             // index regardless of how Composer routed them.
             if (! $includeTests && str_contains($absolute, '/tests/fixtures/')) {
+                continue;
+            }
+
+            // When a PackageScope is active, restrict the walk to entries
+            // whose resolved path lives under the package's vendor directory.
+            // This is the primary filter for package-extraction mode; the
+            // vendor/allowlist flags are irrelevant in that mode but are left
+            // in place so callers that don't pass a scope are unaffected.
+            if ($scope !== null && ! str_starts_with($absolute, rtrim($scope->vendorPath, '/').'/')) {
                 continue;
             }
 
