@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexus\Extractor\Extraction;
 
 use Illuminate\Contracts\Foundation\Application;
+use Nexus\Extractor\Extraction\Support\PackageScope;
 use Nexus\Extractor\Output\ReflectionDocument;
 use Nexus\Extractor\Support\CurrentClassTracker;
 use Nexus\Extractor\Support\ErrorCollector;
@@ -33,5 +34,6 @@ final class ExtractionContext
         public readonly ?string $profileHint,
         public readonly bool $includeTests = false,
         public readonly ?CurrentClassTracker $classTracker = null,
+        public readonly ?PackageScope $package = null,
     ) {}
 }
