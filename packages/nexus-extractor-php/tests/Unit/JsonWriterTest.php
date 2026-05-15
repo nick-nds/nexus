@@ -40,7 +40,7 @@ final class JsonWriterTest extends TestCase
         $decoded = json_decode($contents, true);
 
         $this->assertIsArray($decoded);
-        $this->assertSame('2.0.0', $decoded['schema_version']);
+        $this->assertSame('2.1.0', $decoded['schema_version']);
         $this->assertSame(['hello' => 'world'], $decoded['sections']['demo']);
     }
 

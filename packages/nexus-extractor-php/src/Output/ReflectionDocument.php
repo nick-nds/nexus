@@ -26,6 +26,11 @@ final class ReflectionDocument
     /** @var array<string, array<string, mixed>> */
     private array $sections = [];
 
+    private string $kind = 'project';
+
+    /** @var array{vendor: string, name: string, version: string}|null */
+    private ?array $package = null;
+
     public function __construct(
         private readonly ErrorCollector $errors,
     ) {}
@@ -36,6 +41,19 @@ final class ReflectionDocument
     public function setProject(array $project): void
     {
         $this->project = $project;
+    }
+
+    /**
+     * @param  array{vendor: string, name: string, version: string}  $info
+     */
+    public function setPackage(array $info): void
+    {
+        $this->package = [
+            'vendor' => $info['vendor'],
+            'name' => $info['name'],
+            'version' => $info['version'],
+        ];
+        $this->kind = 'package';
     }
 
     /**
@@ -67,7 +85,9 @@ final class ReflectionDocument
         return [
             'schema_version' => SchemaVersion::string(),
             'generated_at' => gmdate('c'),
+            'kind' => $this->kind,
             'project' => $this->project,
+            'package' => $this->package,
             'sections' => $this->sections,
             'warnings' => array_map(
                 static fn ($w) => $w->toArray(),
