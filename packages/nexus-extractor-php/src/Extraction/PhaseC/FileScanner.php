@@ -55,6 +55,35 @@ final class FileScanner
     ];
 
     /**
+     * Scans each directory in $roots independently and returns a merged,
+     * sorted, deduplicated list of absolute PHP file paths.
+     *
+     * Used by StaticAnalysisExtractor when a PackageScope is set: the roots
+     * are the package's PSR-4 source directories (vendor_path/<rel> for each
+     * namespace entry). The same exclusion rules as scan() apply within each
+     * root, but EXCLUDED_TOP_PATHS are evaluated relative to each root rather
+     * than a single project base.
+     *
+     * @param  list<string>  $roots  absolute directory paths
+     * @return list<string> absolute file paths
+     */
+    public function scanRoots(array $roots): array
+    {
+        $all = [];
+
+        foreach ($roots as $root) {
+            foreach ($this->scan($root) as $file) {
+                $all[] = $file;
+            }
+        }
+
+        $all = array_values(array_unique($all));
+        sort($all);
+
+        return $all;
+    }
+
+    /**
      * @return list<string> absolute file paths
      */
     public function scan(string $basePath): array

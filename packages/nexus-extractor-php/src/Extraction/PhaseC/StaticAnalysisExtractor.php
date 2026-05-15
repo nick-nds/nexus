@@ -14,6 +14,7 @@ use Nexus\Extractor\Extraction\PhaseC\Visitors\ObserverRegistrationVisitor;
 use Nexus\Extractor\Extraction\PhaseC\Visitors\PolicyUseVisitor;
 use Nexus\Extractor\Extraction\PhaseC\Visitors\ValidationRuleVisitor;
 use Nexus\Extractor\Extraction\PhaseC\Visitors\ViewReturnVisitor;
+use Nexus\Extractor\Extraction\Support\PackageScope;
 use Nexus\Extractor\Support\ExtractionWarning;
 use Throwable;
 
@@ -51,7 +52,10 @@ final class StaticAnalysisExtractor implements Extractor
             new BroadcastChannelVisitor,
         ]);
 
-        $files = $this->scanner->scan($context->app->basePath());
+        $roots = $this->resolveFileRoots($context->package);
+        $files = $roots !== []
+            ? $this->scanner->scanRoots($roots)
+            : $this->scanner->scan($context->app->basePath());
         $context->progress->info(sprintf('Scanning %d PHP files for static analysis findings.', count($files)));
 
         $findings = [];
@@ -112,5 +116,37 @@ final class StaticAnalysisExtractor implements Extractor
             'by_kind' => $byKind,
             'findings' => $findings,
         ]);
+    }
+
+    /**
+     * Returns the list of absolute directory paths to scan for PHP files.
+     *
+     * When a PackageScope is provided, only the PSR-4 source directories
+     * declared by the package (vendor_path/<rel_path> for each entry in
+     * scope.namespaces) are returned — restricting the AST scan to the
+     * package's own source tree and nothing else.
+     *
+     * When scope is null (project-mode), an empty array is returned and the
+     * caller falls back to the full project scan via FileScanner::scan().
+     *
+     * @return list<string> absolute directory paths that exist on disk
+     */
+    public function resolveFileRoots(?PackageScope $scope): array
+    {
+        if ($scope === null) {
+            return [];
+        }
+
+        $roots = [];
+
+        foreach ($scope->namespaces as $relPath) {
+            $abs = rtrim($scope->vendorPath, '/').'/'.ltrim($relPath, '/');
+
+            if (is_dir($abs)) {
+                $roots[] = $abs;
+            }
+        }
+
+        return $roots;
     }
 }
