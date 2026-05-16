@@ -1,0 +1,6 @@
+providers:
+  - NexusFixtures\Sample\SamplePackageServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
+
+env:
+  APP_NAME: "Sample Fixture"

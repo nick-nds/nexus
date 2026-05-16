@@ -1,0 +1,42 @@
+{
+    "name": "nexus-fixtures/sample",
+    "description": "Synthetic Laravel package fixture for Nexus package-indexing tests.",
+    "type": "library",
+    "license": "MIT",
+    "version": "1.2.0",
+    "homepage": "https://example.invalid/nexus-fixtures/sample",
+    "authors": [
+        {
+            "name": "Fixture Author One",
+            "email": "one@example.invalid",
+            "homepage": "https://example.invalid/one",
+            "role": "Lead"
+        },
+        {
+            "name": "Fixture Author Two"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^10.0 || ^11.0 || ^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "NexusFixtures\\Sample\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Workbench\\App\\": "workbench/app/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "NexusFixtures\\Sample\\SamplePackageServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
