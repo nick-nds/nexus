@@ -22,7 +22,15 @@ final class ReflectionDocumentKindTest extends TestCase
     public function test_set_package_sets_kind_to_package(): void
     {
         $doc = new ReflectionDocument(new ErrorCollector);
-        $doc->setPackage(['vendor' => 'spatie', 'name' => 'laravel-permission', 'version' => 'v6.18.0']);
+        $doc->setPackage([
+            'vendor' => 'spatie',
+            'name' => 'laravel-permission',
+            'version' => 'v6.18.0',
+            'description' => 'Associate users with roles and permissions',
+            'authors' => [['name' => 'Spatie', 'email' => null, 'homepage' => null, 'role' => null]],
+            'license' => 'MIT',
+            'homepage' => 'https://spatie.be',
+        ]);
 
         $array = $doc->toArray();
         $this->assertSame('package', $array['kind']);
@@ -30,7 +38,31 @@ final class ReflectionDocumentKindTest extends TestCase
             'vendor' => 'spatie',
             'name' => 'laravel-permission',
             'version' => 'v6.18.0',
+            'description' => 'Associate users with roles and permissions',
+            'authors' => [['name' => 'Spatie', 'email' => null, 'homepage' => null, 'role' => null]],
+            'license' => 'MIT',
+            'homepage' => 'https://spatie.be',
         ], $array['package']);
+    }
+
+    public function test_set_package_defaults_attribution_fields_to_null(): void
+    {
+        $doc = new ReflectionDocument(new ErrorCollector);
+        $doc->setPackage([
+            'vendor' => 'spatie',
+            'name' => 'laravel-permission',
+            'version' => 'v6.18.0',
+            'description' => null,
+            'authors' => [],
+            'license' => null,
+            'homepage' => null,
+        ]);
+
+        $array = $doc->toArray();
+        $this->assertNull($array['package']['description']);
+        $this->assertSame([], $array['package']['authors']);
+        $this->assertNull($array['package']['license']);
+        $this->assertNull($array['package']['homepage']);
     }
 
     public function test_schema_version_is_2_1_0(): void

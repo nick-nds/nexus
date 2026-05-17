@@ -21,11 +21,12 @@
         "nikic/php-parser": "^5.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^8.0 || ^9.0 || ^10.0",
-        "phpunit/phpunit": "^10.5 || ^11.0",
-        "phpstan/phpstan": "^1.11",
         "larastan/larastan": "^2.9",
-        "laravel/pint": "^1.16"
+        "laravel/pint": "^1.16",
+        "nexus-fixtures/sample": "*",
+        "orchestra/testbench": "^8.0 || ^9.0 || ^10.0",
+        "phpstan/phpstan": "^1.11",
+        "phpunit/phpunit": "^10.5 || ^11.0"
     },
     "autoload": {
         "psr-4": {
@@ -35,8 +36,12 @@
     "autoload-dev": {
         "psr-4": {
             "Nexus\\Extractor\\Tests\\": "tests/",
-            "SampleApp\\": "tests/fixtures/sample-app/"
-        }
+            "SampleApp\\": "tests/fixtures/sample-app/",
+            "Workbench\\App\\": "tests/fixtures/sample-package/workbench/app/"
+        },
+        "classmap": [
+            "vendor/nexus-fixtures/sample/src/"
+        ]
     },
     "scripts": {
         "test": "phpunit",
@@ -50,6 +55,15 @@
             "@test"
         ]
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "tests/fixtures/sample-package",
+            "options": {
+                "symlink": false
+            }
+        }
+    ],
     "extra": {
         "laravel": {
             "providers": [

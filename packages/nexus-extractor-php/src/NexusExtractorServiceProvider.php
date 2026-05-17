@@ -6,6 +6,7 @@ namespace Nexus\Extractor;
 
 use Illuminate\Support\ServiceProvider;
 use Nexus\Extractor\Console\ExtractCommand;
+use Nexus\Extractor\Console\ExtractPackageCommand;
 
 /**
  * Registers the Nexus extractor's Artisan command.
@@ -28,6 +29,7 @@ final class NexusExtractorServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ExtractCommand::class,
+                ExtractPackageCommand::class,
             ]);
         }
     }

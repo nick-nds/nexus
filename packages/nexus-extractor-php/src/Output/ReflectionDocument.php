@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Nexus\Extractor\Output;
 
+use Nexus\Extractor\Extraction\Support\NamespaceExclusionFilter;
 use Nexus\Extractor\Support\ErrorCollector;
 
 /**
@@ -44,7 +45,7 @@ final class ReflectionDocument
     }
 
     /**
-     * @param  array{vendor: string, name: string, version: string}  $info
+     * @param  array{vendor: string, name: string, version: string, description: string|null, authors: list<array<string, string|null>>, license: string|null, homepage: string|null}  $info
      */
     public function setPackage(array $info): void
     {
@@ -52,6 +53,10 @@ final class ReflectionDocument
             'vendor' => $info['vendor'],
             'name' => $info['name'],
             'version' => $info['version'],
+            'description' => $info['description'] ?? null,
+            'authors' => $info['authors'] ?? [],
+            'license' => $info['license'] ?? null,
+            'homepage' => $info['homepage'] ?? null,
         ];
         $this->kind = 'package';
     }
@@ -75,6 +80,136 @@ final class ReflectionDocument
     public function errors(): ErrorCollector
     {
         return $this->errors;
+    }
+
+    /**
+     * Removes Workbench/Testbench/Orchestra noise from every section that
+     * carries class names. Call this after the pipeline finishes in
+     * package-extraction mode.
+     *
+     * Section shapes handled:
+     *   - classes       → items[*].reflection.name
+     *   - routes        → items[*].action.controller   (controller routes only)
+     *   - events        → listeners[*].listeners[*].class (kind=class listeners)
+     *   - gates_policies→ gates[*].callback.class, policies[*].policy
+     *   - bindings      → bindings[*].concrete.class   (kind=class concretes)
+     *   - static_analysis → findings[*].in_class
+     *   - schedule      → events[*] — no class names (command string / closure)
+     */
+    public function applyNamespaceFilter(NamespaceExclusionFilter $filter): void
+    {
+        // classes section
+        if (isset($this->sections['classes']['items']) && is_array($this->sections['classes']['items'])) {
+            $this->sections['classes']['items'] = array_values(array_filter(
+                $this->sections['classes']['items'],
+                fn (array $item): bool => ! $filter->matches((string) ($item['reflection']['name'] ?? '')),
+            ));
+            $this->sections['classes']['count'] = count($this->sections['classes']['items']);
+        }
+
+        // routes section — drop routes registered by excluded code:
+        //   - controller routes: filter by controller class name
+        //   - closure routes:    filter by the closure's source file path
+        if (isset($this->sections['routes']['items']) && is_array($this->sections['routes']['items'])) {
+            $this->sections['routes']['items'] = array_values(array_filter(
+                $this->sections['routes']['items'],
+                function (array $item) use ($filter): bool {
+                    $action = $item['action'] ?? [];
+                    $kind = (string) ($action['kind'] ?? '');
+
+                    if ($kind === 'controller') {
+                        return ! $filter->matches((string) ($action['controller'] ?? ''));
+                    }
+
+                    if ($kind === 'closure' && isset($action['file']) && is_string($action['file'])) {
+                        return ! $filter->matchesFilePath($action['file']);
+                    }
+
+                    return true;
+                },
+            ));
+            $this->sections['routes']['count'] = count($this->sections['routes']['items']);
+        }
+
+        // events section — filter individual listeners
+        if (isset($this->sections['events']['listeners']) && is_array($this->sections['events']['listeners'])) {
+            $filtered = [];
+            foreach ($this->sections['events']['listeners'] as $entry) {
+                if (! is_array($entry)) {
+                    continue;
+                }
+
+                $listeners = array_values(array_filter(
+                    $entry['listeners'] ?? [],
+                    function (array $l) use ($filter): bool {
+                        if (($l['kind'] ?? '') === 'class') {
+                            return ! $filter->matches((string) ($l['class'] ?? ''));
+                        }
+
+                        return true;
+                    },
+                ));
+
+                // Drop entries for excluded event classes too
+                $event = (string) ($entry['event'] ?? '');
+                if ($filter->matches($event)) {
+                    continue;
+                }
+
+                $filtered[] = array_merge($entry, ['listeners' => $listeners]);
+            }
+
+            $this->sections['events']['listeners'] = $filtered;
+        }
+
+        // gates_policies section
+        if (isset($this->sections['gates_policies'])) {
+            if (isset($this->sections['gates_policies']['gates']) && is_array($this->sections['gates_policies']['gates'])) {
+                $this->sections['gates_policies']['gates'] = array_values(array_filter(
+                    $this->sections['gates_policies']['gates'],
+                    function (array $gate) use ($filter): bool {
+                        $cb = $gate['callback'] ?? [];
+                        if (($cb['kind'] ?? '') === 'class') {
+                            return ! $filter->matches((string) ($cb['class'] ?? ''));
+                        }
+
+                        return true;
+                    },
+                ));
+            }
+
+            if (isset($this->sections['gates_policies']['policies']) && is_array($this->sections['gates_policies']['policies'])) {
+                $this->sections['gates_policies']['policies'] = array_values(array_filter(
+                    $this->sections['gates_policies']['policies'],
+                    fn (array $p): bool => ! $filter->matches((string) ($p['policy'] ?? '')),
+                ));
+            }
+        }
+
+        // bindings section — filter kind=class concretes
+        if (isset($this->sections['bindings']['bindings']) && is_array($this->sections['bindings']['bindings'])) {
+            $this->sections['bindings']['bindings'] = array_values(array_filter(
+                $this->sections['bindings']['bindings'],
+                function (array $b) use ($filter): bool {
+                    $concrete = $b['concrete'] ?? [];
+                    if (($concrete['kind'] ?? '') === 'class') {
+                        return ! $filter->matches((string) ($concrete['class'] ?? ''));
+                    }
+
+                    return true;
+                },
+            ));
+            $this->sections['bindings']['summary']['binding_count'] = count($this->sections['bindings']['bindings']);
+        }
+
+        // static_analysis section
+        if (isset($this->sections['static_analysis']['findings']) && is_array($this->sections['static_analysis']['findings'])) {
+            $this->sections['static_analysis']['findings'] = array_values(array_filter(
+                $this->sections['static_analysis']['findings'],
+                fn (array $f): bool => ! $filter->matches((string) ($f['in_class'] ?? '')),
+            ));
+            $this->sections['static_analysis']['finding_count'] = count($this->sections['static_analysis']['findings']);
+        }
     }
 
     /**

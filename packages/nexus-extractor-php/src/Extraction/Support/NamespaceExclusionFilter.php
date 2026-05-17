@@ -40,6 +40,29 @@ final readonly class NamespaceExclusionFilter
     }
 
     /**
+     * Returns true when the given absolute file path appears to be inside
+     * a Workbench/Testbench/Orchestra source tree.
+     *
+     * The heuristic converts each namespace prefix to a path segment (replacing
+     * `\` with `/`) and checks whether the normalised file path contains that
+     * segment as a directory component. This handles both vendor installs and
+     * local workbench app layouts.
+     */
+    public function matchesFilePath(string $filePath): bool
+    {
+        $normalised = str_replace('\\', '/', $filePath);
+
+        foreach (self::EXCLUDED_PREFIXES as $prefix) {
+            $pathSegment = str_replace('\\', '/', rtrim($prefix, '\\'));
+            if (str_contains($normalised, '/'.$pathSegment.'/') || str_contains($normalised, '/'.$pathSegment)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @template T of array<string, mixed>
      *
      * @param  list<T>  $items
