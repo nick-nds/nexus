@@ -164,6 +164,27 @@ class GetNodeBodyOutput(ToolOutput):
     total_file_lines: int = 0
     content: str | None = None
     truncated_to_eof: bool = False
+    file_mtime_utc: str | None = Field(
+        default=None,
+        description=(
+            "ISO-8601 UTC timestamp of the resolved source file's "
+            "on-disk modification time at read time. ``None`` on "
+            "error paths."
+        ),
+    )
+    chunk_may_be_stale: bool = Field(
+        default=False,
+        description=(
+            "``True`` when ``file_mtime_utc`` is strictly later than "
+            "the project's ``indexed_at`` — the file was edited after "
+            "the chunk's line range was recorded, so the stored range "
+            "may now point at the wrong region of the file. ``content`` "
+            "still reflects what's currently at those lines, but the "
+            "bytes may no longer belong to this node. ``False`` does "
+            "NOT mean fresh — only that we have no evidence of "
+            "staleness (typically because no ``indexed_at`` is set)."
+        ),
+    )
     error: str | None = None
     error_code: str | None = None
 
@@ -272,6 +293,8 @@ class GetNodeBodyTool:
             total_file_lines=block_out.total_file_lines,
             content=block_out.content,
             truncated_to_eof=block_out.truncated_to_eof,
+            file_mtime_utc=block_out.file_mtime_utc,
+            chunk_may_be_stale=block_out.chunk_may_be_stale,
             error=block_out.error,
             error_code=block_out.error_code,
         )

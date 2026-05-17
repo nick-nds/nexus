@@ -278,12 +278,14 @@ def _ctx(
     graph: Graph,
     vector_store: _FakeVectorStore,
     project_root: Path,
+    *,
+    indexed_at: str | None = None,
 ) -> QueryContext:
     return QueryContext(
         storage=_FakeStorage(graph, vector_store),  # type: ignore[arg-type]
         budget=ResponseBudget(),
         vector_dimensions=4,
-        coverage=Coverage(project_path=str(project_root)),
+        coverage=Coverage(project_path=str(project_root), indexed_at=indexed_at),
     )
 
 
@@ -464,3 +466,84 @@ def test_repeated_calls_reuse_chunk_index_cache(
     # weak map). Either way, repeated calls must not iterate the store
     # more than once.
     assert counting.iter_calls == 1
+
+
+# ---------------------------------------------------------------------------
+# file_mtime_utc + chunk_may_be_stale (reporter feedback)
+# ---------------------------------------------------------------------------
+
+
+def test_returns_file_mtime_for_method_body(
+    graph: Graph,
+    vector_store: _FakeVectorStore,
+    project_root: Path,
+) -> None:
+    """Successful resolution carries the source file's mtime."""
+    tool = GetNodeBodyTool()
+    payload = GetNodeBodyInput(
+        node_id=("method:App\\Operations\\Presentation\\Requests\\CreateProductRequest::rules"),
+    )
+
+    out = tool.execute(payload, _ctx(graph, vector_store, project_root))
+
+    assert out.error is None
+    assert out.file_mtime_utc is not None
+    assert "T" in out.file_mtime_utc
+
+
+def test_chunk_may_be_stale_when_file_newer_than_index(
+    graph: Graph,
+    vector_store: _FakeVectorStore,
+    project_root: Path,
+) -> None:
+    """File touched after the index was built → staleness signal fires."""
+    tool = GetNodeBodyTool()
+    payload = GetNodeBodyInput(
+        node_id=("method:App\\Operations\\Presentation\\Requests\\CreateProductRequest::rules"),
+    )
+
+    out = tool.execute(
+        payload,
+        _ctx(graph, vector_store, project_root, indexed_at="2020-01-01T00:00:00+00:00"),
+    )
+
+    assert out.error is None
+    assert out.chunk_may_be_stale is True
+
+
+def test_chunk_not_stale_when_index_is_newer(
+    graph: Graph,
+    vector_store: _FakeVectorStore,
+    project_root: Path,
+) -> None:
+    """Far-future indexed_at → no staleness signal."""
+    tool = GetNodeBodyTool()
+    payload = GetNodeBodyInput(
+        node_id=("method:App\\Operations\\Presentation\\Requests\\CreateProductRequest::rules"),
+    )
+
+    out = tool.execute(
+        payload,
+        _ctx(graph, vector_store, project_root, indexed_at="2099-12-31T23:59:59+00:00"),
+    )
+
+    assert out.error is None
+    assert out.chunk_may_be_stale is False
+
+
+def test_chunk_may_be_stale_default_when_indexed_at_absent(
+    graph: Graph,
+    vector_store: _FakeVectorStore,
+    project_root: Path,
+) -> None:
+    """No indexed_at on coverage → can't prove staleness, default to False."""
+    tool = GetNodeBodyTool()
+    payload = GetNodeBodyInput(
+        node_id=("method:App\\Operations\\Presentation\\Requests\\CreateProductRequest::rules"),
+    )
+
+    out = tool.execute(payload, _ctx(graph, vector_store, project_root))
+
+    assert out.error is None
+    assert out.file_mtime_utc is not None
+    assert out.chunk_may_be_stale is False

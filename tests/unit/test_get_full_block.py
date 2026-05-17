@@ -75,11 +75,14 @@ class _StubStorage:
         raise NotImplementedError
 
 
-def _ctx(project_root: Path | None) -> QueryContext:
+def _ctx(project_root: Path | None, *, indexed_at: str | None = None) -> QueryContext:
     """Build a QueryContext whose coverage has the given project_path."""
     coverage: Coverage | None = None
-    if project_root is not None:
-        coverage = Coverage(project_path=str(project_root))
+    if project_root is not None or indexed_at is not None:
+        coverage = Coverage(
+            project_path=str(project_root) if project_root is not None else None,
+            indexed_at=indexed_at,
+        )
     return QueryContext(
         storage=_StubStorage(),  # type: ignore[arg-type]
         budget=ResponseBudget(),
@@ -345,3 +348,93 @@ def test_relative_path_without_project_root_returns_file_not_found(tmp_path: Pat
     out = tool.execute(payload, _ctx(None))
 
     assert out.error_code == "file_not_found"
+
+
+# ---------------------------------------------------------------------------
+# file_mtime_utc + chunk_may_be_stale (reporter feedback)
+# ---------------------------------------------------------------------------
+
+
+def test_returns_file_mtime_in_output(sample_file: Path, project_root: Path) -> None:
+    """Every successful read carries the file's mtime as ISO-8601 UTC."""
+    tool = GetFullBlockTool()
+    payload = GetFullBlockInput(
+        file_path=str(sample_file),
+        start_line=1,
+        end_line=1,
+    )
+
+    out = tool.execute(payload, _ctx(project_root))
+
+    assert out.error is None
+    assert out.file_mtime_utc is not None
+    # ISO-8601 with a UTC offset
+    assert "T" in out.file_mtime_utc
+    assert out.file_mtime_utc.endswith("+00:00") or out.file_mtime_utc.endswith("Z")
+
+
+def test_chunk_may_be_stale_when_file_mtime_after_indexed_at(
+    sample_file: Path, project_root: Path
+) -> None:
+    """Index built in the past, file edited today → stale signal fires."""
+    tool = GetFullBlockTool()
+    payload = GetFullBlockInput(
+        file_path=str(sample_file),
+        start_line=1,
+        end_line=1,
+    )
+
+    out = tool.execute(payload, _ctx(project_root, indexed_at="2020-01-01T00:00:00+00:00"))
+
+    assert out.error is None
+    assert out.chunk_may_be_stale is True
+
+
+def test_chunk_not_stale_when_file_mtime_before_indexed_at(
+    sample_file: Path, project_root: Path
+) -> None:
+    """Index built today, file untouched → no staleness signal."""
+    tool = GetFullBlockTool()
+    payload = GetFullBlockInput(
+        file_path=str(sample_file),
+        start_line=1,
+        end_line=1,
+    )
+
+    # Use a far-future indexed_at so any test file mtime is before it
+    out = tool.execute(payload, _ctx(project_root, indexed_at="2099-12-31T23:59:59+00:00"))
+
+    assert out.error is None
+    assert out.chunk_may_be_stale is False
+
+
+def test_chunk_may_be_stale_false_when_no_indexed_at(sample_file: Path, project_root: Path) -> None:
+    """No indexed_at on coverage → can't prove staleness, default to False."""
+    tool = GetFullBlockTool()
+    payload = GetFullBlockInput(
+        file_path=str(sample_file),
+        start_line=1,
+        end_line=1,
+    )
+
+    out = tool.execute(payload, _ctx(project_root))  # no indexed_at
+
+    assert out.error is None
+    assert out.file_mtime_utc is not None  # still returned
+    assert out.chunk_may_be_stale is False
+
+
+def test_chunk_may_be_stale_false_when_no_coverage_at_all(sample_file: Path) -> None:
+    """No coverage object → graceful False, file_mtime_utc still surfaced."""
+    tool = GetFullBlockTool()
+    payload = GetFullBlockInput(
+        file_path=str(sample_file),
+        start_line=1,
+        end_line=1,
+    )
+
+    out = tool.execute(payload, _ctx(None))
+
+    assert out.error is None
+    assert out.file_mtime_utc is not None
+    assert out.chunk_may_be_stale is False

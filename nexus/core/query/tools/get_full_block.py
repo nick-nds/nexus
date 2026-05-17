@@ -28,6 +28,7 @@ Design notes
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -97,6 +98,30 @@ class GetFullBlockOutput(ToolOutput):
             "a signal that their source-of-truth for the line range "
             "(typically ``describe_class``) is stale relative to the "
             "file on disk."
+        ),
+    )
+    file_mtime_utc: str | None = Field(
+        default=None,
+        description=(
+            "ISO-8601 UTC timestamp of the file's on-disk modification "
+            "time at read time. ``None`` when the file couldn't be "
+            "stat'd or no content was returned (error paths)."
+        ),
+    )
+    chunk_may_be_stale: bool = Field(
+        default=False,
+        description=(
+            "``True`` when ``file_mtime_utc`` is strictly later than "
+            "the project's ``indexed_at`` — the file was edited after "
+            "the index was built, so the stored ``start_line`` / "
+            "``end_line`` (originally taken from ``describe_class`` / "
+            "the chunk index) may now point at the wrong region. The "
+            "``content`` field still reflects what's currently at "
+            "those lines, but the bytes may belong to a different "
+            "method now. Re-run ``nexus index sync`` to clear the "
+            "signal. ``False`` does NOT positively mean fresh — it "
+            "means we have no evidence of staleness (typically "
+            "because no ``indexed_at`` is available on the project)."
         ),
     )
     error: str | None = None
@@ -183,6 +208,7 @@ class GetFullBlockTool:
         truncated = widened_end_unclamped > total
 
         span = lines[widened_start - 1 : widened_end]
+        mtime_utc = _read_mtime(resolved)
         return GetFullBlockOutput(
             file=str(resolved),
             start_line=widened_start,
@@ -191,6 +217,8 @@ class GetFullBlockTool:
             total_file_lines=total,
             content="\n".join(span),
             truncated_to_eof=truncated,
+            file_mtime_utc=mtime_utc,
+            chunk_may_be_stale=_chunk_is_stale(mtime_utc, ctx),
         )
 
 
@@ -232,3 +260,36 @@ def _is_within(path: Path, root: Path) -> bool:
     so ``/tmp/foo`` is not treated as a child of ``/tmp/foo-other``.
     """
     return path == root or path.is_relative_to(root)
+
+
+def _read_mtime(path: Path) -> str | None:
+    """Return the file's UTC mtime as an ISO-8601 string, or ``None``."""
+    try:
+        ts = path.stat().st_mtime
+    except OSError:
+        return None
+    return datetime.fromtimestamp(ts, tz=UTC).isoformat()
+
+
+def _chunk_is_stale(file_mtime_utc: str | None, ctx: QueryContext) -> bool:
+    """``True`` only when both timestamps are present and file > index.
+
+    ``False`` is a "no-evidence-of-staleness" signal rather than a
+    positive "is fresh" claim — agents that need stronger guarantees
+    should compare ``file_mtime_utc`` against ``coverage.indexed_at``
+    themselves and apply whatever tolerance their workflow demands.
+
+    Timestamps are parsed to ``datetime`` for the comparison rather
+    than compared lexicographically, so mixed-precision ISO strings
+    (e.g. one with microseconds, one without) sort correctly.
+    """
+    if file_mtime_utc is None:
+        return False
+    if ctx.coverage is None or ctx.coverage.indexed_at is None:
+        return False
+    try:
+        file_dt = datetime.fromisoformat(file_mtime_utc)
+        index_dt = datetime.fromisoformat(ctx.coverage.indexed_at)
+    except ValueError:
+        return False
+    return file_dt > index_dt
