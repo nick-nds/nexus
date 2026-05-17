@@ -183,12 +183,21 @@ class ScratchBuilder:
     def run_composer_install(self) -> subprocess.CompletedProcess[str]:
         """Run ``composer install`` inside the scratch directory.
 
+        ``--optimize-autoloader`` is required: by default Composer's
+        autoloader resolves PSR-4 classes lazily and lists them only in
+        ``autoload_psr4.php``. Nexus's ``ClassMapWalker`` (Phase B)
+        walks the classmap built from ``autoload_classmap.php``; without
+        optimization, the target package's own PSR-4 classes never
+        appear there and the resulting index has zero class entries
+        for the package. The optimize flag converts every PSR-4 entry
+        into a classmap entry at install time.
+
         Returns:
             The completed process (caller inspects ``returncode``).
             Does not raise on non-zero exit — callers check the result.
         """
         return subprocess.run(
-            ["composer", "install", "--no-interaction"],
+            ["composer", "install", "--no-interaction", "--optimize-autoloader"],
             cwd=self.scratch_dir,
             check=False,
             capture_output=True,

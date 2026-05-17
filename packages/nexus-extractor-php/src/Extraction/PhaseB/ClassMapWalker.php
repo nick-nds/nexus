@@ -70,43 +70,53 @@ final class ClassMapWalker
             // ride.
             $isVendor = str_starts_with($absolute, $vendorDir);
 
-            // In package-extraction mode ($scope is set), the scope's vendorPath
-            // is the sole inclusion filter applied below; the vendor/allowlist
-            // guard would otherwise exclude the very package we are indexing, so
-            // we skip it when a scope is active.
-            if ($scope === null && $isVendor && ! $includeVendor && ! $this->matchesAllowlist($absolute, $vendorDir, $vendorAllowlist)) {
+            // When a PackageScope is active, only entries under
+            // ``$scope->vendorPath`` belong in the index. Compute the
+            // in-scope flag once and use it as the authoritative
+            // include signal — it overrides every project-mode noise
+            // filter below so a target package whose realpath happens
+            // to live under ``/tests/fixtures/`` (e.g. the synthetic
+            // sample-package fixture, or any third-party clone the
+            // user keeps in a test-shaped directory) is not dropped.
+            $inScope = $scope !== null
+                && str_starts_with($absolute, rtrim($scope->vendorPath, '/').'/');
+
+            if ($scope !== null && ! $inScope) {
                 continue;
             }
 
-            // Skip the project's tests by default. Test classes often include
-            // intentionally-broken fakes and non-loadable stubs that would
-            // trigger PHP fatal errors at class-declaration time (not
-            // catchable by try/catch). The agent use case is also uninterested
-            // in test doubles for production code understanding. Users can
-            // opt in via --include-tests.
-            if (! $includeTests && ! $isVendor && $this->isInTestsDir($absolute, $testsDirs)) {
-                continue;
-            }
+            // The project-mode noise filters (vendor/allowlist, project
+            // tests, ``/tests/fixtures/`` defence) only apply when we
+            // are NOT in package-extraction scope. Inside an active
+            // scope, the scope filter above is the sole authority.
+            if (! $inScope) {
+                if ($scope === null && $isVendor && ! $includeVendor && ! $this->matchesAllowlist($absolute, $vendorDir, $vendorAllowlist)) {
+                    continue;
+                }
 
-            // Defence in depth: drop any path containing ``/tests/fixtures/``
-            // even when the upstream source lives outside ``vendor/``.
-            // Composer path repositories with ``symlink: true`` resolve a
-            // package's classmap to the package's actual location, so
-            // dev-only fixture autoload entries (e.g. ``SampleApp\\``
-            // mapped to a package's ``tests/fixtures/sample-app/``) leak
-            // into the consumer's classmap. We never want those in the
-            // index regardless of how Composer routed them.
-            if (! $includeTests && str_contains($absolute, '/tests/fixtures/')) {
-                continue;
-            }
+                // Skip the project's tests by default. Test classes often
+                // include intentionally-broken fakes and non-loadable
+                // stubs that would trigger PHP fatal errors at
+                // class-declaration time (not catchable by try/catch).
+                // The agent use case is also uninterested in test doubles
+                // for production code understanding. Users can opt in
+                // via --include-tests.
+                if (! $includeTests && ! $isVendor && $this->isInTestsDir($absolute, $testsDirs)) {
+                    continue;
+                }
 
-            // When a PackageScope is active, restrict the walk to entries
-            // whose resolved path lives under the package's vendor directory.
-            // This is the primary filter for package-extraction mode; the
-            // vendor/allowlist flags are irrelevant in that mode but are left
-            // in place so callers that don't pass a scope are unaffected.
-            if ($scope !== null && ! str_starts_with($absolute, rtrim($scope->vendorPath, '/').'/')) {
-                continue;
+                // Defence in depth: drop any path containing
+                // ``/tests/fixtures/`` even when the upstream source
+                // lives outside ``vendor/``. Composer path repositories
+                // with ``symlink: true`` resolve a package's classmap
+                // to the package's actual location, so dev-only fixture
+                // autoload entries (e.g. ``SampleApp\\`` mapped to a
+                // package's ``tests/fixtures/sample-app/``) leak into
+                // the consumer's classmap. We never want those in the
+                // index regardless of how Composer routed them.
+                if (! $includeTests && str_contains($absolute, '/tests/fixtures/')) {
+                    continue;
+                }
             }
 
             $items[] = [
