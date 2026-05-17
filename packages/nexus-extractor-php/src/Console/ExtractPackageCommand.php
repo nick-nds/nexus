@@ -104,6 +104,11 @@ final class ExtractPackageCommand extends Command
         $exit = $runner->run($context, $document, $output);
 
         if ($exit === 0) {
+            // Apply both filters: scope-include (keep only target
+            // package's classes) then namespace-exclude (Workbench /
+            // Orchestra). Order matters — scope-include is the
+            // primary signal, exclude handles the residual noise.
+            $document->applyScopeFilter($package);
             $this->applyNamespaceFilter($document);
             $writer->write($document, $output);
             $this->reportSummary($document, $output);
