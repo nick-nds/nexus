@@ -108,7 +108,24 @@ class ScratchBuilder:
             meta: Composer metadata for the target package.
             extractor_root: Root of the ``nexus/extractor-php`` Composer package.
         """
+        # A top-level ``name`` is required: when Laravel boots in this
+        # scratch dir, its ``PackageManifest`` reads the host
+        # composer.json and crashes with "Undefined array key 'name'"
+        # if the field is missing. The value is cosmetic — it just has
+        # to exist and be a valid Composer name.
+        #
+        # The ``autoload.psr-4`` ``Workbench\\App\\`` entry makes the
+        # symlinked workbench/ dir autoloadable so Testbench's booted
+        # skeleton can load any Workbench service providers listed in
+        # the target's testbench.yaml. These classes are intentionally
+        # filtered back out post-extraction by NamespaceExclusionFilter
+        # (decision #7) — but they must load cleanly during boot.
         composer: dict[str, object] = {
+            "name": f"nexus-scratch/{meta.slug}",
+            "description": (
+                f"Nexus scratch dir for indexing {meta.full_name}@{meta.version}. "
+                "Auto-generated; do not edit."
+            ),
             "repositories": [
                 {
                     "type": "path",
@@ -125,6 +142,11 @@ class ScratchBuilder:
                 meta.full_name: "*",
                 "nexus/extractor-php": "*",
                 "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
+            },
+            "autoload": {
+                "psr-4": {
+                    "Workbench\\App\\": "workbench/app/",
+                },
             },
             "minimum-stability": "dev",
             "prefer-stable": True,
