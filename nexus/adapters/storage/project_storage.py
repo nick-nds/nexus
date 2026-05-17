@@ -28,12 +28,15 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from nexus.adapters.storage.lancedb_vector_store import LanceDbVectorStore
 from nexus.adapters.storage.sqlite_graph_store import SqliteGraphStore
+from nexus.core.reflection.document import (  # noqa: TC001 — runtime Pydantic field type
+    PackageMetadata,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -46,7 +49,7 @@ class ProjectMeta(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    schema_version: str = f"{PROJECT_META_SCHEMA_MAJOR}.0"
+    schema_version: str = f"{PROJECT_META_SCHEMA_MAJOR}.1"
     project_slug: str
     project_path: str
     detected_profile: str | None = None
@@ -72,6 +75,10 @@ class ProjectMeta(BaseModel):
             "can tell whether call-graph queries are grounded."
         ),
     )
+    kind: Literal["project", "package"] = "project"
+    package: PackageMetadata | None = None
+    build_mode: Literal["in-repo", "nexus-driven"] | None = None
+    source_path: str | None = None
 
 
 class ProjectStorageError(Exception):
