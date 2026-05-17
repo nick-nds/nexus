@@ -220,10 +220,13 @@ class PackageIndexer:
         storage = ProjectStorage(root=self.nexus_root, slug=meta.slug)
         storage.initialise()
 
-        # Copy normalized reflection.json into the project storage dir
-        # so subsequent reads (e.g. "nexus index status") can find it.
+        # Write the **normalized** reflection.json into the project
+        # storage dir so downstream consumers (``nexus index status``,
+        # the integration suite, future tooling) see the same paths
+        # the pipeline saw. The un-normalized extractor output lives
+        # transiently in the scratch dir.
         dest = storage.reflection_path
-        dest.write_text(reflection_path.read_text(encoding="utf-8"), encoding="utf-8")
+        dest.write_text(normalized.model_dump_json(indent=2), encoding="utf-8")
 
         # Use a minimal "generic" profile — packages do not need
         # convention-specific classification hints. Load from built-ins
@@ -294,7 +297,9 @@ class PackageIndexer:
             slug=meta.slug,
             mode=mode,
             project_dir=storage.project_dir,
-            reflection_path=reflection_path,
+            # Return the normalized copy in storage, not the raw scratch
+            # output — downstream consumers expect package-relative paths.
+            reflection_path=dest,
         )
 
     # ------------------------------------------------------------------
