@@ -46,6 +46,7 @@ EXPECTED_CLI_COMMANDS = frozenset(
         "init",
         "install-hooks",
         "mcp",
+        "package",
         "profile",
         "query",
         "trace",

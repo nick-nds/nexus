@@ -125,6 +125,7 @@ def _register_subcommands() -> None:
         query,
         trace,
     )
+    from nexus.interfaces.cli.commands.package import package_group  # noqa: PLC0415
 
     main.add_command(query.query_group)
     main.add_command(ask.ask_command)
@@ -136,6 +137,7 @@ def _register_subcommands() -> None:
     main.add_command(mcp.mcp_group)
     main.add_command(hooks.install_hooks_command)
     main.add_command(trace.trace_group)
+    main.add_command(package_group)
 
 
 _register_subcommands()
