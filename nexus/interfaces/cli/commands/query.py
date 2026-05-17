@@ -132,7 +132,12 @@ def _make_callback(tool_name: str) -> Any:
             # the registry — but belt-and-braces.
             print_error(cli_ctx, str(e))
             raise click.exceptions.Exit(2) from e
-        render(cli_ctx, result)
+        # Read project metadata so the renderer can attach the
+        # attribution block/footer for package-kind projects (decision #10).
+        # read_meta() returns None when no meta.json exists yet; render()
+        # handles that gracefully — project-kind output is unchanged.
+        meta = cli_ctx.storage().read_meta()
+        render(cli_ctx, result, meta=meta)
 
     return click.pass_obj(_callback)
 

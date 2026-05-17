@@ -31,9 +31,11 @@ from rich.console import Console
 from rich.json import JSON
 from rich.syntax import Syntax
 
+from nexus.core.query.attribution import build_attribution, render_attribution_footer
 from nexus.interfaces.cli.context import OutputFormat
 
 if TYPE_CHECKING:
+    from nexus.adapters.storage.project_storage import ProjectMeta
     from nexus.interfaces.cli.context import CliContext
 
 
@@ -42,8 +44,20 @@ def render(
     payload: BaseModel | dict[str, Any] | list[Any] | str,
     *,
     console: Console | None = None,
+    meta: ProjectMeta | None = None,
 ) -> None:
     """Print ``payload`` to stdout in the context's chosen format.
+
+    When *meta* is supplied and ``meta.kind == "package"``, the rendered
+    output is augmented with attribution data:
+
+    * **JSON format** — a top-level ``"package"`` key is added to the
+      serialised dict. The tool's own ``output_model`` is never mutated;
+      the key is injected into the intermediate JSON dict only.
+    * **Pretty format** — a footer line is appended after the highlighted
+      JSON block (``Indexed from vendor/name@version ...``).
+
+    Project-kind output (or calls where *meta* is ``None``) is unchanged.
 
     Args:
         ctx: CLI context controlling format / colour.
@@ -51,6 +65,8 @@ def render(
         console: Optional Rich console override. Tests inject a
             capturing console here; production callers leave it
             ``None`` so the helper writes to stdout.
+        meta: Optional project metadata. When supplied and
+            ``meta.kind == "package"``, attribution is appended.
     """
     console = console or _make_console(ctx)
     fmt = ctx.resolved_format()
@@ -64,6 +80,14 @@ def render(
     data = _to_jsonable(payload)
 
     if fmt == OutputFormat.JSON:
+        # Inject the attribution block into the serialised dict when the
+        # project is a package. The tool's output_model is NOT touched —
+        # we work on the plain dict that _to_jsonable already produced.
+        if meta is not None:
+            attribution = build_attribution(meta)
+            if attribution is not None and isinstance(data, dict):
+                data = {**data, "package": attribution}
+
         # ``print`` rather than ``console.print`` so piping the CLI
         # output to ``jq`` never picks up stray ANSI codes even if
         # Rich decided the stream was a TTY.
@@ -85,6 +109,15 @@ def render(
                 background_color="default",
             ),
         )
+
+    # Append the attribution footer for package-kind projects. The
+    # footer is printed after the JSON block so the machine-readable
+    # content comes first and the human-readable credit follows.
+    if meta is not None:
+        footer = render_attribution_footer(meta)
+        if footer:
+            console.print()
+            console.print(footer)
 
 
 def print_error(ctx: CliContext, message: str, *, hint: str | None = None) -> None:

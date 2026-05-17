@@ -37,6 +37,7 @@ from fastmcp.exceptions import ToolError
 from fastmcp.tools.function_tool import FunctionTool
 from pydantic_core import PydanticUndefined
 
+from nexus.core.query.attribution import build_attribution
 from nexus.core.query.errors import ToolInputError, ToolNotFoundError
 from nexus.core.query.trace import open_trace, trace_path_from_env
 from nexus.logging import get_logger
@@ -165,7 +166,22 @@ def _build_handler(
             raise ToolError(str(exc)) from exc
         except ToolInputError as exc:
             raise ToolError(str(exc)) from exc
-        return dict(output.model_dump(mode="json"))
+        result: dict[str, Any] = dict(output.model_dump(mode="json"))
+        # Attach the attribution block for package-kind projects (decision #10).
+        # The tool's output_model is never mutated — we work on the plain dict
+        # that model_dump already produced.  Project-kind output is unchanged.
+        try:
+            meta = engine.context.storage.read_meta()  # type: ignore[attr-defined]
+            if meta is not None:
+                attribution = build_attribution(meta)
+                if attribution is not None:
+                    result["package"] = attribution
+        except AttributeError:
+            # The storage protocol doesn't expose read_meta() in tests that
+            # use a stub/protocol-only storage. Skip silently — attribution
+            # is a best-effort enrichment, not a hard requirement.
+            pass
+        return result
 
     ns: dict[str, Any] = {"_defaults_": defaults, "_dispatch_": _dispatch}
     exec(fn_src, ns)  # nosec: dynamic function built from controlled field names
