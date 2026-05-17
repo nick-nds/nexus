@@ -175,15 +175,45 @@ final class ExtractPackageCommand extends Command
      */
     private function readAttributionFromComposerJson(Application $app, PackageScope $package): array
     {
-        // Prefer reading from the package's own installed composer.json so that
-        // the attribution reflects the target package, not the host application.
-        $composerPath = rtrim($package->vendorPath, '/').'/composer.json';
-        if (! is_file($composerPath)) {
-            // Fall back to the app base path (direct package mode where basePath IS
-            // the package root, e.g. running inside the package's own workbench).
-            $composerPath = $app->basePath('composer.json');
+        // Resolution order:
+        //   1. vendorPath/composer.json — the package as installed in a
+        //      scratch dir's vendor/ (nexus-driven mode).
+        //   2. getcwd()/composer.json — the working dir of the subprocess.
+        //      For in-repo mode the target package IS the working dir;
+        //      $app->basePath() can't be used here because Testbench
+        //      bootstraps a Laravel skeleton whose basePath() returns
+        //      vendor/orchestra/testbench-core/laravel/ — i.e. Laravel's
+        //      own composer.json, which would replace the target's
+        //      attribution with "The Laravel Framework." and an empty
+        //      authors array.
+        //   3. $app->basePath()/composer.json — last-resort fallback
+        //      that only resolves correctly when the host happens to be
+        //      the target (rare; documented for completeness).
+        $candidates = [
+            rtrim($package->vendorPath, '/').'/composer.json',
+            getcwd() === false ? null : rtrim((string) getcwd(), '/').'/composer.json',
+            $app->basePath('composer.json'),
+        ];
+
+        $composerPath = null;
+        foreach ($candidates as $candidate) {
+            if (is_string($candidate) && is_file($candidate)) {
+                // Sanity-check: only accept if this composer.json names the
+                // target package. Stops us from accidentally reading
+                // Laravel's own composer.json (it always exists at
+                // $app->basePath() under Testbench).
+                $raw = json_decode((string) file_get_contents($candidate), associative: true);
+                $name = is_array($raw) && isset($raw['name']) && is_string($raw['name'])
+                    ? $raw['name']
+                    : '';
+                if ($name === $package->vendor.'/'.$package->name) {
+                    $composerPath = $candidate;
+                    break;
+                }
+            }
         }
-        if (! is_file($composerPath)) {
+
+        if ($composerPath === null) {
             return ['description' => null, 'authors' => [], 'license' => null, 'homepage' => null];
         }
 
