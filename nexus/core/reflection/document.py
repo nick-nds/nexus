@@ -373,6 +373,45 @@ class StaticAnalysisSection(_StrictModel):
 
 
 # ----------------------------------------------------------------------------
+# Package attribution (present only when kind == "package")
+# ----------------------------------------------------------------------------
+
+
+class PackageAuthor(_StrictModel):
+    """A single composer.json author entry.
+
+    Per composer.json spec, only ``name`` is required. The other fields
+    are optional and pass through as ``None`` when absent. We do not
+    invent or infer values.
+    """
+
+    name: str
+    email: str | None = None
+    homepage: str | None = None
+    role: str | None = None
+
+
+class PackageMetadata(_StrictModel):
+    """Identifies (and credits) the Composer package indexed by ``nexus package index``.
+
+    Present iff the document's ``kind`` is ``"package"``. Mirrors the
+    PHP-side ``ReflectionDocument`` ``package`` field. Carries the full
+    attribution surface (decision #10): identity (vendor/name/version)
+    plus credit fields (description, authors, license, homepage). Every
+    optional field passes through as ``None`` / ``[]`` when the source
+    composer.json doesn't supply it.
+    """
+
+    vendor: str
+    name: str
+    version: str
+    description: str | None = None
+    authors: list[PackageAuthor] = Field(default_factory=list)
+    license: str | None = None
+    homepage: str | None = None
+
+
+# ----------------------------------------------------------------------------
 # Top-level document
 # ----------------------------------------------------------------------------
 
@@ -425,15 +464,33 @@ class ReflectionDocument(_StrictModel):
     The loader validates ``schema_version`` against :data:`SCHEMA_MAJOR`
     BEFORE constructing this model, so by the time you have a
     ``ReflectionDocument`` instance you can trust its shape.
+
+    ``kind`` distinguishes a full-application extraction (``"project"``,
+    the default) from a single Composer package extraction
+    (``"package"``). When ``kind`` is ``"package"`` the ``package``
+    field carries full attribution metadata (decision #10). The two
+    fields are cross-validated: package extraction must supply
+    ``package``; project extraction must not.
     """
 
     schema_version: str
     generated_at: str
     project: ProjectMetadata
+    kind: Literal["project", "package"] = "project"
+    package: PackageMetadata | None = None
     sections: ReflectionSections
     warnings: list[ReflectionWarning] = Field(default_factory=list)
     errors: list[ReflectionError] = Field(default_factory=list)
     summary: ReflectionSummary
+
+    @model_validator(mode="after")
+    def _check_kind_package_consistency(self) -> ReflectionDocument:
+        """Enforce that kind and package are set together or not at all."""
+        if self.kind == "package" and self.package is None:
+            raise ValueError("kind='package' requires the 'package' field to be set")
+        if self.kind == "project" and self.package is not None:
+            raise ValueError("kind='project' must not set the 'package' field")
+        return self
 
     @model_validator(mode="after")
     def _check_summary_section_names(self) -> ReflectionDocument:
