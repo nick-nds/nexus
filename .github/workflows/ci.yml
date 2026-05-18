@@ -92,6 +92,12 @@ jobs:
             --cov-fail-under=90 \
             -q
 
+      - name: Run package integration tests
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        env:
+          RUN_PACKAGE_INTEGRATION: "1"
+        run: uv run pytest tests/integration/package/ -v
+
   smoke:
     # Phase 5 test strategy calls for an end-to-end smoke test exercising
     # the full ``pip install`` → ``nexus init`` → query path. The "full"

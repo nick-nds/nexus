@@ -190,3 +190,53 @@ class TestAdaptersCanImportCore:
             "not using the core protocols (architectural problem) or the "
             "test traversal is broken."
         )
+
+
+PACKAGE_ADAPTERS_ROOT = ADAPTERS_ROOT / "package"
+PIPELINE_ROOT = NEXUS_ROOT / "pipeline"
+
+
+class TestPackageAdaptersDoNotImportInterfaces:
+    """Phase 5.5 package adapters must not import the interface layer.
+
+    ``nexus.adapters.package.*`` sits below the interface layer in the
+    dependency graph. If it imported ``nexus.interfaces`` we would have
+    a cycle: interfaces → pipeline → adapters → interfaces.
+    """
+
+    @pytest.mark.parametrize(
+        "file_path",
+        _python_files(PACKAGE_ADAPTERS_ROOT),
+        ids=lambda p: str(p.relative_to(REPO_ROOT)),
+    )
+    def test_adapters_package_does_not_import_interfaces(self, file_path: Path) -> None:
+        source = file_path.read_text(encoding="utf-8")
+        imports = _imported_modules(source)
+
+        offending = [name for name in imports if name.startswith("nexus.interfaces")]
+
+        assert not offending, (
+            f"{file_path.relative_to(REPO_ROOT)} imports from nexus.interfaces: "
+            f"{offending}. The adapters layer must not depend on the interface layer."
+        )
+
+
+class TestPackageIndexerDoesNotImportInterfaces:
+    """``nexus.pipeline.package_indexer`` must not import the interface layer.
+
+    The pipeline orchestrates adapters and core; the interface layer (CLI /
+    MCP) sits *above* it. Importing nexus.interfaces from the pipeline would
+    invert the dependency arrow and create a cycle.
+    """
+
+    def test_package_indexer_does_not_import_interfaces(self) -> None:
+        package_indexer = PIPELINE_ROOT / "package_indexer.py"
+        source = package_indexer.read_text(encoding="utf-8")
+        imports = _imported_modules(source)
+
+        offending = [name for name in imports if name.startswith("nexus.interfaces")]
+
+        assert not offending, (
+            f"nexus/pipeline/package_indexer.py imports from nexus.interfaces: "
+            f"{offending}. The pipeline layer must not depend on the interface layer."
+        )
