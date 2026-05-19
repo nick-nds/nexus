@@ -68,13 +68,16 @@ class FindCallersTool:
 
     name: ClassVar[str] = "find_callers"
     description: ClassVar[str] = (
-        "Given ``ClassFQN::method``, walk ``CALLS`` edges backwards and "
-        "return every method that invokes it. Call-site file and line "
-        "come from the edge attributes populated by the LSP-driven "
-        "static analyser. **Returns an empty list unless the index "
-        "was built with an LSP server** — check "
-        "``response.coverage.calls_indexed`` before treating an empty "
-        "result as 'no callers'."
+        "Walk ``CALLS`` edges backwards and return every method that "
+        "invokes the target. "
+        "**Argument:** ``method_fqn`` in ``ClassFQN::methodName`` form "
+        '(example: ``method_fqn="App\\\\Models\\\\User::scopeActive"``). '
+        "The stable graph id form ``method:<class_fqn>::<name>`` is "
+        "also accepted. Call-site file and line come from the edge "
+        "attributes populated by the LSP-driven static analyser. "
+        "**Returns an empty list unless the index was built with an "
+        "LSP server** — check ``response.coverage.calls_indexed`` "
+        "before treating an empty result as 'no callers'."
     )
     input_model: ClassVar[type[ToolInput]] = FindCallersInput
     output_model: ClassVar[type[ToolOutput]] = FindCallersOutput
