@@ -144,7 +144,7 @@ class CliContext:
             storage = cast("ProjectStorageProtocol", self.storage())
             embedder = self._load_embedder()
             vector_dimensions = getattr(embedder, "dimensions", None) if embedder else None
-            coverage = Coverage.from_meta(self.storage().read_meta())
+            coverage = Coverage.from_meta(self.storage().read_meta(), embedder=embedder)
             ctx = QueryContext(
                 storage=storage,
                 budget=ResponseBudget(),

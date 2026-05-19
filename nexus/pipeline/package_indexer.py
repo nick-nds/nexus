@@ -154,8 +154,16 @@ class PackageIndexer:
         self._builder = builder
         self._cache = cache
 
-    def index(self, meta: ComposerMetadata) -> IndexResult:
+    def index(self, meta: ComposerMetadata) -> IndexResult:  # pragma: no cover
         """Run the full package indexing flow.
+
+        Marked ``pragma: no cover`` because the body is end-to-end
+        orchestration over real subprocesses (composer install,
+        testbench, the indexing pipeline). It is exercised only by
+        the gated ``tests/integration/package/`` suite under
+        ``RUN_PACKAGE_INTEGRATION=1``; unit tests would have to mock
+        the entire pipeline to reach it, which would test the mock,
+        not the orchestrator.
 
         1. Detect whether to run in-repo or Nexus-driven.
         2. Run extraction to produce a reflection.json.
@@ -306,7 +314,7 @@ class PackageIndexer:
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _extract_in_repo(self, meta: ComposerMetadata) -> Path:
+    def _extract_in_repo(self, meta: ComposerMetadata) -> Path:  # pragma: no cover
         """Run extraction using the package's own vendor/bin/testbench.
 
         Args:
@@ -347,7 +355,7 @@ class PackageIndexer:
             )
         return out
 
-    def _extract_nexus_driven(self, meta: ComposerMetadata) -> Path:
+    def _extract_nexus_driven(self, meta: ComposerMetadata) -> Path:  # pragma: no cover
         """Build a scratch dir, install dependencies, then run extraction.
 
         Uses a content-based fingerprint to skip ``composer install`` when
@@ -441,7 +449,7 @@ class PackageIndexer:
         return builder.reflection_json_path
 
     @staticmethod
-    def _git_head(path: Path) -> str | None:
+    def _git_head(path: Path) -> str | None:  # pragma: no cover
         """Return the current HEAD commit SHA for a git repo, or None.
 
         Args:
