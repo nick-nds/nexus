@@ -109,13 +109,15 @@ class Coverage(BaseModel):
         missing). Callers can still surface this to the agent so the
         ``calls_indexed: False`` signal is emitted.
 
-        When ``embedder`` is supplied, also probes its liveness once
-        and records the result in ``semantic_search_available``. The
-        probe attempts a single embedding of a 1-character input; any
-        exception is treated as 'unreachable'. The probe runs at most
-        once per Coverage construction, not per tool call.
+        When ``embedder`` is supplied, also computes
+        ``semantic_search_available`` from two signals: whether the
+        index has vectors (``meta.embedder_id`` is set, written by the
+        EmbedAndPersistPass) AND whether the query-time embedder
+        responds to a single 1-character probe. Both halves must be
+        true for the field to be ``True``; either failure produces
+        ``False``. The probe runs at most once per Coverage construction.
         """
-        probe = _probe_embedder(embedder)
+        probe = _probe_semantic_search(embedder=embedder, meta=meta)
         if meta is None:
             return cls(semantic_search_available=probe)
         return cls(
@@ -128,21 +130,35 @@ class Coverage(BaseModel):
         )
 
 
-def _probe_embedder(embedder: Embedder | None) -> bool | None:
-    """Single-shot liveness check for the embedder.
+def _probe_semantic_search(
+    *,
+    embedder: Embedder | None,
+    meta: ProjectMeta | None,
+) -> bool | None:
+    """Compute whether ``semantic_search`` will work for this project.
 
-    Returns:
-        ``True``  — embedder responded to a 1-char embed call.
-        ``False`` — embedder is configured but errored on the probe
-                    (daemon down, network blocked, model missing).
-        ``None``  — no embedder was supplied; probing makes no sense.
+    Truth table:
 
-    Any exception is caught and treated as unreachable. The probe
-    does NOT propagate errors — its only job is to surface a
-    structured signal for downstream consumers.
+    +------------------+-------------------+------------+--------+
+    | query embedder   | meta.embedder_id  | live probe | result |
+    +==================+===================+============+========+
+    | ``None``         | any               | n/a        | None   |
+    | live             | ``None``          | n/a        | False  |
+    | live             | set               | OK         | True   |
+    | live             | set               | raises     | False  |
+    +------------------+-------------------+------------+--------+
+
+    The probe call is skipped when ``meta.embedder_id is None`` —
+    we already know the answer is ``False`` (no vectors to search),
+    so paying the round-trip would be wasteful.
+
+    Any exception from the embedder is caught and treated as
+    unreachable; this function never propagates errors.
     """
     if embedder is None:
         return None
+    if meta is None or meta.embedder_id is None:
+        return False
     try:
         embedder.embed(["x"])
     except Exception as e:
