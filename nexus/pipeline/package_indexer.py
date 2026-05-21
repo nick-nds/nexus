@@ -57,6 +57,7 @@ if TYPE_CHECKING:
     from nexus.adapters.embedders.cache import EmbeddingCache
     from nexus.adapters.package.composer_metadata import ComposerMetadata
     from nexus.core.graph.builder import GraphBuilder
+    from nexus.core.protocols import Embedder
 
 log = structlog.get_logger(__name__)
 
@@ -135,6 +136,11 @@ class PackageIndexer:
             (extraction and composer install). Defaults to 300.
         builder: Optional graph builder override for tests.
         cache: Optional embedding cache override for tests.
+        embedder: Optional embedder to wire into the pipeline. When
+            supplied, the ``EmbedAndPersistPass`` writes vectors and
+            records ``embedder_id`` in ``meta.json``; when ``None``,
+            the pipeline degrades to graph-only and emits a structured
+            warning.
     """
 
     def __init__(
@@ -146,6 +152,7 @@ class PackageIndexer:
         timeout_s: int = 300,
         builder: GraphBuilder | None = None,
         cache: EmbeddingCache | None = None,
+        embedder: Embedder | None = None,
     ) -> None:
         self.cache_root = cache_root
         self.nexus_root = nexus_root
@@ -153,6 +160,7 @@ class PackageIndexer:
         self.timeout_s = timeout_s
         self._builder = builder
         self._cache = cache
+        self._embedder = embedder
 
     def index(self, meta: ComposerMetadata) -> IndexResult:  # pragma: no cover
         """Run the full package indexing flow.
@@ -260,6 +268,7 @@ class PackageIndexer:
             project_path=meta.package_root,
             storage=storage,
             profile=profile,
+            embedder=self._embedder,
         )
         ctx.reflection = normalized
 
@@ -283,6 +292,13 @@ class PackageIndexer:
             )
 
         last_commit = self._git_head(meta.package_root)
+        # The EmbedAndPersistPass already wrote a meta.json with
+        # embedder_id (or None) and timing. We rewrite it here to
+        # attach package-specific fields (kind, attribution, build
+        # mode, source path, last commit) — but the pipeline's
+        # embedder_id signal must be preserved so query-time coverage
+        # can reflect whether vectors were actually written.
+        embedder_id = self._embedder.model_id if self._embedder is not None else None
         package_meta = ProjectMeta(
             project_slug=meta.slug,
             project_path=str(meta.package_root.resolve()),
@@ -294,6 +310,7 @@ class PackageIndexer:
             indexed_at=datetime.now(UTC).isoformat(),
             node_count=len(ctx.graph.nodes) if ctx.graph is not None else None,
             edge_count=len(ctx.graph.edges) if ctx.graph is not None else None,
+            embedder_id=embedder_id,
         )
         storage.write_meta(package_meta)
         log.info("package.index.meta_written", slug=meta.slug)

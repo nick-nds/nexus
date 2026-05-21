@@ -12,6 +12,7 @@ from nexus.adapters.package.composer_metadata import (
     ComposerMetadataError,
     read_composer_metadata,
 )
+from nexus.interfaces.cli.embedder import build_embedder_from_config
 from nexus.pipeline.package_indexer import PackageIndexer, PackageIndexError
 
 if TYPE_CHECKING:
@@ -89,11 +90,23 @@ def index_command(
     cache_root = nexus_root / "cache"
     extractor_root = _extractor_root()
 
+    embedder = build_embedder_from_config(nexus_root)
+    if embedder is None:
+        # Mirror project-mode behaviour: indexing still proceeds (graph
+        # is useful on its own), but the user should know semantic
+        # search will be unavailable until they configure an embedder.
+        click.echo(
+            "WARNING: no embedder configured in ~/.nexus/config.yml — "
+            "indexing graph only, semantic_search will be unavailable.",
+            err=True,
+        )
+
     indexer = PackageIndexer(
         cache_root=cache_root,
         nexus_root=nexus_root,
         extractor_root=extractor_root,
         timeout_s=timeout,
+        embedder=embedder,
     )
 
     try:
