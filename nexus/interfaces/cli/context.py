@@ -157,26 +157,6 @@ class CliContext:
 
     def _load_embedder(self) -> Embedder | None:
         """Load the embedder from global config, or return None."""
-        from nexus.adapters.embedders.registration import (  # noqa: PLC0415
-            register_builtin_embedders,
-        )
-        from nexus.config.global_config import load_global_config  # noqa: PLC0415
-        from nexus.plugins.registry import PluginRegistry  # noqa: PLC0415
+        from nexus.interfaces.cli.embedder import build_embedder_from_config  # noqa: PLC0415
 
-        config_path = self.storage_root / "config.yml"
-        if not config_path.exists():
-            return None
-
-        global_cfg = load_global_config(config_path)
-        plugin_registry = PluginRegistry()
-        register_builtin_embedders(plugin_registry)
-
-        embedder_cfg = global_cfg.embedder
-        config_dict: dict[str, object] = {"model": embedder_cfg.model}
-        if embedder_cfg.dimensions is not None:
-            config_dict["dimensions"] = embedder_cfg.dimensions
-
-        try:
-            return plugin_registry.resolve_embedder(embedder_cfg.provider, config_dict)
-        except KeyError:
-            return None
+        return build_embedder_from_config(self.storage_root)

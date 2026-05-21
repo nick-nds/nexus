@@ -310,32 +310,23 @@ def _build_embedder(cli_ctx: CliContext) -> Embedder | None:
     """Construct an embedder from the global config, or return None.
 
     Returns None (no embedding) if the config file doesn't exist or
-    if the configured provider is unknown. Errors are printed as
-    warnings rather than aborting the pipeline — a missing embedder
-    degrades gracefully to graph-only mode.
+    if the configured provider is unknown. A missing provider warning
+    is echoed to stderr so the user sees why embeddings were skipped;
+    the pipeline still proceeds in graph-only mode.
     """
-    from nexus.adapters.embedders.registration import register_builtin_embedders  # noqa: PLC0415
-    from nexus.config.global_config import load_global_config  # noqa: PLC0415
-    from nexus.plugins.registry import PluginRegistry  # noqa: PLC0415
+    from nexus.interfaces.cli.embedder import build_embedder_from_config  # noqa: PLC0415
 
     config_path = cli_ctx.storage_root / "config.yml"
-    if not config_path.exists():
-        return None
-
-    global_cfg = load_global_config(config_path)
-    registry = PluginRegistry()
-    register_builtin_embedders(registry)
-
-    embedder_cfg = global_cfg.embedder
-    config_dict: dict[str, object] = {"model": embedder_cfg.model}
-    if embedder_cfg.dimensions is not None:
-        config_dict["dimensions"] = embedder_cfg.dimensions
-
-    try:
-        return registry.resolve_embedder(embedder_cfg.provider, config_dict)
-    except KeyError as e:
-        click.echo(f"WARNING: {e} — running without embedder.", file=sys.stderr)
-        return None
+    embedder = build_embedder_from_config(cli_ctx.storage_root)
+    if embedder is None and config_path.exists():
+        # Config exists but the helper returned None — the provider name
+        # is unknown to the plugin registry. Surface that, since the user
+        # explicitly configured something.
+        click.echo(
+            "WARNING: configured embedder provider is unknown — running without embedder.",
+            file=sys.stderr,
+        )
+    return embedder
 
 
 def _detect_profile(project_path: Path) -> Profile:
