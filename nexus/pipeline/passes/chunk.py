@@ -49,13 +49,25 @@ class ChunkPass:
         # Build a de-duplicated list of project files. The reflection
         # document may reference the same file from multiple class
         # entries (e.g. a file declaring two interfaces).
+        #
+        # The PathNormalizer writes relative paths into the reflection
+        # (``src/Foo.php``), so we resolve them against
+        # ``ctx.project_path`` here rather than trusting the CLI's CWD
+        # to match the project root. Package-mode indexing exposed this
+        # — the user typically runs ``nexus package index`` from outside
+        # the target package, and bare relative paths would silently
+        # produce zero chunks.
+        project_root = ctx.project_path
         seen: set[Path] = set()
         for entry in ctx.reflection.sections.classes.items:
             if entry.source != "project":
                 continue
             if entry.reflection.file is None:
                 continue
-            seen.add(Path(entry.reflection.file))
+            file_path = Path(entry.reflection.file)
+            if not file_path.is_absolute():
+                file_path = project_root / file_path
+            seen.add(file_path)
 
         files: list[Path] = sorted(seen)
 
