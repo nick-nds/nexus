@@ -99,6 +99,23 @@ class FindCallersTool:
                 error_code="method_not_found",
             )
 
+        # The method exists, but if the index was built without an LSP
+        # the CALLS edges were never populated. Return a structured
+        # signal rather than an empty result the agent can't distinguish
+        # from "this method genuinely has no callers".
+        if ctx.coverage is not None and ctx.coverage.calls_indexed is False:
+            return FindCallersOutput(
+                method_fqn=method_id,
+                error=(
+                    "Callers cannot be resolved: this index was built without "
+                    "an LSP server, so CALLS edges were never populated. "
+                    "Re-index with ``--lsp auto`` (or ``--lsp intelephense``) "
+                    "to enable. ``response.coverage.calls_indexed`` is the "
+                    "canary."
+                ),
+                error_code="calls_not_indexed",
+            )
+
         rows: list[CallerRow] = []
         for edge in incoming(graph, method_id, EdgeKind.CALLS):
             caller = graph.node_by_id(edge.source)

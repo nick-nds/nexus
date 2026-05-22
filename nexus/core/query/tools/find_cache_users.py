@@ -146,9 +146,12 @@ class FindCacheUsersTool:
                 mode=mode,
                 error=(
                     f"No cache key found matching {payload.key!r}. "
-                    f"Check that the index was built with the static "
-                    f"analyser (Phase 3) — ``response.coverage.cache_indexed`` "
-                    f"is the canary."
+                    f"Cache findings are populated by Phase C static "
+                    f"analysis of ``Cache::get`` / ``Cache::put`` / "
+                    f"``Cache::remember`` (and friends) callsites. "
+                    f"Verify the key string matches a literal in the "
+                    f"source (composed or fully-dynamic keys are not "
+                    f"indexed)."
                 ),
                 error_code="key_not_found",
             )

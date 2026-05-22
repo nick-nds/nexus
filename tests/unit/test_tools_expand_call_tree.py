@@ -168,6 +168,57 @@ def test_unknown_method_returns_structured_error() -> None:
     assert output.nodes == []
 
 
+def test_calls_not_indexed_returns_structured_error_when_method_exists() -> None:
+    """Pinning P0-8 from the synthesq-relay audit.
+
+    When the index was built without an LSP, CALLS edges aren't
+    populated. The tool must NOT silently return an empty walk — the
+    agent can't distinguish that from "method genuinely has no
+    callers/callees". A structured ``calls_not_indexed`` error code
+    tells the caller exactly what's wrong.
+    """
+    from nexus.core.query.coverage import Coverage
+
+    g, _ = _make_chain_graph()
+    handle = MagicMock()
+    handle.load.return_value = g
+    storage = MagicMock()
+    storage.graph.return_value = handle
+    ctx = QueryContext(
+        storage=storage,
+        budget=ResponseBudget(),
+        coverage=Coverage(calls_indexed=False),
+    )
+
+    output = ExpandCallTreeTool().execute(
+        ExpandCallTreeInput(method_fqn="App\\A::run"),
+        ctx,
+    )
+
+    assert output.error_code == "calls_not_indexed"
+    assert output.nodes == []
+    assert "lsp" in (output.error or "").lower()
+    # The method exists, so we should echo back the resolved id rather
+    # than the raw input — distinguishes this case from method_not_found.
+    assert output.method_fqn == "method:App\\A::run"
+
+
+def test_calls_not_indexed_check_skipped_when_coverage_is_none() -> None:
+    """Tests / library callers that build a ctx without coverage still work."""
+    g, _ = _make_chain_graph()
+    ctx = _make_ctx(g)  # _make_ctx leaves coverage=None
+    assert ctx.coverage is None
+
+    output = ExpandCallTreeTool().execute(
+        ExpandCallTreeInput(method_fqn="App\\A::run", max_depth=1),
+        ctx,
+    )
+
+    # No structured error; the walk proceeds.
+    assert output.error_code is None
+    assert len(output.nodes) > 0
+
+
 def test_max_nodes_caps_response_with_reason() -> None:
     g, _ = _make_chain_graph()
     ctx = _make_ctx(g)

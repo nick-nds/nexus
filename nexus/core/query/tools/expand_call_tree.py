@@ -191,6 +191,25 @@ class ExpandCallTreeTool:
                 error_code="method_not_found",
             )
 
+        # The method exists, but if the index was built without an LSP
+        # the CALLS edges were never populated. Return a structured
+        # signal rather than an empty result the agent can't distinguish
+        # from "this method genuinely has no callers/callees".
+        if ctx.coverage is not None and ctx.coverage.calls_indexed is False:
+            return ExpandCallTreeOutput(
+                method_fqn=method_id,
+                direction=direction,
+                max_depth=payload.max_depth,
+                error=(
+                    "Call tree cannot be resolved: this index was built "
+                    "without an LSP server, so CALLS edges were never "
+                    "populated. Re-index with ``--lsp auto`` (or "
+                    "``--lsp intelephense``) to enable. "
+                    "``response.coverage.calls_indexed`` is the canary."
+                ),
+                error_code="calls_not_indexed",
+            )
+
         nodes, truncated_reason = _walk(
             graph,
             start_id=method_id,
