@@ -46,10 +46,14 @@ _MODULE_SEGMENT_NAMES: frozenset[str] = frozenset({"Modules", "Module"})
 # module — a top-level class like ``RootClass`` has no module.
 _MIN_NAMESPACE_DEPTH = 2
 
-# Class-shaped kinds that count toward module membership. Excludes
-# graph-level nodes that aren't user-authored classes (chunks,
-# routes, middleware, scheduled tasks). Exposed publicly so
-# ``describe_module`` uses the exact same set.
+# Class-shaped kinds that count toward module membership. Includes
+# every kind whose nodes have ``class:<fqn>`` ids — middleware,
+# resources, observers, etc. all belong to user-authored modules.
+# Excludes graph-level alias nodes (``middleware:auth``,
+# ``route:GET /…``, ``scheduled_task:…``) which don't carry a class
+# FQN; those are filtered out anyway by :func:`class_fqn_for` returning
+# ``None`` for them. Exposed publicly so ``describe_module`` uses the
+# exact same set.
 MODULE_CLASS_KINDS: frozenset[NodeKind] = frozenset(
     {
         NodeKind.CONTROLLER,
@@ -66,6 +70,7 @@ MODULE_CLASS_KINDS: frozenset[NodeKind] = frozenset(
         NodeKind.COMMAND,
         NodeKind.SERVICE_PROVIDER,
         NodeKind.CAST,
+        NodeKind.MIDDLEWARE,
         NodeKind.CLASS,
     },
 )

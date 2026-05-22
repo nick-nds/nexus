@@ -111,3 +111,48 @@ def test_kind_with_zero_matches_returns_empty_not_error() -> None:
     assert output.error_code is None
     assert output.total == 0
     assert output.items == []
+
+
+def test_middleware_kind_lists_user_authored_middleware_classes() -> None:
+    """Pinning P0-9 from the synthesq-relay audit.
+
+    Before the fix, ``list_by_kind(kind='middleware')`` returned a
+    misleading redirect to other tools that didn't actually list
+    middleware. Now it enumerates user-authored middleware classes.
+    """
+    g = _make_graph()
+    _add_class(g, "App\\Http\\Middleware\\Authenticate", NodeKind.MIDDLEWARE)
+    _add_class(g, "App\\Tenancy\\TenantResolutionMiddleware", NodeKind.MIDDLEWARE)
+    ctx = _make_ctx(g)
+
+    output = ListByKindTool().execute(ListByKindInput(kind="middleware"), ctx)
+
+    assert output.error_code is None
+    assert output.total == 2
+    assert {r.short_name for r in output.items} == {
+        "Authenticate",
+        "TenantResolutionMiddleware",
+    }
+
+
+def test_middleware_kind_excludes_framework_aliases() -> None:
+    """Framework middleware aliases (``middleware:auth``, ``middleware:throttle``)
+    use non-``class:`` ids and must not appear in the listing.
+    """
+    g = _make_graph()
+    _add_class(g, "App\\Http\\Middleware\\InjectActingUser", NodeKind.MIDDLEWARE)
+    # Framework alias node — id deliberately doesn't start with class:
+    g.add_node(
+        Node(
+            id="middleware:auth",
+            kind=NodeKind.MIDDLEWARE,
+            name="auth",
+            attributes={},
+        ),
+    )
+    ctx = _make_ctx(g)
+
+    output = ListByKindTool().execute(ListByKindInput(kind="middleware"), ctx)
+
+    assert output.total == 1
+    assert output.items[0].fqn == "App\\Http\\Middleware\\InjectActingUser"

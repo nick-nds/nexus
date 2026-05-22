@@ -46,11 +46,16 @@ if TYPE_CHECKING:
     from nexus.core.query.context import QueryContext
 
 
-# Kinds the generic ``list_by_kind`` will enumerate. Routes,
-# middleware aliases, and scheduled tasks are excluded — they have
-# dedicated tools whose responses carry richer per-kind metadata
-# (route URI + middleware list, cron expression + target, etc.) that
-# this generic tool can't reasonably surface.
+# Kinds the generic ``list_by_kind`` will enumerate. Routes and
+# scheduled tasks are excluded — they have dedicated tools whose
+# responses carry richer per-kind metadata (route URI + middleware
+# list, cron expression + target, etc.) that this generic tool can't
+# reasonably surface.
+#
+# Middleware is included because user-authored middleware *classes*
+# carry ``class:<fqn>`` ids that this tool already filters on (line
+# below). Framework-level middleware *aliases* like ``middleware:auth``
+# have non-``class:`` ids and are skipped naturally.
 _LISTABLE_KINDS: frozenset[NodeKind] = frozenset(
     {
         NodeKind.CONTROLLER,
@@ -67,6 +72,7 @@ _LISTABLE_KINDS: frozenset[NodeKind] = frozenset(
         NodeKind.COMMAND,
         NodeKind.SERVICE_PROVIDER,
         NodeKind.CAST,
+        NodeKind.MIDDLEWARE,
         NodeKind.CLASS,
     },
 )
@@ -80,8 +86,9 @@ class ListByKindInput(ToolInput):
             "NodeKind to enumerate: ``event``, ``job``, ``notification``, "
             "``listener``, ``model``, ``controller``, ``form_request``, "
             "``policy``, ``observer``, ``mailable``, ``resource``, "
-            "``command``, ``service_provider``, ``cast``, or ``class``. "
-            "Routes / middleware / scheduled tasks have dedicated tools."
+            "``command``, ``service_provider``, ``cast``, ``middleware``, "
+            "or ``class``. Routes and scheduled tasks have dedicated "
+            "tools (``list_routes`` / ``list_scheduled_tasks``)."
         ),
     )
     name_glob: str | None = Field(
