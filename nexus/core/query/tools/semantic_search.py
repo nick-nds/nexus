@@ -126,10 +126,23 @@ class SemanticHit(ToolOutput):
     node_kind: str
     node_name: str
     score: float = Field(
-        description="Final re-ranked score (vector score * kind weight).",
+        description=(
+            "Final re-ranked score = ``vector_score * node_kind_weight``. "
+            "Kind weights bias results toward methods/routes (1.20), then "
+            "events/listeners/jobs (1.15), then policies/models (1.10), "
+            "then controllers/form_requests (1.05); raw chunks and "
+            "generic classes are damped (0.95 / 0.90). Use ``score`` for "
+            "agent-facing ranking; use ``vector_score`` when comparing "
+            "the underlying retrieval quality."
+        ),
     )
     vector_score: float = Field(
-        description="Raw cosine similarity from the vector store (0-1).",
+        description=(
+            "Raw cosine similarity from the vector store (0-1). "
+            "Higher = closer to the query embedding. Compare this — not "
+            "``score`` — when reasoning about whether the embedding "
+            "model actually found something semantically relevant."
+        ),
     )
     file: str | None = None
     start_line: int | None = None
@@ -226,7 +239,11 @@ class SemanticSearchTool:
         graph = ctx.storage.graph().load()
         aggregated = _aggregate_by_node(raw_hits)
         rows = _build_rows(graph, aggregated)
-        rows.sort(key=lambda r: r.score, reverse=True)
+        # Sort descending by score, breaking ties by node_id ascending.
+        # Without the secondary key, two hits at identical vector_scores
+        # (common for boilerplate DTOs) would return in
+        # implementation-dependent order — flagged by audit P2-21.
+        rows.sort(key=lambda r: (-r.score, r.node_id))
 
         returned = rows[: payload.final_k]
         if payload.snippet_lines > 0:
