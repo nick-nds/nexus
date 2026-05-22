@@ -38,7 +38,7 @@ class TestHeader:
         g.add_node(
             Node(
                 id="method:App\\Models\\User::posts",
-                kind=NodeKind.CONTROLLER_METHOD,
+                kind=NodeKind.METHOD,
                 name="posts",
                 attributes={"class_fqn": "App\\Models\\User"},
             ),
@@ -51,7 +51,7 @@ class TestHeader:
         text = EnrichedTextBuilder().build(chunk, g)
 
         first_line = text.splitlines()[0]
-        assert first_line == "controller_method: posts"
+        assert first_line == "method: posts"
 
     def test_header_falls_back_to_chunk_kind_when_node_missing(self) -> None:
         g = Graph()
@@ -95,7 +95,7 @@ class TestMethodContext:
         g.add_node(
             Node(
                 id="method:App\\Models\\User::posts",
-                kind=NodeKind.CONTROLLER_METHOD,
+                kind=NodeKind.METHOD,
                 name="posts",
                 attributes={"class_fqn": "App\\Models\\User"},
             ),
@@ -132,7 +132,7 @@ class TestRouteContext:
         g.add_node(
             Node(
                 id="method:App\\Http\\UserController::index",
-                kind=NodeKind.CONTROLLER_METHOD,
+                kind=NodeKind.METHOD,
                 name="index",
                 attributes={"class_fqn": "App\\Http\\UserController"},
             ),

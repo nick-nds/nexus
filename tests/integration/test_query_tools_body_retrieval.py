@@ -114,7 +114,7 @@ def storage(tmp_path: Path, project_root: Path, php_file: Path) -> Iterator[Proj
     g.add_node(
         Node(
             id=rules_id,
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="rules",
             attributes={
                 "class_fqn": "App\\Requests\\CreateProductRequest",
@@ -126,7 +126,7 @@ def storage(tmp_path: Path, project_root: Path, php_file: Path) -> Iterator[Proj
     g.add_node(
         Node(
             id=messages_id,
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="messages",
             attributes={
                 "class_fqn": "App\\Requests\\CreateProductRequest",
@@ -252,7 +252,7 @@ class TestGetNodeBody:
         assert result.content is not None
         assert "public function rules" in result.content
         assert "'sku' =>" in result.content
-        assert result.node_kind == "controller_method"
+        assert result.node_kind == "method"
         assert result.symbol == "rules"
         assert result.container_class == "App\\Requests\\CreateProductRequest"
 

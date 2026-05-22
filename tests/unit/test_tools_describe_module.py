@@ -56,7 +56,7 @@ def _add_route(
         g.add_node(
             Node(
                 id=method_id,
-                kind=NodeKind.CONTROLLER_METHOD,
+                kind=NodeKind.METHOD,
                 name=handler_method,
                 attributes={"class_fqn": handler_class},
             ),

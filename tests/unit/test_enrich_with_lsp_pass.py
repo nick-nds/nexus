@@ -97,7 +97,7 @@ def _make_two_method_graph(foo_file: Path, caller_file: Path) -> Graph:
     graph.add_node(
         Node(
             id="method:App\\Foo::bar",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="bar",
             attributes={"class_fqn": "App\\Foo", "line": 4},
         ),
@@ -113,7 +113,7 @@ def _make_two_method_graph(foo_file: Path, caller_file: Path) -> Graph:
     graph.add_node(
         Node(
             id="method:App\\Caller::callBar",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="callBar",
             attributes={"class_fqn": "App\\Caller", "line": 4},
         ),
@@ -191,7 +191,7 @@ def test_self_references_are_not_added_as_calls_edges(tmp_path: Path) -> None:
     graph.add_node(
         Node(
             id="method:App\\Foo::bar",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="bar",
             attributes={"class_fqn": "App\\Foo", "line": 4},
         ),
@@ -241,7 +241,7 @@ def test_pass_is_no_op_when_lsp_is_none(tmp_path: Path) -> None:
     graph.add_node(
         Node(
             id="method:App\\Foo::bar",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="bar",
             attributes={"class_fqn": "App\\Foo", "line": 1},
         ),
@@ -272,7 +272,7 @@ def test_pass_is_no_op_with_null_lsp_substituted(tmp_path: Path) -> None:
     graph.add_node(
         Node(
             id="method:Foo::bar",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="bar",
             attributes={"class_fqn": "Foo", "line": 3},
         ),
@@ -335,7 +335,7 @@ def test_pass_warns_when_method_symbol_not_on_declared_line(tmp_path: Path) -> N
     graph.add_node(
         Node(
             id="method:Foo::bar",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="bar",
             attributes={"class_fqn": "Foo", "line": 1},
         ),
@@ -366,7 +366,7 @@ def test_close_is_called_even_when_iteration_raises(tmp_path: Path) -> None:
     graph.add_node(
         Node(
             id="method:Foo::bar",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="bar",
             attributes={"class_fqn": "Foo", "line": 2},
         ),

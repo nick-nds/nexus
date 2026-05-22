@@ -75,7 +75,7 @@ class EnrichWithLspPass:
             )
             return
 
-        method_nodes = [n for n in ctx.graph.nodes if n.kind == NodeKind.CONTROLLER_METHOD]
+        method_nodes = [n for n in ctx.graph.nodes if n.kind == NodeKind.METHOD]
         if not method_nodes:
             ctx.progress.emit(
                 PassProgress(

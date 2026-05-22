@@ -264,7 +264,7 @@ class GraphBuilder:
             graph.add_node(
                 Node(
                     id=mid,
-                    kind=NodeKind.CONTROLLER_METHOD,
+                    kind=NodeKind.METHOD,
                     name=method.name,
                     attributes={
                         "class_fqn": fqn,

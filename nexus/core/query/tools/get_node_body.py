@@ -233,7 +233,7 @@ class GetNodeBodyTool:
                 error_code="node_not_found",
             )
 
-        if node.kind == NodeKind.CONTROLLER_METHOD:
+        if node.kind == NodeKind.METHOD:
             file_path = file_for_method_node(graph, node)
             container_class = str_attr(node.attributes, "class_fqn")
         else:

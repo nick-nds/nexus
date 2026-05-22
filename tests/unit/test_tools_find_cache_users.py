@@ -28,7 +28,7 @@ def _add_method(g: Graph, class_fqn: str, method: str) -> str:
         g.add_node(
             Node(
                 id=method_id,
-                kind=NodeKind.CONTROLLER_METHOD,
+                kind=NodeKind.METHOD,
                 name=method,
                 attributes={"class_fqn": class_fqn, "file": "/app.php", "line": 5},
             ),

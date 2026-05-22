@@ -44,7 +44,7 @@ def _build_class_graph() -> Graph:
     g.add_node(
         Node(
             id=method_id,
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="sync",
             attributes={"class_fqn": fqn},
         ),

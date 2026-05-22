@@ -33,7 +33,7 @@ def _add_method(g: Graph, class_fqn: str, method: str, *, file_: str = "/app.php
     g.add_node(
         Node(
             id=method_id,
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name=method,
             attributes={"class_fqn": class_fqn, "file": file_, "line": 10},
         ),

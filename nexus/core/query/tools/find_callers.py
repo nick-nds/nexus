@@ -154,7 +154,7 @@ def _resolve_method_id(graph: Graph, query: str) -> str | None:
         return candidate
     # Last resort: scan for a method whose full identifier matches.
     for node in graph.nodes:
-        if node.kind != NodeKind.CONTROLLER_METHOD:
+        if node.kind != NodeKind.METHOD:
             continue
         class_fqn = str_attr(node.attributes, "class_fqn")
         if class_fqn is not None and f"{class_fqn}::{node.name}" == query:

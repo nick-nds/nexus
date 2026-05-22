@@ -61,7 +61,7 @@ def _build_graph() -> Graph:
     g.add_node(
         Node(
             id="method:App\\Actions\\PayOrderAction::handle",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="handle",
             attributes={
                 "class_fqn": "App\\Actions\\PayOrderAction",
@@ -75,7 +75,7 @@ def _build_graph() -> Graph:
     g.add_node(
         Node(
             id="method:App\\Http\\Controllers\\CheckoutController::store",
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="store",
             attributes={
                 "class_fqn": "App\\Http\\Controllers\\CheckoutController",

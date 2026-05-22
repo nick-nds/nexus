@@ -72,7 +72,7 @@ _SNIPPET_CONTEXT_LINES = 2
 # on the momskitchen fixture — will be revisited after the Phase 5
 # external-validation dogfood.
 _KIND_WEIGHT: dict[NodeKind, float] = {
-    NodeKind.CONTROLLER_METHOD: 1.20,
+    NodeKind.METHOD: 1.20,
     NodeKind.ROUTE: 1.20,
     NodeKind.EVENT: 1.15,
     NodeKind.LISTENER: 1.15,
@@ -326,7 +326,7 @@ def _build_rows(graph: Graph, aggregates: list[_Aggregate]) -> list[SemanticHit]
 
 def _container_class(graph: Graph, node: Node) -> str | None:
     """For method nodes, return the owning class FQN."""
-    if node.kind != NodeKind.CONTROLLER_METHOD:
+    if node.kind != NodeKind.METHOD:
         return None
     class_fqn = str_attr(node.attributes, "class_fqn")
     if class_fqn is not None:
@@ -342,7 +342,7 @@ def _container_class(graph: Graph, node: Node) -> str | None:
 def _related_routes(graph: Graph, node: Node) -> list[str]:
     """Collect URIs of routes pointing at this node (direct or via method)."""
     # Only method nodes are targets of ROUTES_TO in v1.
-    if node.kind != NodeKind.CONTROLLER_METHOD:
+    if node.kind != NodeKind.METHOD:
         return []
     uris: list[str] = []
     for edge in incoming(graph, node.id, EdgeKind.ROUTES_TO):

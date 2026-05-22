@@ -168,7 +168,7 @@ class TestSemanticSearch:
         # The method hit should surface its container_class and at
         # least one related route because the graph wires them up.
         method_hit = next(
-            (h for h in result.hits if h.node_kind == "controller_method"),
+            (h for h in result.hits if h.node_kind == "method"),
             None,
         )
         assert method_hit is not None
@@ -212,5 +212,5 @@ class TestSemanticSearch:
         # identical vector components up to rounding, but the method
         # weight (1.20) should outrank the class weight (0.95).
         by_kind = {h.node_kind: h for h in result.hits}
-        if "controller_method" in by_kind and "class" in by_kind:
-            assert by_kind["controller_method"].score > by_kind["class"].score
+        if "method" in by_kind and "class" in by_kind:
+            assert by_kind["method"].score > by_kind["class"].score

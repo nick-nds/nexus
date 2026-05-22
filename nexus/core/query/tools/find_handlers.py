@@ -170,7 +170,7 @@ def _candidate_routes(graph: Graph, *, handler_fqn: str | None) -> list[Node]:
     # Find method nodes whose class_fqn matches, then walk backwards.
     method_ids: list[str] = []
     for node in graph.nodes:
-        if node.kind != NodeKind.CONTROLLER_METHOD:
+        if node.kind != NodeKind.METHOD:
             continue
         if str_attr(node.attributes, "class_fqn") == class_fqn:
             method_ids.append(node.id)

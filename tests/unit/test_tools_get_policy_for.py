@@ -95,7 +95,7 @@ def _build_graph_with_policy() -> Graph:
         g.add_node(
             Node(
                 id=method_id,
-                kind=NodeKind.CONTROLLER_METHOD,
+                kind=NodeKind.METHOD,
                 name=method_name,
                 attributes={"visibility": "public", "line": line},
             )

@@ -161,7 +161,7 @@ class TestBuildAgainstRealFixture:
         document = load_reflection(FIXTURE)
         result = builder.build(document, empty_profile)
 
-        method_nodes = [n for n in result.value.nodes if n.kind == NodeKind.CONTROLLER_METHOD]
+        method_nodes = [n for n in result.value.nodes if n.kind == NodeKind.METHOD]
         part_of_edges = [e for e in result.value.edges if e.kind == EdgeKind.PART_OF]
         assert len(method_nodes) == len(part_of_edges)
 

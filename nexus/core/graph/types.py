@@ -41,10 +41,15 @@ class NodeKind(StrEnum):
 
     # Controllers and HTTP boundary
     CONTROLLER = "controller"
-    CONTROLLER_METHOD = "controller_method"
     FORM_REQUEST = "form_request"
     MIDDLEWARE = "middleware"
     RESOURCE = "resource"
+
+    # Every method on every class (controllers, models, services, jobs,
+    # listeners, …). The audit (P0-3) showed that hard-coding
+    # ``method`` on every method was misleading for non-HTTP
+    # packages — most Laravel-extras libraries have zero controllers.
+    METHOD = "method"
 
     # Models and persistence
     MODEL = "model"
@@ -89,9 +94,9 @@ class EdgeKind(StrEnum):
     """The kinds of directed edge between nodes."""
 
     # Routing flow
-    ROUTES_TO = "routes_to"  # route → controller_method
+    ROUTES_TO = "routes_to"  # route → method
     HAS_MIDDLEWARE = "has_middleware"  # route → middleware
-    VALIDATES_WITH = "validates_with"  # controller_method → form_request
+    VALIDATES_WITH = "validates_with"  # method → form_request
 
     # Class relationships
     EXTENDS = "extends"  # class → class (parent)

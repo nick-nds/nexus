@@ -186,7 +186,7 @@ def graph(php_file: Path) -> Graph:
     g.add_node(
         Node(
             id=rules_id,
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="rules",
             attributes={
                 "class_fqn": "App\\Operations\\Presentation\\Requests\\CreateProductRequest",
@@ -198,7 +198,7 @@ def graph(php_file: Path) -> Graph:
     g.add_node(
         Node(
             id=messages_id,
-            kind=NodeKind.CONTROLLER_METHOD,
+            kind=NodeKind.METHOD,
             name="messages",
             attributes={
                 "class_fqn": "App\\Operations\\Presentation\\Requests\\CreateProductRequest",
@@ -327,7 +327,7 @@ def test_returns_method_body(
     assert "public function rules" in out.content
     assert "'name' =>" in out.content
     assert out.node_id == payload.node_id
-    assert out.node_kind == "controller_method"
+    assert out.node_kind == "method"
     assert out.symbol == "rules"
     assert out.container_class == "App\\Operations\\Presentation\\Requests\\CreateProductRequest"
     assert out.file == str(php_file)

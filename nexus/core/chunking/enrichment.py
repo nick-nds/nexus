@@ -122,7 +122,7 @@ class EnrichedTextBuilder:
         """
         lines: list[str] = []
 
-        if node.kind == NodeKind.CONTROLLER_METHOD:
+        if node.kind == NodeKind.METHOD:
             lines.extend(self._method_context(node, graph))
         elif node.kind == NodeKind.ROUTE:
             lines.extend(self._route_context(node, graph))
