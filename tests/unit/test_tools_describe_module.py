@@ -177,3 +177,45 @@ def test_sample_per_kind_caps_fqns_but_reports_full_total() -> None:
     assert models.kind == "model"
     assert models.total == 20
     assert len(models.fqns) == 3
+
+
+def test_fqns_truncation_is_signalled_explicitly() -> None:
+    """Pinning P1-14 from the synthesq-relay audit.
+
+    Before the fix, ``describe_module`` silently capped per-kind
+    ``fqns`` at ``sample_per_kind`` while leaving ``truncated=false``
+    and ``truncated_lists=[]``. Agents had no signal that the FQN
+    list was a sample, only the total/len comparison.
+    """
+    g = Graph()
+    for i in range(20):
+        _add_class(g, f"App\\Modules\\Big\\Models\\Item{i:02d}", NodeKind.MODEL)
+    ctx = _make_ctx(g)
+
+    output = DescribeModuleTool().execute(
+        DescribeModuleInput(prefix="App\\Modules\\Big", sample_per_kind=3),
+        ctx,
+    )
+
+    assert output.truncated is True
+    # Format mirrors list_by_kind: "<path>:<full>→<cut>".
+    assert any("classes_by_kind[model].fqns:20→3" in path for path in output.truncated_lists)
+
+
+def test_no_truncation_signal_when_sample_size_covers_all() -> None:
+    """Sample size large enough → no truncation flag."""
+    g = Graph()
+    for i in range(3):
+        _add_class(g, f"App\\Modules\\Tiny\\Models\\Item{i:02d}", NodeKind.MODEL)
+    ctx = _make_ctx(g)
+
+    output = DescribeModuleTool().execute(
+        DescribeModuleInput(prefix="App\\Modules\\Tiny", sample_per_kind=10),
+        ctx,
+    )
+
+    assert output.truncated is False
+    assert output.truncated_lists == []
+    [models] = output.classes_by_kind
+    assert len(models.fqns) == 3
+    assert models.total == 3

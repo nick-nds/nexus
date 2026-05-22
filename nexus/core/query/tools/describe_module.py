@@ -164,7 +164,7 @@ class DescribeModuleTool:
                 error_code="empty_module",
             )
 
-        classes_by_kind = _build_kind_samples(
+        classes_by_kind, fqn_truncation_paths = _build_kind_samples(
             kind_counts,
             kind_fqns,
             sample_per_kind=payload.sample_per_kind,
@@ -177,6 +177,8 @@ class DescribeModuleTool:
             classes_by_kind=classes_by_kind,
             submodules=sorted(submodules),
             routes=routes,
+            truncated=bool(fqn_truncation_paths),
+            truncated_lists=fqn_truncation_paths,
         )
 
 
@@ -203,20 +205,34 @@ def _build_kind_samples(
     fqns: defaultdict[str, list[str]],
     *,
     sample_per_kind: int,
-) -> list[ModuleClassSample]:
-    """Sort each kind's FQN sample and assemble the response rows."""
+) -> tuple[list[ModuleClassSample], list[str]]:
+    """Sort each kind's FQN sample and assemble the response rows.
+
+    Returns ``(samples, truncated_paths)`` where ``truncated_paths`` is
+    a list of dotted-path strings identifying which kinds had their
+    ``fqns`` lists capped — surfaced on the response so the agent can
+    raise ``sample_per_kind`` or pivot to ``list_by_kind`` with a
+    ``namespace_prefix`` filter for full enumeration. Pinning audit
+    finding P1-14.
+    """
     samples: list[ModuleClassSample] = []
+    truncated_paths: list[str] = []
     for kind, total in counts.items():
         sorted_fqns = sorted(fqns[kind])
+        capped = sorted_fqns[:sample_per_kind]
+        if total > len(capped):
+            truncated_paths.append(
+                f"classes_by_kind[{kind}].fqns:{total}→{len(capped)}",
+            )
         samples.append(
             ModuleClassSample(
                 kind=kind,
                 total=total,
-                fqns=sorted_fqns[:sample_per_kind],
+                fqns=capped,
             ),
         )
     samples.sort(key=lambda s: (-s.total, s.kind))
-    return samples
+    return samples, truncated_paths
 
 
 def _collect_module_routes(
