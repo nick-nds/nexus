@@ -106,6 +106,28 @@ class ListByKindInput(ToolInput):
             "Useful on DDD codebases where one kind spans many modules."
         ),
     )
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description=(
+            "Zero-based starting index into the sorted result list. "
+            "Use with ``limit`` to paginate through results larger "
+            "than a single page. The response's ``next_offset`` field "
+            "tells you what to pass on the next call when ``has_more`` "
+            "is true."
+        ),
+    )
+    limit: int = Field(
+        default=100,
+        ge=1,
+        le=500,
+        description=(
+            "Maximum rows returned in this call (1-500, default 100). "
+            "The full filtered count is always reported in ``total`` "
+            "regardless of ``limit``, so the agent can decide whether "
+            "to paginate or narrow the filter."
+        ),
+    )
 
 
 class KindRow(ToolOutput):
@@ -121,8 +143,36 @@ class ListByKindOutput(ToolOutput):
     """Container for the enumeration response."""
 
     kind: str | None = None
-    total: int = 0
+    total: int = Field(
+        default=0,
+        description=(
+            "Full count of rows matching the filters, before pagination. "
+            "Compare against ``returned`` to know if more rows exist."
+        ),
+    )
     returned: int = 0
+    offset: int = Field(
+        default=0,
+        description="The ``offset`` that produced this page (echoed back).",
+    )
+    limit: int = Field(
+        default=100,
+        description="The ``limit`` that produced this page (echoed back).",
+    )
+    has_more: bool = Field(
+        default=False,
+        description=(
+            "True iff ``total > offset + returned``. Indicates that "
+            "another call with ``offset=next_offset`` will return more."
+        ),
+    )
+    next_offset: int | None = Field(
+        default=None,
+        description=(
+            "Value to pass as ``offset`` on the next call to continue "
+            "paginating. ``None`` when ``has_more`` is false."
+        ),
+    )
     items: list[KindRow] = Field(default_factory=list)
     error: str | None = None
     error_code: str | None = None
@@ -144,14 +194,19 @@ class ListByKindTool:
         "classes. "
         "**Argument:** ``kind`` (string) — one of the kinds listed "
         'above, e.g. ``kind="event"``, ``kind="middleware"``. '
-        "**Optional:** ``name_glob`` (shell glob, e.g. "
+        "**Optional filters:** ``name_glob`` (shell glob, e.g. "
         '``name_glob="*Webhook*"``) and ``namespace_prefix`` '
         '(e.g. ``namespace_prefix="App\\\\Modules\\\\CRM"``) narrow the '
-        "result. Use as a generic discovery primitive when the agent "
-        "wants 'all events' or 'all controllers under "
-        "App\\\\Modules\\\\CRM'. Routes have ``list_routes``; scheduled "
-        "tasks have ``list_scheduled_tasks``; for fuzzy short-name "
-        "lookup across kinds use ``explore_entity``."
+        "result. "
+        "**Pagination:** ``offset`` (int, default 0) and ``limit`` "
+        "(int, default 100, max 500). Check ``has_more`` on the "
+        "response and pass ``offset=next_offset`` to fetch subsequent "
+        "pages — ``total`` always reports the full filtered count. "
+        "Use as a generic discovery primitive when the agent wants "
+        "'all events' or 'all controllers under App\\\\Modules\\\\CRM'. "
+        "Routes have ``list_routes``; scheduled tasks have "
+        "``list_scheduled_tasks``; for fuzzy short-name lookup across "
+        "kinds use ``explore_entity``."
     )
     input_model: ClassVar[type[ToolInput]] = ListByKindInput
     output_model: ClassVar[type[ToolOutput]] = ListByKindOutput
@@ -210,9 +265,21 @@ class ListByKindTool:
 
         rows.sort(key=lambda r: r.fqn)
 
+        # Apply pagination AFTER sorting so successive calls with
+        # increasing ``offset`` walk a stable sequence even when the
+        # underlying graph changes between calls.
+        total = len(rows)
+        page = rows[payload.offset : payload.offset + payload.limit]
+        has_more = total > payload.offset + len(page)
+        next_offset = payload.offset + payload.limit if has_more else None
+
         return ListByKindOutput(
             kind=target_kind.value,
-            total=len(rows),
-            returned=len(rows),
-            items=rows,
+            total=total,
+            returned=len(page),
+            offset=payload.offset,
+            limit=payload.limit,
+            has_more=has_more,
+            next_offset=next_offset,
+            items=page,
         )

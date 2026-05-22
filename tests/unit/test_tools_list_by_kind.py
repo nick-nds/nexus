@@ -135,6 +135,106 @@ def test_middleware_kind_lists_user_authored_middleware_classes() -> None:
     }
 
 
+def test_pagination_first_page_signals_more_when_limit_smaller_than_total() -> None:
+    """Pinning P1-13 from the synthesq-relay audit.
+
+    Before the fix, ``list_by_kind`` returned at most 100 rows and
+    rejected any ``offset`` / ``limit`` arg. Items 101-247 were
+    unreachable.
+    """
+    g = Graph()
+    for i in range(10):
+        _add_class(g, f"App\\Events\\Event{i:02d}", NodeKind.EVENT)
+    ctx = _make_ctx(g)
+
+    output = ListByKindTool().execute(
+        ListByKindInput(kind="event", offset=0, limit=3),
+        ctx,
+    )
+
+    assert output.error_code is None
+    assert output.total == 10
+    assert output.returned == 3
+    assert output.offset == 0
+    assert output.limit == 3
+    assert output.has_more is True
+    assert output.next_offset == 3
+    # FQN-sorted: Event00, Event01, Event02.
+    assert [r.short_name for r in output.items] == ["Event00", "Event01", "Event02"]
+
+
+def test_pagination_middle_page_returns_correct_slice() -> None:
+    g = Graph()
+    for i in range(10):
+        _add_class(g, f"App\\Events\\Event{i:02d}", NodeKind.EVENT)
+    ctx = _make_ctx(g)
+
+    output = ListByKindTool().execute(
+        ListByKindInput(kind="event", offset=3, limit=3),
+        ctx,
+    )
+
+    assert output.total == 10
+    assert output.returned == 3
+    assert output.offset == 3
+    assert output.has_more is True
+    assert output.next_offset == 6
+    assert [r.short_name for r in output.items] == ["Event03", "Event04", "Event05"]
+
+
+def test_pagination_final_page_signals_no_more() -> None:
+    g = Graph()
+    for i in range(10):
+        _add_class(g, f"App\\Events\\Event{i:02d}", NodeKind.EVENT)
+    ctx = _make_ctx(g)
+
+    output = ListByKindTool().execute(
+        ListByKindInput(kind="event", offset=9, limit=3),
+        ctx,
+    )
+
+    assert output.total == 10
+    assert output.returned == 1  # only Event09 remains
+    assert output.has_more is False
+    assert output.next_offset is None
+    assert output.items[0].short_name == "Event09"
+
+
+def test_pagination_limit_larger_than_total_returns_all() -> None:
+    g = Graph()
+    for i in range(5):
+        _add_class(g, f"App\\Events\\Event{i:02d}", NodeKind.EVENT)
+    ctx = _make_ctx(g)
+
+    output = ListByKindTool().execute(
+        ListByKindInput(kind="event", limit=100),
+        ctx,
+    )
+
+    assert output.total == 5
+    assert output.returned == 5
+    assert output.has_more is False
+    assert output.next_offset is None
+
+
+def test_pagination_offset_past_end_returns_empty_page() -> None:
+    g = Graph()
+    for i in range(3):
+        _add_class(g, f"App\\Events\\Event{i:02d}", NodeKind.EVENT)
+    ctx = _make_ctx(g)
+
+    output = ListByKindTool().execute(
+        ListByKindInput(kind="event", offset=10, limit=10),
+        ctx,
+    )
+
+    assert output.total == 3
+    assert output.returned == 0
+    assert output.items == []
+    assert output.has_more is False
+    assert output.next_offset is None
+
+
 def test_middleware_kind_excludes_framework_aliases() -> None:
     """Framework middleware aliases (``middleware:auth``, ``middleware:throttle``)
     use non-``class:`` ids and must not appear in the listing.
