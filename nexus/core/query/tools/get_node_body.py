@@ -200,12 +200,17 @@ class GetNodeBodyTool:
     name: ClassVar[str] = "get_node_body"
     description: ClassVar[str] = (
         "Return the raw source text of a graph node (method or class) "
-        "given its ``node_id``. Use this when ``describe_class`` or "
-        "``find_callers`` gives you a node id but you still need to "
-        "read the actual body — typically because ``semantic_search`` "
-        "couldn't surface it. The line range comes from the chunk "
-        "metadata, so end-line is accurate even for methods whose "
-        "graph node only carries the start line."
+        "given its ``node_id``. "
+        "**Argument:** ``node_id`` (string) — a kind-prefixed graph id, "
+        'e.g. ``node_id="method:App\\\\Models\\\\User::scopeActive"`` '
+        'or ``node_id="class:App\\\\Models\\\\User"``. '
+        "**Optional:** ``context_lines`` (int, default 0). "
+        "Use this when ``describe_class`` or ``find_callers`` gives you "
+        "a node id but you still need to read the actual body — "
+        "typically because ``semantic_search`` couldn't surface it. The "
+        "line range comes from the chunk metadata, so end-line is "
+        "accurate even for methods whose graph node only carries the "
+        "start line."
     )
     input_model: ClassVar[type[ToolInput]] = GetNodeBodyInput
     output_model: ClassVar[type[ToolOutput]] = GetNodeBodyOutput

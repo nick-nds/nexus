@@ -73,8 +73,11 @@ class FindImplementationsTool:
     name: ClassVar[str] = "find_implementations"
     description: ClassVar[str] = (
         "Given an interface (or abstract class) FQN, return every class "
-        "that implements it. Pass ``include_subclasses=true`` to also "
-        "include classes that extend an abstract parent."
+        "that implements it. "
+        "**Argument:** ``interface_fqn`` (string) — e.g. "
+        '``interface_fqn="App\\\\Contracts\\\\PaymentGateway"``. '
+        "**Optional:** ``include_subclasses`` (bool, default false) — "
+        "also walks ``EXTENDS`` edges so abstract-class subclasses appear."
     )
     input_model: ClassVar[type[ToolInput]] = FindImplementationsInput
     output_model: ClassVar[type[ToolOutput]] = FindImplementationsOutput

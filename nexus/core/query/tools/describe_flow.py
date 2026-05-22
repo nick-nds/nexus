@@ -171,13 +171,14 @@ class DescribeFlowTool:
         "Resolve a free-text description of a route to its full "
         "request-handling flow: middleware, controller, form request, "
         "events fired, jobs dispatched, notifications, policies, plus "
-        "the listeners that respond to each event. Use this when you "
-        "don't have a precise URI — pass a fragment (``orders``), a "
-        "route name (``leads.store``), a controller class "
-        "(``OrderController``), or a verb-noun phrase (``create "
-        "invoice``). When the query is ambiguous, returns "
-        "``candidates`` instead of ``flow`` so the agent can pick. "
-        "For an exact ``(method, uri)`` lookup use ``get_request_flow``."
+        "the listeners that respond to each event. "
+        "**Argument:** ``query`` (string) — a route fragment "
+        '(``query="orders"``), a route name (``query="leads.store"``), '
+        'a controller class (``query="OrderController"``), or a '
+        'verb-noun phrase (``query="create invoice"``). '
+        "When the query is ambiguous, returns ``candidates`` instead of "
+        "``flow`` so the agent can pick. For an exact ``(method, uri)`` "
+        "lookup use ``get_request_flow``."
     )
     input_model: ClassVar[type[ToolInput]] = DescribeFlowInput
     output_model: ClassVar[type[ToolOutput]] = DescribeFlowOutput

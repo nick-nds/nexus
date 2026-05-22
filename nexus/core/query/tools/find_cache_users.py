@@ -107,14 +107,17 @@ class FindCacheUsersTool:
 
     name: ClassVar[str] = "find_cache_users"
     description: ClassVar[str] = (
-        "Find every method that reads or writes a cache key. Pass an "
-        "exact key (``settings.timezone``), a glob "
-        "(``user.*.session``), or a substring (``flags``) and the "
-        "tool walks ``CACHE_READ`` / ``CACHE_WRITE`` edges backwards "
-        "to surface the call sites with file + line. The ``mode`` "
-        "parameter restricts to readers or writers; defaults to both. "
-        "Pair with ``describe_class``'s ``cache_keys`` field for the "
-        "forward direction (which keys does *this* class touch?)."
+        "Find every method that reads or writes a cache key. "
+        "**Argument:** ``key`` (string) — an exact key "
+        '(``key="settings.timezone"``), a shell glob '
+        '(``key="user.*.session"``), or a substring '
+        '(``key="flags"``). '
+        '**Optional:** ``mode`` (``"read"``, ``"write"``, or '
+        '``"both"``, default ``"both"``). '
+        "Walks ``CACHE_READ`` / ``CACHE_WRITE`` edges backwards to "
+        "surface call sites with file + line. Pair with "
+        "``describe_class``'s ``cache_keys`` field for the forward "
+        "direction (which keys does *this* class touch?)."
     )
     input_model: ClassVar[type[ToolInput]] = FindCacheUsersInput
     output_model: ClassVar[type[ToolOutput]] = FindCacheUsersOutput

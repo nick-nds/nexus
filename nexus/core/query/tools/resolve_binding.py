@@ -61,8 +61,14 @@ class ResolveBindingTool:
     description: ClassVar[str] = (
         "Given an abstract identifier, return the concrete class the "
         "container resolves it to, plus the service provider file and "
-        "line where the binding was registered. Handles class bindings, "
-        "closure bindings, and instance bindings."
+        "line where the binding was registered. "
+        "**Argument:** ``abstract`` (string) — interface FQN, class "
+        "FQN, or any string the container was given, e.g. "
+        '``abstract="App\\\\Contracts\\\\PaymentGateway"`` or '
+        '``abstract="cache"``. '
+        "Handles class bindings, closure bindings, and instance "
+        "bindings. Known limitation: closures with no return-type "
+        "declaration cannot be statically resolved (tracked separately)."
     )
     input_model: ClassVar[type[ToolInput]] = ResolveBindingInput
     output_model: ClassVar[type[ToolOutput]] = ResolveBindingOutput

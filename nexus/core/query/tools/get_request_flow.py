@@ -137,14 +137,18 @@ class GetRequestFlowTool:
         "Return the full request-handling flow for a route: middleware "
         "stack, controller handler, form request, events fired, jobs "
         "dispatched, policies, plus the listeners that respond to each "
-        "event and their downstream events/jobs. Use this when you want "
-        "a single-shot answer to 'what happens when this URL is hit?'. "
-        "For just the handler chain without the event fan-out, use "
-        "``trace_route``. Note: ``fires_events`` and ``dispatches_jobs`` "
-        "only show *direct* dispatches from the controller method; the "
-        "transitive call-graph (controller → service → event) requires "
-        "``response.coverage.calls_indexed=true`` (project indexed with "
-        "an LSP)."
+        "event and their downstream events/jobs. "
+        "**Arguments (either form):** "
+        '``route_id`` (string, e.g. ``route_id="route:GET:/api/users"``) '
+        "OR ``method`` + ``uri`` together "
+        '(e.g. ``method="GET", uri="/api/users"``). '
+        "Use this when you want a single-shot answer to 'what happens "
+        "when this URL is hit?'. For just the handler chain without "
+        "the event fan-out, use ``trace_route``. Note: ``fires_events`` "
+        "and ``dispatches_jobs`` only show *direct* dispatches from the "
+        "controller method; the transitive call-graph (controller → "
+        "service → event) requires ``response.coverage.calls_indexed="
+        "true`` (project indexed with an LSP)."
     )
     input_model: ClassVar[type[ToolInput]] = GetRequestFlowInput
     output_model: ClassVar[type[ToolOutput]] = GetRequestFlowOutput

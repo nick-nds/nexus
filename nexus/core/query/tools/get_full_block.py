@@ -134,11 +134,17 @@ class GetFullBlockTool:
     name: ClassVar[str] = "get_full_block"
     description: ClassVar[str] = (
         "Return the raw source text of a file at a given line range. "
+        "**Arguments:** ``file_path`` (string, project-relative path "
+        'like ``file_path="src/Models/User.php"``), ``start_line`` and '
+        "``end_line`` (1-indexed, inclusive integers). "
+        "**Optional:** ``context_lines`` (int, default 0) — extra lines "
+        "above/below the range. "
         "Use this when ``describe_class`` or another tool tells you "
         "*where* a method/class lives but you need the *body* — e.g., "
         "to read a long ``rules()`` method that ``semantic_search`` "
-        "couldn't surface. Path containment is enforced against the "
-        "indexed project root."
+        "couldn't surface. If you already have a graph node id, prefer "
+        "``get_node_body`` which resolves the line range automatically. "
+        "Path containment is enforced against the indexed project root."
     )
     input_model: ClassVar[type[ToolInput]] = GetFullBlockInput
     output_model: ClassVar[type[ToolOutput]] = GetFullBlockOutput

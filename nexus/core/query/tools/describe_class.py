@@ -149,8 +149,12 @@ class DescribeClassTool:
     description: ClassVar[str] = (
         "Return a comprehensive structured view of a class: kind, inheritance, "
         "methods, related routes, events fired by its methods, jobs dispatched, "
-        "and any policy that targets it. Use this as the primary way to learn "
-        "about a specific class."
+        "and any policy that targets it. "
+        "**Argument:** ``fqn`` (string) — fully-qualified class name, e.g. "
+        '``fqn="App\\\\Models\\\\User"``. '
+        "Use this as the primary way to learn about a specific class. For "
+        "Eloquent models, prefer ``get_model_context`` for a richer model-"
+        "specific view."
     )
     input_model: ClassVar[type[ToolInput]] = DescribeClassInput
     output_model: ClassVar[type[ToolOutput]] = DescribeClassOutput

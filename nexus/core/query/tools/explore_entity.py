@@ -140,15 +140,18 @@ class ExploreEntityTool:
 
     name: ClassVar[str] = "explore_entity"
     description: ClassVar[str] = (
-        "Discover candidate classes by short name or fragment. Returns "
-        "every class node whose name matches, grouped by kind (model, "
-        "command, event, listener, controller, …) and sorted by match "
-        "quality. Use this as the first step on an unfamiliar codebase "
-        "when you don't have a fully-qualified name yet — pair the "
-        "result with ``describe_class`` or ``get_model_context`` once "
-        "you've picked the right FQN. Returns ``error_code: "
-        '"no_matches"`` when nothing matches so the agent can broaden '
-        "its query."
+        "Discover candidate classes by short name or fragment. "
+        "**Argument:** ``name`` (string) — short name, fragment, or FQN "
+        'to search for (e.g. ``name="Product"`` or '
+        '``name="App\\\\Models\\\\User"``). '
+        "Returns every class node whose name matches, grouped by kind "
+        "(model, command, event, listener, controller, …) and sorted "
+        "by match quality. Use this as the first step on an unfamiliar "
+        "codebase when you don't have a fully-qualified name yet — "
+        "pair the result with ``describe_class`` or "
+        "``get_model_context`` once you've picked the right FQN. "
+        'Returns ``error_code: "no_matches"`` when nothing matches so '
+        "the agent can broaden its query."
     )
     input_model: ClassVar[type[ToolInput]] = ExploreEntityInput
     output_model: ClassVar[type[ToolOutput]] = ExploreEntityOutput

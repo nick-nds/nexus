@@ -91,8 +91,10 @@ class GetModelContextTool:
     description: ClassVar[str] = (
         "Return a model-specific view of an Eloquent model: its traits, "
         "interfaces, the policy applied to it, observers, and methods "
-        "categorised as relations / scopes / accessors. Prefer this over "
-        "``describe_class`` when the class is a model."
+        "categorised as relations / scopes / accessors. "
+        "**Argument:** ``fqn`` (string) — the model's FQN, e.g. "
+        '``fqn="App\\\\Models\\\\User"``. '
+        "Prefer this over ``describe_class`` when the class is a model."
     )
     input_model: ClassVar[type[ToolInput]] = GetModelContextInput
     output_model: ClassVar[type[ToolOutput]] = GetModelContextOutput

@@ -69,8 +69,10 @@ class GetPolicyForTool:
     description: ClassVar[str] = (
         "Given a model FQN, return the policy class registered against "
         "it — its FQN, source file, and ability methods (view, update, "
-        "delete, etc.). Returns a structured error if no policy is "
-        "registered."
+        "delete, etc.). "
+        "**Argument:** ``model_fqn`` (string) — e.g. "
+        '``model_fqn="App\\\\Models\\\\User"``. '
+        "Returns a structured error if no policy is registered."
     )
     input_model: ClassVar[type[ToolInput]] = GetPolicyForInput
     output_model: ClassVar[type[ToolOutput]] = GetPolicyForOutput

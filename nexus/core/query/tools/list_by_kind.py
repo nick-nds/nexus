@@ -140,11 +140,16 @@ class ListByKindTool:
         "List every class of a given kind in the project — events, "
         "jobs, notifications, models, controllers, form requests, "
         "policies, observers, listeners, mailables, resources, "
-        "commands, casts, service providers, or generic classes. "
-        "Optional ``name_glob`` and ``namespace_prefix`` narrow the "
+        "commands, casts, service providers, middleware, or generic "
+        "classes. "
+        "**Argument:** ``kind`` (string) — one of the kinds listed "
+        'above, e.g. ``kind="event"``, ``kind="middleware"``. '
+        "**Optional:** ``name_glob`` (shell glob, e.g. "
+        '``name_glob="*Webhook*"``) and ``namespace_prefix`` '
+        '(e.g. ``namespace_prefix="App\\\\Modules\\\\CRM"``) narrow the '
         "result. Use as a generic discovery primitive when the agent "
         "wants 'all events' or 'all controllers under "
-        "App\\Modules\\CRM'. Routes have ``list_routes``; scheduled "
+        "App\\\\Modules\\\\CRM'. Routes have ``list_routes``; scheduled "
         "tasks have ``list_scheduled_tasks``; for fuzzy short-name "
         "lookup across kinds use ``explore_entity``."
     )

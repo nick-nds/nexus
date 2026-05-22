@@ -70,9 +70,11 @@ class FindListenersTool:
     name: ClassVar[str] = "find_listeners"
     description: ClassVar[str] = (
         "Given an event FQN, return every listener wired up to it via "
-        "Laravel's event dispatcher. Each row includes the listener's "
-        "class FQN, the handler method, whether it implements "
-        "``ShouldQueue``, and the source file."
+        "Laravel's event dispatcher. "
+        "**Argument:** ``event`` (string) — the event FQN, e.g. "
+        '``event="App\\\\Events\\\\OrderPlaced"``. '
+        "Each row includes the listener's class FQN, the handler method, "
+        "whether it implements ``ShouldQueue``, and the source file."
     )
     input_model: ClassVar[type[ToolInput]] = FindListenersInput
     output_model: ClassVar[type[ToolOutput]] = FindListenersOutput

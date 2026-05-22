@@ -61,9 +61,11 @@ class FindDispatchersTool:
 
     name: ClassVar[str] = "find_dispatchers"
     description: ClassVar[str] = (
-        "Given an event FQN, return every method that fires it. Each row "
-        "points at a caller's class, method, file, and line so agents can "
-        "jump directly to the source."
+        "Given an event FQN, return every method that fires it. "
+        "**Argument:** ``event`` (string) — the event FQN, e.g. "
+        '``event="App\\\\Events\\\\OrderPlaced"``. '
+        "Each row points at a caller's class, method, file, and line so "
+        "agents can jump directly to the source."
     )
     input_model: ClassVar[type[ToolInput]] = FindDispatchersInput
     output_model: ClassVar[type[ToolOutput]] = FindDispatchersOutput

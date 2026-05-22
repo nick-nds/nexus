@@ -64,8 +64,10 @@ class FindJobsDispatchingTool:
     name: ClassVar[str] = "find_jobs_dispatching"
     description: ClassVar[str] = (
         "Given a job FQN, return every method that dispatches it via "
-        "Laravel's queue. Each site points at the caller's class, method, "
-        "file, and line."
+        "Laravel's queue. "
+        "**Argument:** ``job`` (string) — the job's FQN, e.g. "
+        '``job="App\\\\Jobs\\\\SendInvoiceEmail"``. '
+        "Each site points at the caller's class, method, file, and line."
     )
     input_model: ClassVar[type[ToolInput]] = FindJobsDispatchingInput
     output_model: ClassVar[type[ToolOutput]] = FindJobsDispatchingOutput

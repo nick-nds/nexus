@@ -90,9 +90,14 @@ class FindHandlersTool:
     name: ClassVar[str] = "find_handlers"
     description: ClassVar[str] = (
         "Find the handler class + method for routes matching a URI glob "
-        "and/or a handler FQN. Answers 'which class handles this URL?' or "
-        "'which routes point at this controller?'. Use ``trace_route`` for "
-        "the full middleware + events trace of a single route."
+        "and/or a handler FQN. "
+        "**Arguments (all optional, but at least one required):** "
+        '``uri_glob`` (e.g. ``uri_glob="/api/v1/users/*"``), '
+        "``method`` (HTTP verb, case-insensitive), "
+        "``handler_fqn`` (target class FQN, optionally ``Class::method``). "
+        "Answers 'which class handles this URL?' or 'which routes point at "
+        "this controller?'. Use ``trace_route`` for the full middleware + "
+        "events trace of a single route."
     )
     input_model: ClassVar[type[ToolInput]] = FindHandlersInput
     output_model: ClassVar[type[ToolOutput]] = FindHandlersOutput

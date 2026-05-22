@@ -117,8 +117,12 @@ class TraceRouteTool:
         "Trace one HTTP route's handling: its middleware stack (in order), "
         "the controller class and method that handles it, any form request "
         "used for validation, events fired by the handler, jobs dispatched, "
-        "and policies that apply to the handler's class. Pass a ``route_id`` "
-        "or a ``(method, uri)`` pair."
+        "and policies that apply to the handler's class. "
+        "**Arguments (either form):** ``route_id`` (string, e.g. "
+        '``route_id="route:GET:/api/users"``) OR ``method`` + ``uri`` '
+        'together (e.g. ``method="GET", uri="/api/users"``). '
+        "For the deeper event fan-out (listeners of each fired event + "
+        "their downstream work), use ``get_request_flow``."
     )
     input_model: ClassVar[type[ToolInput]] = TraceRouteInput
     output_model: ClassVar[type[ToolOutput]] = TraceRouteOutput

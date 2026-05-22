@@ -115,10 +115,14 @@ class DescribeModuleTool:
     description: ClassVar[str] = (
         "Summarise one module: total class count, breakdown by kind, "
         "immediate sub-namespaces, and the routes whose handlers live "
-        "inside the module. Pair with ``list_modules`` for "
+        "inside the module. "
+        "**Argument:** ``prefix`` (string) — the namespace prefix from "
+        '``list_modules``, e.g. ``prefix="App\\\\Modules\\\\CRM"``. '
+        "**Optional:** ``sample_per_kind`` (int, default 5, max 50) — "
+        "FQN sample size per kind. Pair with ``list_modules`` for "
         "discovery — the agent picks a prefix from there and asks "
-        'what\'s inside. Returns ``error_code: "empty_module"`` '
-        "when no classes match the prefix so the agent can broaden."
+        'what\'s inside. Returns ``error_code: "empty_module"`` when '
+        "no classes match the prefix so the agent can broaden."
     )
     input_model: ClassVar[type[ToolInput]] = DescribeModuleInput
     output_model: ClassVar[type[ToolOutput]] = DescribeModuleOutput

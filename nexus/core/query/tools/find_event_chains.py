@@ -83,9 +83,12 @@ class FindEventChainsTool:
     name: ClassVar[str] = "find_event_chains"
     description: ClassVar[str] = (
         "Starting from one event, walk its listeners, then any events "
-        "those listeners fire, up to ``max_depth`` hops. Returns a flat "
-        "list of (depth, parent_event, listener, child_event) rows — "
-        "rebuild the tree client-side if needed."
+        "those listeners fire, up to ``max_depth`` hops. "
+        "**Argument:** ``event`` (string) — the starting event FQN, "
+        'e.g. ``event="App\\\\Events\\\\OrderPlaced"``. '
+        "**Optional:** ``max_depth`` (int, default 3, max 6) — hop budget. "
+        "Returns a flat list of (depth, parent_event, listener, "
+        "child_event) rows — rebuild the tree client-side if needed."
     )
     input_model: ClassVar[type[ToolInput]] = FindEventChainsInput
     output_model: ClassVar[type[ToolOutput]] = FindEventChainsOutput
