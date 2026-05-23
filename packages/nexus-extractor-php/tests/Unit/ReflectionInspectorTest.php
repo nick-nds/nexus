@@ -7,6 +7,7 @@ namespace Nexus\Extractor\Tests\Unit;
 use Nexus\Extractor\Extraction\PhaseB\ReflectionInspector;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use SampleApp\DTOs\CustomerDto;
 use SampleApp\Http\Controllers\PostController;
 use SampleApp\Http\Requests\StorePostRequest;
 use SampleApp\Models\User;
@@ -77,5 +78,26 @@ final class ReflectionInspectorTest extends TestCase
         $this->assertContains('posts', $names);
         // The inherited save() method from Eloquent\Model must NOT appear.
         $this->assertNotContains('save', $names);
+    }
+
+    public function test_captures_readonly_modifier_on_dtos(): void
+    {
+        // Pins audit P0-5: ``final readonly class`` modifier must
+        // surface in the reflection output so downstream consumers
+        // can distinguish DTOs from mutable models.
+        $data = $this->inspector->inspect(new ReflectionClass(CustomerDto::class));
+
+        $this->assertTrue($data['readonly']);
+        $this->assertTrue($data['final']);
+    }
+
+    public function test_readonly_false_for_non_readonly_class(): void
+    {
+        // Most classes are NOT readonly. The field must be present
+        // and ``false`` for them — never absent — so the Python side
+        // can distinguish "we know it isn't" from "we don't know".
+        $data = $this->inspector->inspect(new ReflectionClass(User::class));
+
+        $this->assertFalse($data['readonly']);
     }
 }

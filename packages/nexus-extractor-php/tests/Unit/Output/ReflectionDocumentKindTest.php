@@ -65,10 +65,10 @@ final class ReflectionDocumentKindTest extends TestCase
         $this->assertNull($array['package']['homepage']);
     }
 
-    public function test_schema_version_is_2_1_0(): void
+    public function test_schema_version_is_2_2_0(): void
     {
         $doc = new ReflectionDocument(new ErrorCollector);
         $array = $doc->toArray();
-        $this->assertSame('2.1.0', $array['schema_version']);
+        $this->assertSame('2.2.0', $array['schema_version']);
     }
 }

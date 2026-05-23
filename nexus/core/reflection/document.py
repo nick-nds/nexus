@@ -325,6 +325,11 @@ class ClassReflection(_StrictModel):
     file: str | None = None
     abstract: bool
     final: bool
+    # PHP 8.2+ ``final readonly class Foo``. Schema 2.2.0 (audit P0-5).
+    # Default ``False`` so reflection.json files emitted by 2.1.x — and
+    # by extractors built against older PHP that lack
+    # ``ReflectionClass::isReadOnly`` — still load cleanly.
+    readonly: bool = False
     parent: str | None = None
     interfaces: list[str] = Field(default_factory=list)
     traits: list[str] = Field(default_factory=list)

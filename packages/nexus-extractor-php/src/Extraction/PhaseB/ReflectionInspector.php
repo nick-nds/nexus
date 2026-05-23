@@ -69,6 +69,12 @@ final class ReflectionInspector
             'file' => $reflection->getFileName() ?: null,
             'abstract' => $reflection->isAbstract(),
             'final' => $reflection->isFinal(),
+            // PHP 8.2+ added ``ReflectionClass::isReadOnly`` for the
+            // ``final readonly class Foo`` form heavily used in DTOs.
+            // Audit P0-5: the ``readonly`` modifier changes object
+            // semantics (every property is implicitly readonly), so
+            // dropping it loses information agents care about.
+            'readonly' => $reflection->isReadOnly(),
             'parent' => $reflection->getParentClass() !== false ? $reflection->getParentClass()->getName() : null,
             'interfaces' => $interfaces,
             'traits' => $traits,

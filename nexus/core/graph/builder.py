@@ -175,6 +175,7 @@ class GraphBuilder:
                     "file": entry.reflection.file,
                     "abstract": entry.reflection.abstract,
                     "final": entry.reflection.final,
+                    "readonly": entry.reflection.readonly,
                     "source": entry.source,
                     "kinds": list(entry.kinds),
                 },

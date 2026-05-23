@@ -107,6 +107,17 @@ class DescribeClassOutput(ToolOutput):
     kinds: list[str] = Field(default_factory=list)
     abstract: bool | None = None
     final: bool | None = None
+    readonly: bool | None = Field(
+        default=None,
+        description=(
+            "True when the class is declared ``final readonly class …`` "
+            "(PHP 8.2+). The modifier changes object semantics (every "
+            "property is implicitly read-only after construction), so "
+            "DTOs that use it cannot be mutated. ``None`` on indexes "
+            "built with schema ≤ 2.1.0 that predate this field. Audit "
+            "P0-5."
+        ),
+    )
     parent: str | None = None
     interfaces: list[str] = Field(default_factory=list)
     traits: list[str] = Field(default_factory=list)
@@ -290,6 +301,7 @@ class DescribeClassTool:
             kinds=str_list_attr(attrs, "kinds"),
             abstract=bool_attr(attrs, "abstract"),
             final=bool_attr(attrs, "final"),
+            readonly=bool(attrs["readonly"]) if "readonly" in attrs else None,
             parent=parent_fqn,
             interfaces=sorted(set(interfaces_list)),
             traits=sorted(set(traits_list)),
