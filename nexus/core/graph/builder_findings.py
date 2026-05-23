@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from nexus.core.graph.ids import class_id, gate_id, method_id
+from nexus.core.graph.ids import binding_id, class_id, gate_id, method_id
 from nexus.core.graph.types import Edge, EdgeKind, Node, NodeKind
 
 if TYPE_CHECKING:
@@ -45,6 +45,8 @@ def apply_static_findings(graph: Graph, findings: list[StaticAnalysisFinding]) -
       :attr:`EdgeKind.CACHE_WRITE` (creates cache_key node)
     * ``broadcast_channel`` → :attr:`EdgeKind.BROADCASTS_TO` (creates
       broadcast_channel node)
+    * ``closure_binding`` → :attr:`EdgeKind.BOUND_TO` (creates binding
+      node if Phase A's runtime extractor didn't see it)
 
     Findings without a resolvable source class or target are silently
     skipped — they represent dynamic dispatch the AST visitor
@@ -67,6 +69,8 @@ def apply_static_findings(graph: Graph, findings: list[StaticAnalysisFinding]) -
             _add_cache_edge(graph, finding)
         elif finding.kind == "broadcast_channel":
             _add_broadcast_channel_edge(graph, finding)
+        elif finding.kind == "closure_binding":
+            _add_closure_binding_edge(graph, finding)
         # form_request_rules and inline_validation are informational
         # findings without a cross-node edge in v1.
 
@@ -333,3 +337,94 @@ def _add_authorisation_edge(
             attributes=attrs,
         ),
     )
+
+
+def _add_closure_binding_edge(
+    graph: Graph,
+    finding: StaticAnalysisFinding,
+) -> None:
+    """Wire ``$this->app->bind(X::class, fn () => new Y)`` into a BOUND_TO edge.
+
+    Audit P1-18. Phase A's runtime extractor sees the binding exists
+    but reports ``concrete_kind: "closure"`` with no resolved class,
+    so :class:`ResolveBindingTool` had nothing to point at. This
+    static-analysis pass walks ServiceProvider bodies and surfaces
+    the concrete; we either upgrade the existing closure binding to
+    a class binding with a BOUND_TO edge, or synthesise the binding
+    node entirely (for closure bindings deferred-registered too late
+    for Phase A's snapshot).
+
+    The finding shape:
+        target = concrete FQN
+        meta.abstract = abstract FQN
+        meta.binding_kind = bind|singleton|scoped|instance
+    """
+    if not finding.target:
+        return
+    meta = finding.meta if isinstance(finding.meta, dict) else {}
+    abstract = meta.get("abstract")
+    if not isinstance(abstract, str) or not abstract:
+        return
+
+    bid = binding_id(abstract)
+    concrete_class_id = class_id(finding.target)
+
+    existing = graph.node_by_id(bid)
+    if existing is None:
+        # No Phase A binding for this abstract — synthesise one so
+        # ``resolve_binding`` can return a useful answer. ``shared``
+        # comes from the binding flavour (singleton/scoped are
+        # shared; bind is transient).
+        binding_kind = (
+            meta.get("binding_kind") if isinstance(meta.get("binding_kind"), str) else None
+        )
+        shared = binding_kind in ("singleton", "scoped", "instance")
+        graph.add_node(
+            Node(
+                id=bid,
+                kind=NodeKind.BINDING,
+                name=abstract,
+                attributes={
+                    "shared": shared,
+                    "concrete_kind": "class",
+                    "concrete_class": finding.target,
+                    "concrete_file": finding.file,
+                    "concrete_line": finding.line,
+                    "binding_kind": binding_kind or "bind",
+                    "source": "static_analysis",
+                },
+            ),
+        )
+    # Phase A saw the binding but couldn't resolve the concrete.
+    # Patch the attributes so ``resolve_binding`` returns the
+    # statically-detected class instead of an opaque "closure".
+    elif existing.attributes.get("concrete_kind") != "class":
+        existing.attributes["concrete_kind"] = "class"
+        existing.attributes["concrete_class"] = finding.target
+        if existing.attributes.get("concrete_file") is None and finding.file:
+            existing.attributes["concrete_file"] = finding.file
+        if existing.attributes.get("concrete_line") is None and finding.line:
+            existing.attributes["concrete_line"] = finding.line
+
+    # Add the BOUND_TO edge if it doesn't already exist. The edge
+    # carries the source-file/line so an agent following the edge
+    # can jump straight to the binding callsite.
+    attrs: dict[str, object] = {"source": "static_analysis"}
+    if finding.file is not None:
+        attrs["file"] = finding.file
+    if finding.line is not None:
+        attrs["line"] = finding.line
+
+    already_linked = any(
+        edge.target == concrete_class_id and edge.kind == EdgeKind.BOUND_TO
+        for edge in graph.outgoing_index().get(bid, ())
+    )
+    if not already_linked:
+        graph.add_edge(
+            Edge(
+                source=bid,
+                target=concrete_class_id,
+                kind=EdgeKind.BOUND_TO,
+                attributes=attrs,
+            ),
+        )

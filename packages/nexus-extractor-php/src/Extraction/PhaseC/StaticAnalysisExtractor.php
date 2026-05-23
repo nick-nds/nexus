@@ -8,6 +8,7 @@ use Nexus\Extractor\Extraction\ExtractionContext;
 use Nexus\Extractor\Extraction\Extractor;
 use Nexus\Extractor\Extraction\PhaseC\Visitors\BroadcastChannelVisitor;
 use Nexus\Extractor\Extraction\PhaseC\Visitors\CacheCallVisitor;
+use Nexus\Extractor\Extraction\PhaseC\Visitors\ContainerBindingVisitor;
 use Nexus\Extractor\Extraction\PhaseC\Visitors\EventDispatchVisitor;
 use Nexus\Extractor\Extraction\PhaseC\Visitors\JobDispatchVisitor;
 use Nexus\Extractor\Extraction\PhaseC\Visitors\ObserverRegistrationVisitor;
@@ -50,6 +51,7 @@ final class StaticAnalysisExtractor implements Extractor
             new ObserverRegistrationVisitor,
             new CacheCallVisitor,
             new BroadcastChannelVisitor,
+            new ContainerBindingVisitor,
         ]);
 
         $roots = $this->resolveFileRoots($context->package);
