@@ -157,9 +157,20 @@ class TestSemanticSearch:
         assert result.error_code == "no_vector_dimensions"
 
     def test_returns_annotated_hits(self, engine: QueryEngine) -> None:
+        # ``min_vector_score=0.0`` disables the P0-11 relevance filter
+        # for this test — the synthetic LanceDB rows here use
+        # hand-picked 4-D vectors that don't correspond to realistic
+        # cosine scores. Production queries against real embeddings
+        # rely on the threshold; this test just exercises the
+        # retrieval-and-annotation pipeline.
         result = engine.query(
             "semantic_search",
-            {"query": "list customers", "top_k": 10, "final_k": 5},
+            {
+                "query": "list customers",
+                "top_k": 20,
+                "final_k": 15,
+                "min_vector_score": 0.0,
+            },
         )
         assert result.error is None
         assert result.total_candidates > 0

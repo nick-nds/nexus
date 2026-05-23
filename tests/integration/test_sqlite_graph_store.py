@@ -160,9 +160,13 @@ class TestMigrationsTable:
         # Connect raw and inspect the migrations table.
         conn = sqlite3.connect(path)
         try:
-            rows = conn.execute("SELECT version FROM schema_migrations").fetchall()
-            assert len(rows) == 1
-            assert rows[0][0] == 1
+            rows = conn.execute(
+                "SELECT version FROM schema_migrations ORDER BY version",
+            ).fetchall()
+            # 0001_initial + 0002_rename_controller_method (audit P0-3).
+            # Bump this expected count whenever a new migration ships.
+            assert len(rows) == 2
+            assert [r[0] for r in rows] == [1, 2]
         finally:
             conn.close()
 

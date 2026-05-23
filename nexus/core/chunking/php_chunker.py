@@ -32,7 +32,7 @@ chunker twice on the same file produces equal chunk lists.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 import tree_sitter_php as ts_php
 from tree_sitter import Language, Parser
@@ -268,17 +268,35 @@ class PhpChunker:
     ) -> None:
         """Emit a header chunk for a class-like declaration and recurse.
 
-        The header chunk covers the declaration line(s) up to (but
-        not including) the opening brace's body. Method chunks are
-        emitted separately when the walker descends into
-        ``declaration_list``. Without this split a single-file class
-        of 500 lines would end up as one 500-line chunk, which is
-        exactly the wrong granularity for retrieval.
+        Audit P0-10: the header chunk's ``text`` is a synthesized
+        SUMMARY of the class — its docblock + declaration + property
+        names + method signatures + enum cases — not just the
+        declaration line. Before this change, the chunk was 1-2 lines
+        of ``<?php`` + ``final class Foo`` so embedding had nothing to
+        match against; multiple DTOs shared identical vector_scores
+        because they all looked like boilerplate. The synthesized
+        summary gives the retrieval embedder a representative
+        signature of what the class IS.
+
+        ``start_byte`` / ``end_byte`` still cover the declaration
+        range (not the whole class body), so body-retrieval tools
+        like ``get_full_block`` keep showing the right source on
+        click-through. Method chunks are still emitted separately
+        when the walker descends into ``declaration_list``.
         """
         name = self._extract_name(node, source)
         body = node.child_by_field_name("body")
         header_end_byte = body.start_byte if body else node.end_byte
-        header_text = source[node.start_byte : header_end_byte].decode("utf-8", errors="replace")
+
+        # Audit P0-10: synthesize a rich summary text from the class
+        # body so the embedder has property names, method signatures,
+        # and enum cases to match against.
+        header_text = self._build_class_summary(
+            node=node,
+            source=source,
+            body=body,
+            declaration_end_byte=header_end_byte,
+        )
 
         fqn = self._fqn(namespace, name) if name else None
         class_node_id = f"class:{fqn}" if fqn else None
@@ -380,6 +398,125 @@ class PhpChunker:
                 attributes={"namespace": namespace or ""},
             ),
         )
+
+    # ------------------------------------------------------------------
+    # Class summary (audit P0-10)
+    # ------------------------------------------------------------------
+
+    # Hard cap on body-derived summary lines to keep the embedding input
+    # bounded. A class with 200 methods still produces a useful summary
+    # but doesn't blow the chunk size out. 80 covers every real-world
+    # Laravel class shape we've seen.
+    _MAX_BODY_SUMMARY_LINES: ClassVar[int] = 80
+
+    def _build_class_summary(
+        self,
+        *,
+        node: Node,
+        source: bytes,
+        body: Node | None,
+        declaration_end_byte: int,
+    ) -> str:
+        """Build a retrieval-friendly summary string for a class.
+
+        Layers:
+        1. Preceding ``/** ... */`` docblock if present (caller-facing
+           prose that explains intent).
+        2. The class declaration itself (``final readonly class Foo
+           extends Bar implements …``).
+        3. A digest of the body — property declarations, method
+           signatures, enum cases — one per line, capped at
+           ``_MAX_BODY_SUMMARY_LINES``.
+
+        The byte offsets on the resulting chunk still point at the
+        declaration only (not the synthesised text), so body
+        retrieval continues to land on the source.
+        """
+        parts: list[str] = []
+
+        docblock = self._preceding_docblock_text(node, source)
+        if docblock:
+            parts.append(docblock)
+
+        declaration = (
+            source[node.start_byte : declaration_end_byte]
+            .decode("utf-8", errors="replace")
+            .rstrip()
+        )
+        parts.append(declaration)
+
+        if body is not None:
+            body_lines: list[str] = []
+            for child in body.children:
+                line = self._body_member_summary(child, source)
+                if line:
+                    body_lines.append(line)
+                    if len(body_lines) >= self._MAX_BODY_SUMMARY_LINES:
+                        body_lines.append(
+                            f"    // … {self._MAX_BODY_SUMMARY_LINES}+ members, truncated",
+                        )
+                        break
+            parts.extend(body_lines)
+
+        return "\n".join(parts)
+
+    @staticmethod
+    def _preceding_docblock_text(node: Node, source: bytes) -> str | None:
+        """Return the ``/** ... */`` block immediately preceding ``node``, if any.
+
+        Tree-sitter exposes comments as siblings; we walk backwards
+        from ``node`` looking at its previous sibling. A leading
+        line-comment (``// …``) is ignored — only structured
+        docblocks are surfaced into the summary, since those are
+        what authors use to explain intent.
+        """
+        prev = node.prev_named_sibling
+        if prev is None or prev.type != "comment":
+            return None
+        text = source[prev.start_byte : prev.end_byte].decode("utf-8", errors="replace")
+        if not text.startswith("/**"):
+            return None
+        return text
+
+    @staticmethod
+    def _body_member_summary(child: Node, source: bytes) -> str | None:
+        """Render one body-level member as a single line for the summary.
+
+        Returns ``None`` for child nodes that aren't worth summarising
+        (whitespace, closing braces, comments embedded in the body).
+        """
+        node_type = child.type
+
+        if node_type == "property_declaration":
+            # ``private readonly string $name;`` — keep the line as
+            # written, stripping any trailing comment/newline noise.
+            text = source[child.start_byte : child.end_byte].decode("utf-8", errors="replace")
+            return "    " + text.strip().splitlines()[0]
+
+        if node_type == "method_declaration":
+            # Render the SIGNATURE only — up to the opening brace —
+            # not the body, because method bodies get their own
+            # dedicated chunks.
+            body = child.child_by_field_name("body")
+            sig_end = body.start_byte if body is not None else child.end_byte
+            text = source[child.start_byte : sig_end].decode("utf-8", errors="replace")
+            return "    " + text.strip().splitlines()[0]
+
+        if node_type == "enum_case":
+            text = source[child.start_byte : child.end_byte].decode("utf-8", errors="replace")
+            return "    " + text.strip().splitlines()[0]
+
+        if node_type == "const_declaration":
+            text = source[child.start_byte : child.end_byte].decode("utf-8", errors="replace")
+            return "    " + text.strip().splitlines()[0]
+
+        if node_type == "use_declaration":
+            # Trait usage inside a class body — important enough to
+            # surface for retrieval ("which classes use HasTimestamps?").
+            text = source[child.start_byte : child.end_byte].decode("utf-8", errors="replace")
+            return "    " + text.strip().splitlines()[0]
+
+        return None
 
     # ------------------------------------------------------------------
     # Small helpers
