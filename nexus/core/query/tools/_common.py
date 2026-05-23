@@ -177,6 +177,51 @@ def fqn_from_class_id(graph: Graph, class_node_id: str) -> str:
     return class_node_id
 
 
+def resolve_class_id(graph: Graph, fqn: str) -> tuple[str | None, str | None]:
+    r"""Resolve a class FQN to its graph id, with a case-insensitive fallback.
+
+    PHP autoloading is case-sensitive on POSIX filesystems, so FQNs in
+    the graph are stored exactly. But LLM tool-use frequently mangles
+    casing in long FQNs (``synthesq\\relay\\events\\synthesqevent``
+    instead of ``Synthesq\\Relay\\Events\\SynthesQEvent``). Audit P1-17
+    asked for an optional case-insensitive fallback that emits a
+    warning so the agent can self-correct.
+
+    Resolution cascade:
+
+    1. Try the exact-case ``class:<fqn>`` id. Hits return ``(id, None)``.
+    2. On miss, scan every ``class:`` node and compare the FQN suffix
+       case-insensitively. The first hit returns
+       ``(canonical_id, warning_message)``.
+    3. No match returns ``(None, None)``.
+
+    Args:
+        graph: The loaded graph.
+        fqn: User-supplied class FQN.
+
+    Returns:
+        ``(resolved_id, warning)``. ``warning`` is human-readable when a
+        case correction occurred, telling the agent the canonical form;
+        ``None`` on exact match or genuine not-found.
+    """
+    target_id = class_id(fqn)
+    if graph.node_by_id(target_id) is not None:
+        return target_id, None
+
+    target_lower = fqn.lower()
+    for node in graph.nodes:
+        if not node.id.startswith("class:"):
+            continue
+        canonical_fqn = node.id[len("class:") :]
+        if canonical_fqn.lower() == target_lower:
+            return node.id, (
+                f"FQN {fqn!r} was case-corrected to {canonical_fqn!r}. "
+                "PHP autoloading is case-sensitive on POSIX filesystems; "
+                "the corrected form is what the index has stored."
+            )
+    return None, None
+
+
 def file_for_method_node(graph: Graph, method_node: Node) -> str | None:
     """Return the source file path of the class a method node belongs to.
 

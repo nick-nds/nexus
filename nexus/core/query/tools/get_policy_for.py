@@ -13,10 +13,9 @@ from typing import TYPE_CHECKING, ClassVar
 
 from pydantic import Field
 
-from nexus.core.graph.ids import class_id
 from nexus.core.graph.types import EdgeKind
 from nexus.core.query.tool_protocol import ToolInput, ToolOutput
-from nexus.core.query.tools._common import read_method_attributes, str_attr
+from nexus.core.query.tools._common import read_method_attributes, resolve_class_id, str_attr
 from nexus.core.query.traversal import incoming
 
 if TYPE_CHECKING:
@@ -54,6 +53,13 @@ class GetPolicyForOutput(ToolOutput):
     policy_short_name: str | None = None
     file: str | None = None
     methods: list[PolicyMethod] = Field(default_factory=list)
+    warnings: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Non-fatal advisories about this response. Currently used "
+            "to flag FQN case-corrections (audit P1-17)."
+        ),
+    )
     error: str | None = None
     error_code: str | None = None
     truncated: bool = False
@@ -85,14 +91,15 @@ class GetPolicyForTool:
     ) -> GetPolicyForOutput:
         """Resolve the policy via the ``APPLIES_TO`` edge."""
         graph = ctx.storage.graph().load()
-        model_id = class_id(payload.model_fqn)
-        if graph.node_by_id(model_id) is None:
+        model_id, case_warning = resolve_class_id(graph, payload.model_fqn)
+        if model_id is None or graph.node_by_id(model_id) is None:
             return GetPolicyForOutput(
                 model_fqn=payload.model_fqn,
                 error=f"No model found with FQN {payload.model_fqn!r}.",
                 error_code="model_not_found",
             )
 
+        warnings: list[str] = [case_warning] if case_warning is not None else []
         policy_node = None
         for edge in incoming(graph, model_id, EdgeKind.APPLIES_TO):
             candidate = graph.node_by_id(edge.source)
@@ -105,6 +112,7 @@ class GetPolicyForTool:
                 model_fqn=payload.model_fqn,
                 error=f"No policy is registered for {payload.model_fqn!r}.",
                 error_code="policy_not_found",
+                warnings=warnings,
             )
 
         method_rows: list[PolicyMethod] = []
@@ -129,4 +137,5 @@ class GetPolicyForTool:
             policy_short_name=policy_node.name,
             file=str_attr(policy_node.attributes, "file"),
             methods=method_rows,
+            warnings=warnings,
         )

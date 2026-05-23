@@ -23,13 +23,13 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 from pydantic import Field
 
-from nexus.core.graph.ids import class_id
 from nexus.core.graph.types import EdgeKind
 from nexus.core.query.tool_protocol import ToolInput, ToolOutput
 from nexus.core.query.tools._common import (
     bool_attr,
     fqn_from_class_id,
     read_method_attributes,
+    resolve_class_id,
     str_attr,
     str_list_attr,
 )
@@ -126,6 +126,15 @@ class DescribeClassOutput(ToolOutput):
         ),
     )
     policies_applied_to: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Non-fatal advisories about this response. Currently used "
+            "to flag FQN case-corrections (audit P1-17) so the agent "
+            "can echo the canonical spelling on its next call. Empty "
+            "in the happy path."
+        ),
+    )
     error: str | None = None
     error_code: str | None = None
     truncated: bool = False
@@ -167,15 +176,20 @@ class DescribeClassTool:
     ) -> DescribeClassOutput:
         """Build the class description by walking the graph."""
         graph = ctx.storage.graph().load()
-        node_id = class_id(payload.fqn)
+        node_id, case_warning = resolve_class_id(graph, payload.fqn)
+        if node_id is None:
+            return DescribeClassOutput(
+                error=f"No class found with FQN {payload.fqn!r}.",
+                error_code="class_not_found",
+            )
         node = graph.node_by_id(node_id)
-
         if node is None:
             return DescribeClassOutput(
                 error=f"No class found with FQN {payload.fqn!r}.",
                 error_code="class_not_found",
             )
 
+        warnings: list[str] = [case_warning] if case_warning is not None else []
         attrs = node.attributes
 
         # Method nodes are linked to the class via PART_OF edges.
@@ -287,6 +301,7 @@ class DescribeClassTool:
             returns_views=sorted(set(returns_views)),
             cache_keys=_build_cache_key_rows(cache_modes, cache_forms),
             policies_applied_to=sorted(set(policies)),
+            warnings=warnings,
         )
 
 
