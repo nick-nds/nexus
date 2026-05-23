@@ -117,6 +117,21 @@ class SemanticSearchInput(ToolInput):
             "cost is one ``open()`` per unique file."
         ),
     )
+    min_vector_score: float = Field(
+        default=0.4,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Drop hits whose raw cosine ``vector_score`` is below this "
+            "threshold (audit P0-11). Default ``0.4`` filters obvious "
+            "gibberish ('aslkdjflaskdjf') while keeping marginal-but-"
+            "real matches in. Pair with ``confidence`` on the response "
+            "to decide whether a result is worth acting on. When every "
+            "candidate falls below the threshold, the tool returns "
+            '``error_code="low_relevance"`` instead of padding the '
+            "response with weak hits."
+        ),
+    )
 
 
 class SemanticHit(ToolOutput):
@@ -174,6 +189,26 @@ class SemanticSearchOutput(ToolOutput):
     total_candidates: int = 0
     returned: int = 0
     hits: list[SemanticHit] = Field(default_factory=list)
+    confidence: str | None = Field(
+        default=None,
+        description=(
+            "Qualitative confidence in the top hit's relevance, derived "
+            "from its raw ``vector_score``: ``high`` (≥ 0.65), ``medium`` "
+            "(≥ 0.55), ``low`` (≥ ``min_vector_score`` but below 0.55). "
+            "``None`` when no hits were returned (either zero candidates "
+            "from the vector store or all candidates filtered by "
+            "``min_vector_score``). Audit P0-11."
+        ),
+    )
+    filtered_by_threshold: int = Field(
+        default=0,
+        description=(
+            "Count of candidates dropped because their vector_score was "
+            "below ``min_vector_score``. Lets an agent decide whether "
+            "to retry with a lower threshold rather than concluding "
+            "the corpus has no relevant material."
+        ),
+    )
     error: str | None = None
     error_code: str | None = None
     truncated: bool = False
@@ -245,6 +280,29 @@ class SemanticSearchTool:
         # implementation-dependent order — flagged by audit P2-21.
         rows.sort(key=lambda r: (-r.score, r.node_id))
 
+        # Audit P0-11: filter low-quality matches before slicing to
+        # final_k. Threshold is on the RAW ``vector_score`` (not the
+        # kind-weighted ``score``) so the cutoff is calibrated against
+        # the embedder's similarity output regardless of kind weights.
+        filtered_by_threshold = sum(1 for r in rows if r.vector_score < payload.min_vector_score)
+        rows = [r for r in rows if r.vector_score >= payload.min_vector_score]
+
+        if not rows:
+            return SemanticSearchOutput(
+                query=payload.query,
+                total_candidates=len(raw_hits),
+                returned=0,
+                filtered_by_threshold=filtered_by_threshold,
+                error=(
+                    f"No hit crossed the relevance threshold "
+                    f"``min_vector_score={payload.min_vector_score}``. "
+                    f"{len(raw_hits)} candidate(s) fetched; all filtered. "
+                    f"Try a more specific query, or lower the threshold "
+                    f"(e.g. ``min_vector_score=0.3``) to inspect weak matches."
+                ),
+                error_code="low_relevance",
+            )
+
         returned = rows[: payload.final_k]
         if payload.snippet_lines > 0:
             returned = _attach_snippets(returned, payload.snippet_lines)
@@ -254,7 +312,27 @@ class SemanticSearchTool:
             total_candidates=len(raw_hits),
             returned=len(returned),
             hits=returned,
+            confidence=_confidence_for(returned[0].vector_score),
+            filtered_by_threshold=filtered_by_threshold,
         )
+
+
+def _confidence_for(top_vector_score: float) -> str:
+    """Map a top hit's vector_score to a qualitative confidence label.
+
+    Tuned by feel from the synthesq-relay audit data:
+    - real queries cluster 0.60-0.68
+    - gibberish queries clustered ~0.57
+    - genuine misses fell below ~0.5
+
+    The boundaries are deliberately conservative — closer to "is this
+    worth showing the agent at all" than "is this the right answer".
+    """
+    if top_vector_score >= 0.65:
+        return "high"
+    if top_vector_score >= 0.55:
+        return "medium"
+    return "low"
 
 
 # ---------------------------------------------------------------------------
