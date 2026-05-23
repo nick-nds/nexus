@@ -52,7 +52,7 @@ final class ExtractPackageCommandTest extends TestCase
         $this->assertSame('nexus-fixtures', $doc['package']['vendor']);
         $this->assertSame('sample', $doc['package']['name']);
         $this->assertSame('1.2.0', $doc['package']['version']);
-        $this->assertSame('2.3.0', $doc['schema_version']);
+        $this->assertSame('2.4.0', $doc['schema_version']);
 
         $this->assertSame(
             'Synthetic Laravel package fixture for Nexus package-indexing tests.',

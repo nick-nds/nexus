@@ -194,6 +194,13 @@ class GraphBuilder:
                 class_attrs["cases"] = [
                     {"name": case.name, "value": case.value} for case in entry.reflection.cases
                 ]
+            # Audit P0-4: transitively-inherited interfaces stored as an
+            # attribute (not edges) — they don't represent contracts
+            # the class itself declared, so making them first-class
+            # IMPLEMENTS edges would inflate find_implementations
+            # results with noise. Only set when non-empty.
+            if entry.reflection.interfaces_inherited:
+                class_attrs["interfaces_inherited"] = list(entry.reflection.interfaces_inherited)
 
             node = Node(
                 id=class_id(fqn),

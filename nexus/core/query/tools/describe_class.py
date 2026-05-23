@@ -132,7 +132,26 @@ class DescribeClassOutput(ToolOutput):
         ),
     )
     parent: str | None = None
-    interfaces: list[str] = Field(default_factory=list)
+    interfaces: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Interfaces this class declares via ``implements``. Schema "
+            "2.4.0+ excludes interfaces inherited transitively from "
+            "parent classes — those are in ``interfaces_inherited``. "
+            "Audit P0-4."
+        ),
+    )
+    interfaces_inherited: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Interfaces this class gets transitively from its parent "
+            "class hierarchy. For an Eloquent model that extends "
+            "``Model``, this includes ``ArrayAccess``, "
+            "``HasBroadcastChannel``, etc. — useful to know the full "
+            "contract surface but noise if you only want what THIS "
+            "class promises. Audit P0-4."
+        ),
+    )
     traits: list[str] = Field(default_factory=list)
     methods: list[MethodSummary] = Field(default_factory=list)
     related_routes: list[RelatedRoute] = Field(default_factory=list)
@@ -324,6 +343,7 @@ class DescribeClassTool:
             readonly=bool(attrs["readonly"]) if "readonly" in attrs else None,
             parent=parent_fqn,
             interfaces=sorted(set(interfaces_list)),
+            interfaces_inherited=str_list_attr(attrs, "interfaces_inherited"),
             traits=sorted(set(traits_list)),
             methods=methods,
             related_routes=related_routes,

@@ -72,8 +72,23 @@ final class ReflectionInspector
 
         usort($methods, static fn (array $a, array $b): int => strcmp((string) $a['name'], (string) $b['name']));
 
-        $interfaces = $reflection->getInterfaceNames();
+        // Audit P0-4: split interfaces into declared (the class's own
+        // ``implements`` clause) vs inherited (transitively from parent
+        // classes). ``Tenant extends Model`` was emitting 9 inherited
+        // interfaces as if the model declared them; agents asking
+        // "what contracts does Tenant promise?" got noise. The
+        // ``interfaces`` field now means "declared on this class"; the
+        // full set is the union of ``interfaces`` + ``interfaces_inherited``.
+        $allInterfaces = $reflection->getInterfaceNames();
+        $parentInterfaces = [];
+        $parent = $reflection->getParentClass();
+        if ($parent !== false) {
+            $parentInterfaces = $parent->getInterfaceNames();
+        }
+        $interfaces = array_values(array_diff($allInterfaces, $parentInterfaces));
         sort($interfaces);
+        $interfacesInherited = array_values(array_intersect($allInterfaces, $parentInterfaces));
+        sort($interfacesInherited);
 
         $traits = $reflection->getTraitNames();
         sort($traits);
@@ -93,6 +108,7 @@ final class ReflectionInspector
             'readonly' => $reflection->isReadOnly(),
             'parent' => $reflection->getParentClass() !== false ? $reflection->getParentClass()->getName() : null,
             'interfaces' => $interfaces,
+            'interfaces_inherited' => $interfacesInherited,
             'traits' => $traits,
             'attributes' => $this->describeAttributes($reflection->getAttributes()),
             'methods' => $methods,

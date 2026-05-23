@@ -143,4 +143,20 @@ final class ReflectionInspectorTest extends TestCase
 
         $this->assertSame([], $data['cases']);
     }
+
+    public function test_interfaces_are_split_into_declared_and_inherited(): void
+    {
+        // Audit P0-4: ``interfaces`` is the class's own ``implements``
+        // declarations only. The interfaces inherited from parent
+        // classes (Eloquent\Model contributes ArrayAccess, Arrayable,
+        // etc.) live in ``interfaces_inherited``.
+        $data = $this->inspector->inspect(new ReflectionClass(User::class));
+
+        // User extends Model and doesn't declare any ``implements``.
+        $this->assertSame([], $data['interfaces']);
+        // Model brings in several interfaces transitively — check at
+        // least one to confirm the field is populated.
+        $this->assertNotEmpty($data['interfaces_inherited']);
+        $this->assertContains('ArrayAccess', $data['interfaces_inherited']);
+    }
 }

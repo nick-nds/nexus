@@ -343,7 +343,14 @@ class ClassReflection(_StrictModel):
     # ``ReflectionClass::isReadOnly`` — still load cleanly.
     readonly: bool = False
     parent: str | None = None
+    # Audit P0-4: semantic change at schema 2.4.0 — ``interfaces`` is
+    # now the declared (``implements``) set only, NOT transitive. The
+    # transitive parent-inherited interfaces moved to
+    # ``interfaces_inherited``. Pre-2.4.0 indexes had the union here;
+    # consumers asking "what contracts does this class promise?" got
+    # noise from inherited interfaces.
     interfaces: list[str] = Field(default_factory=list)
+    interfaces_inherited: list[str] = Field(default_factory=list)
     traits: list[str] = Field(default_factory=list)
     attributes: list[MethodAttribute] = Field(default_factory=list)
     methods: list[MethodInfo]
