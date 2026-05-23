@@ -71,6 +71,12 @@ class NodeKind(StrEnum):
     BINDING = "binding"
     SERVICE_PROVIDER = "service_provider"
 
+    # Package bootstrap / facade entry point — e.g.
+    # ``Synthesq\Relay\Relay::boot()``. Detected by ClassClassifier
+    # when a class has a public static ``boot()`` declared on itself
+    # and is neither a Model nor a ServiceProvider. Audit P2-20.
+    BOOTSTRAP = "bootstrap"
+
     # Catch-all for any class the classifier didn't tag with a more
     # specific kind. Profile-defined kinds also live here in v1; a
     # later phase may promote them to first-class members.

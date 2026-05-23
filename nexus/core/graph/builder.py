@@ -70,6 +70,11 @@ if TYPE_CHECKING:
 # Classes can carry multiple kinds; the builder picks the most specific
 # one as the node's primary kind. Order matters: earlier entries win.
 _KIND_PRIORITY: list[tuple[str, NodeKind]] = [
+    # ``bootstrap`` ranks above ``service_provider`` because the
+    # package's primary entry point — e.g. ``Relay::class`` — is more
+    # semantically specific than the generic "I extend ServiceProvider"
+    # signal. Audit P2-20.
+    ("bootstrap", NodeKind.BOOTSTRAP),
     ("controller", NodeKind.CONTROLLER),
     ("form_request", NodeKind.FORM_REQUEST),
     ("policy", NodeKind.POLICY),

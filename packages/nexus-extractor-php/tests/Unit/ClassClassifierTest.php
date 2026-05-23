@@ -7,6 +7,7 @@ namespace Nexus\Extractor\Tests\Unit;
 use Nexus\Extractor\Extraction\PhaseB\ClassClassifier;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use SampleApp\Bootstrap\SamplePackage;
 use SampleApp\Events\PostCreated;
 use SampleApp\Http\Controllers\MinimalController;
 use SampleApp\Http\Controllers\PostController;
@@ -131,5 +132,25 @@ final class ClassClassifierTest extends TestCase
         $kinds = $this->classifier->classify(new ReflectionClass(Post::class));
 
         $this->assertContains('model', $kinds);
+    }
+
+    public function test_bootstrap_class_is_detected_by_static_boot(): void
+    {
+        // Pins audit P2-20: package entry-point classes with a public
+        // static ``boot()`` declared on themselves are tagged
+        // ``bootstrap`` so agents can find the package's wiring layer.
+        $kinds = $this->classifier->classify(new ReflectionClass(SamplePackage::class));
+
+        $this->assertContains('bootstrap', $kinds);
+    }
+
+    public function test_eloquent_model_with_inherited_boot_is_not_a_bootstrap(): void
+    {
+        // Negative check: ``Illuminate\Database\Eloquent\Model`` has a
+        // static ``boot()`` that subclasses inherit. The classifier
+        // must NOT tag every Eloquent model as ``bootstrap``.
+        $kinds = $this->classifier->classify(new ReflectionClass(User::class));
+
+        $this->assertNotContains('bootstrap', $kinds);
     }
 }

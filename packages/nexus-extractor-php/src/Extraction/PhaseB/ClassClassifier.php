@@ -111,7 +111,52 @@ final class ClassClassifier
             $kinds[] = 'job';
         }
 
+        if ($this->isLikelyBootstrap($reflection, $kinds)) {
+            $kinds[] = 'bootstrap';
+        }
+
         return array_values(array_unique($kinds));
+    }
+
+    /**
+     * @param  ReflectionClass<object>  $reflection
+     * @param  list<string>  $existingKinds
+     */
+    private function isLikelyBootstrap(ReflectionClass $reflection, array $existingKinds): bool
+    {
+        // Bootstrap classes are the package's entry point — e.g.
+        // ``Synthesq\Relay\Relay``, ``Sentry\Sentry``, ``Cashier::class``.
+        // They expose a ``public static boot()`` method declared on
+        // themselves that wires up service providers, routes, and
+        // extensions. Audit P2-20.
+        //
+        // Distinguishing from Eloquent models (which also have a static
+        // boot()) is done via two negative checks:
+        //
+        // 1. Already classified as ``model`` → never a bootstrap.
+        // 2. Already classified as ``service_provider`` → that's a
+        //    provider, not a bootstrap.
+        //
+        // And one positive check: ``boot()`` must be *declared on*
+        // this class, not inherited from a base. Eloquent's
+        // ``Model::boot()`` is inherited, so models fail this check
+        // even before the negative kind list helps.
+        if (in_array('model', $existingKinds, true)
+            || in_array('service_provider', $existingKinds, true)) {
+            return false;
+        }
+
+        if (! $reflection->hasMethod('boot')) {
+            return false;
+        }
+
+        $boot = $reflection->getMethod('boot');
+        if (! $boot->isStatic() || ! $boot->isPublic()) {
+            return false;
+        }
+
+        // Must be declared HERE, not inherited.
+        return $boot->getDeclaringClass()->getName() === $reflection->getName();
     }
 
     /**
