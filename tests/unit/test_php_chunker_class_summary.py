@@ -21,7 +21,7 @@ def _source(*lines: str) -> bytes:
     return ("\n".join(lines) + "\n").encode("utf-8")
 
 
-def _class_header(chunks):  # noqa: ANN001, ANN202 — test-only helper
+def _class_header(chunks):
     return next(c for c in chunks if c.kind == ChunkKind.CLASS_HEADER)
 
 
