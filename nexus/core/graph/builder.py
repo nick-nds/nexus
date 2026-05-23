@@ -33,7 +33,7 @@ handle.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nexus.core.graph.builder_findings import apply_static_findings
 from nexus.core.graph.graph import Graph
@@ -70,6 +70,12 @@ if TYPE_CHECKING:
 # Classes can carry multiple kinds; the builder picks the most specific
 # one as the node's primary kind. Order matters: earlier entries win.
 _KIND_PRIORITY: list[tuple[str, NodeKind]] = [
+    # PHP language constructs win over Laravel role-based kinds when
+    # both apply (which is rare but happens — e.g. a Notification
+    # implementation that happens to be abstract). Audit P0-1, P0-2.
+    ("interface", NodeKind.INTERFACE),
+    ("enum", NodeKind.ENUM),
+    ("trait", NodeKind.TRAIT),
     # ``bootstrap`` ranks above ``service_provider`` because the
     # package's primary entry point — e.g. ``Relay::class`` — is more
     # semantically specific than the generic "I extend ServiceProvider"
@@ -170,20 +176,30 @@ class GraphBuilder:
             kind = self._pick_class_kind(entry.kinds, entry.reflection.parent, profile)
             fqn = entry.reflection.name
 
+            class_attrs: dict[str, Any] = {
+                "fqn": fqn,
+                "namespace": entry.reflection.namespace,
+                "file": entry.reflection.file,
+                "abstract": entry.reflection.abstract,
+                "final": entry.reflection.final,
+                "readonly": entry.reflection.readonly,
+                "source": entry.source,
+                "kinds": list(entry.kinds),
+            }
+            # Audit P0-2: enum cases land in the class node's attributes
+            # so describe_class can surface them without a side lookup.
+            # Only set when non-empty to keep attribute dicts lean for
+            # the 99% of classes that aren't enums.
+            if entry.reflection.cases:
+                class_attrs["cases"] = [
+                    {"name": case.name, "value": case.value} for case in entry.reflection.cases
+                ]
+
             node = Node(
                 id=class_id(fqn),
                 kind=kind,
                 name=entry.reflection.short_name,
-                attributes={
-                    "fqn": fqn,
-                    "namespace": entry.reflection.namespace,
-                    "file": entry.reflection.file,
-                    "abstract": entry.reflection.abstract,
-                    "final": entry.reflection.final,
-                    "readonly": entry.reflection.readonly,
-                    "source": entry.source,
-                    "kinds": list(entry.kinds),
-                },
+                attributes=class_attrs,
             )
             graph.add_node(node)
 

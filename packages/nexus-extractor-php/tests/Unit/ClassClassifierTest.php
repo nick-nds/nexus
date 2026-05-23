@@ -8,6 +8,9 @@ use Nexus\Extractor\Extraction\PhaseB\ClassClassifier;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use SampleApp\Bootstrap\SamplePackage;
+use SampleApp\Concerns\HasTimestamps;
+use SampleApp\Contracts\Transformer;
+use SampleApp\Enums\CustomerStatus;
 use SampleApp\Events\PostCreated;
 use SampleApp\Http\Controllers\MinimalController;
 use SampleApp\Http\Controllers\PostController;
@@ -152,5 +155,33 @@ final class ClassClassifierTest extends TestCase
         $kinds = $this->classifier->classify(new ReflectionClass(User::class));
 
         $this->assertNotContains('bootstrap', $kinds);
+    }
+
+    public function test_interface_is_classified_as_interface_not_abstract(): void
+    {
+        // Audit P0-1: ``interface`` declarations get their own kind
+        // instead of being coerced to ``abstract``.
+        $kinds = $this->classifier->classify(new ReflectionClass(Transformer::class));
+
+        $this->assertSame(['interface'], $kinds);
+    }
+
+    public function test_enum_is_classified_as_enum_not_class(): void
+    {
+        // Audit P0-2: ``enum`` declarations get their own kind. Before
+        // this fix CustomerStatus appeared as kind="class" with
+        // kinds=[] in describe_class responses.
+        $kinds = $this->classifier->classify(new ReflectionClass(CustomerStatus::class));
+
+        $this->assertSame(['enum'], $kinds);
+    }
+
+    public function test_trait_is_classified_as_trait_not_abstract(): void
+    {
+        // Audit P0-1 (trait variant). Bonus pickup alongside interface
+        // — they share the same return-early branch.
+        $kinds = $this->classifier->classify(new ReflectionClass(HasTimestamps::class));
+
+        $this->assertSame(['trait'], $kinds);
     }
 }

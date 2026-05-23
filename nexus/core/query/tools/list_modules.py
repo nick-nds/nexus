@@ -71,6 +71,10 @@ MODULE_CLASS_KINDS: frozenset[NodeKind] = frozenset(
         NodeKind.SERVICE_PROVIDER,
         NodeKind.CAST,
         NodeKind.MIDDLEWARE,
+        NodeKind.INTERFACE,
+        NodeKind.ENUM,
+        NodeKind.TRAIT,
+        NodeKind.BOOTSTRAP,
         NodeKind.CLASS,
     },
 )

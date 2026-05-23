@@ -74,6 +74,19 @@ class RelatedRoute(ToolOutput):
     method_name: str | None = Field(default=None, alias="method")
 
 
+class EnumCase(ToolOutput):
+    """One case of an ``enum`` declaration (audit P0-2)."""
+
+    name: str
+    value: int | str | None = Field(
+        default=None,
+        description=(
+            "Backing value for ``enum X: string|int`` cases. "
+            "``None`` for unit enums (no backing type)."
+        ),
+    )
+
+
 class CacheKeyUsage(ToolOutput):
     """One cache key the class reads or writes."""
 
@@ -137,6 +150,13 @@ class DescribeClassOutput(ToolOutput):
         ),
     )
     policies_applied_to: list[str] = Field(default_factory=list)
+    cases: list[EnumCase] = Field(
+        default_factory=list,
+        description=(
+            "Cases declared on this enum. Empty for non-enum classes "
+            "and for indexes built with schema ≤ 2.2.0. Audit P0-2."
+        ),
+    )
     warnings: list[str] = Field(
         default_factory=list,
         description=(
@@ -313,8 +333,33 @@ class DescribeClassTool:
             returns_views=sorted(set(returns_views)),
             cache_keys=_build_cache_key_rows(cache_modes, cache_forms),
             policies_applied_to=sorted(set(policies)),
+            cases=_build_enum_cases(attrs),
             warnings=warnings,
         )
+
+
+def _build_enum_cases(attrs: dict[str, Any]) -> list[EnumCase]:
+    """Read enum cases off a class node's attributes.
+
+    Audit P0-2. Returns an empty list when the class isn't an enum or
+    was indexed by an extractor that predates the field — agents get a
+    stable shape either way.
+    """
+    raw_cases = attrs.get("cases")
+    if not isinstance(raw_cases, list):
+        return []
+    out: list[EnumCase] = []
+    for entry in raw_cases:
+        if not isinstance(entry, dict):
+            continue
+        name = entry.get("name")
+        if not isinstance(name, str):
+            continue
+        value = entry.get("value")
+        if value is not None and not isinstance(value, (int, str)):
+            value = None
+        out.append(EnumCase(name=name, value=value))
+    return out
 
 
 def _record_cache_usage(

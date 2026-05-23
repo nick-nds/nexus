@@ -6,6 +6,8 @@ namespace Nexus\Extractor\Extraction\PhaseB;
 
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionEnum;
+use ReflectionEnumBackedCase;
 use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -32,6 +34,7 @@ final class ReflectionInspector
     public function inspect(ReflectionClass $reflection): array
     {
         $methods = [];
+        $isEnum = $reflection->isEnum();
 
         $visibility = ReflectionMethod::IS_PUBLIC
             | ReflectionMethod::IS_PROTECTED
@@ -48,6 +51,19 @@ final class ReflectionInspector
             // to a real method node. Without this their edges would be
             // dropped as dangling at SQLite-persist time.
             if ($method->getDeclaringClass()->getName() !== $reflection->getName()) {
+                continue;
+            }
+
+            // Audit P0-2: skip PHP-synthesized enum methods (cases /
+            // from / tryFrom). They have ``getDeclaringClass() ==
+            // enum`` so the inherited-method filter above doesn't
+            // catch them, but their ``line`` is ``null`` because they
+            // aren't source-defined. Emitting them as if they were
+            // real source methods misled agents into thinking they
+            // were part of the application surface.
+            if ($isEnum && $method->isStatic()
+                && in_array($method->getName(), ['cases', 'from', 'tryFrom'], true)
+                && $method->getFileName() === false) {
                 continue;
             }
 
@@ -80,7 +96,44 @@ final class ReflectionInspector
             'traits' => $traits,
             'attributes' => $this->describeAttributes($reflection->getAttributes()),
             'methods' => $methods,
+            // Audit P0-2: enum cases are the only meaningful content of
+            // an enum declaration. Surfacing them lets agents answer
+            // "what statuses can a Customer have?" without reading the
+            // source. Empty list for non-enums so the field is always
+            // present (Pydantic-side default keeps old indexes loading).
+            'cases' => $isEnum ? $this->describeEnumCases($reflection) : [],
         ];
+    }
+
+    /**
+     * Collect a backed or unit enum's case declarations.
+     *
+     * Backed enums (``enum CustomerStatus: string``) carry a ``value``
+     * for each case; unit enums (``enum Color``) have only a name.
+     * Both shapes are surfaced uniformly with ``value`` falling back
+     * to ``null`` when absent.
+     *
+     * @param  ReflectionClass<object>  $reflection
+     * @return list<array{name: string, value: int|string|null}>
+     */
+    private function describeEnumCases(ReflectionClass $reflection): array
+    {
+        $cases = [];
+        $enumReflection = new ReflectionEnum($reflection->getName());
+        foreach ($enumReflection->getCases() as $case) {
+            $value = null;
+            if ($case instanceof ReflectionEnumBackedCase) {
+                $backing = $case->getBackingValue();
+                if (is_int($backing) || is_string($backing)) {
+                    $value = $backing;
+                }
+            }
+            $cases[] = [
+                'name' => $case->getName(),
+                'value' => $value,
+            ];
+        }
+        return $cases;
     }
 
     /**

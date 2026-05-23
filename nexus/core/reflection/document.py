@@ -318,6 +318,18 @@ class MethodInfo(_StrictModel):
     line: int | None = None
 
 
+class EnumCase(_StrictModel):
+    """One case of an ``enum`` declaration (audit P0-2).
+
+    Backed enums (``enum X: string``) carry a ``value`` of int or str;
+    unit enums have ``value: None``. Surfacing cases lets agents answer
+    "what statuses can X have?" without reading the source.
+    """
+
+    name: str
+    value: int | str | None = None
+
+
 class ClassReflection(_StrictModel):
     name: str
     short_name: str
@@ -335,6 +347,10 @@ class ClassReflection(_StrictModel):
     traits: list[str] = Field(default_factory=list)
     attributes: list[MethodAttribute] = Field(default_factory=list)
     methods: list[MethodInfo]
+    # Audit P0-2: cases of an ``enum`` declaration. Always a list — empty
+    # for non-enums and for indexes built with schema ≤ 2.2.0. Schema
+    # 2.3.0 bump.
+    cases: list[EnumCase] = Field(default_factory=list)
 
 
 class ClassEntry(_StrictModel):

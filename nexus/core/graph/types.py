@@ -77,6 +77,13 @@ class NodeKind(StrEnum):
     # and is neither a Model nor a ServiceProvider. Audit P2-20.
     BOOTSTRAP = "bootstrap"
 
+    # PHP language constructs that aren't plain classes. Audit P0-1,
+    # P0-2. Before this split they were all coerced to CLASS with
+    # ``kinds: ["abstract"]``, which lost meaningful information.
+    INTERFACE = "interface"
+    ENUM = "enum"
+    TRAIT = "trait"
+
     # Catch-all for any class the classifier didn't tag with a more
     # specific kind. Profile-defined kinds also live here in v1; a
     # later phase may promote them to first-class members.

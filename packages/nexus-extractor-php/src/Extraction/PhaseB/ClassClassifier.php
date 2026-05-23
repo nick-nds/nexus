@@ -64,10 +64,32 @@ final class ClassClassifier
      */
     public function classify(ReflectionClass $reflection): array
     {
-        if ($reflection->isAbstract() || $reflection->isInterface() || $reflection->isTrait()) {
-            // Abstract base classes are recorded but not categorised — they
-            // are usually project-internal helpers. Phase 2 of the Python
-            // pipeline will treat them via profile-defined custom_bases.
+        // PHP language constructs get their own kind so consumers can
+        // distinguish ``interface Transformer`` from ``abstract class
+        // Module`` and from ``enum CustomerStatus``. Audit P0-1, P0-2.
+        // Before this split every non-class language construct was
+        // bucketed as ``abstract``, which lost meaningful information
+        // (interfaces can't be instantiated; enums have cases; traits
+        // are mixin behaviour). These return early because no Laravel
+        // type-map base would match an interface / enum / trait
+        // declaration anyway.
+        if ($reflection->isInterface()) {
+            return ['interface'];
+        }
+
+        if ($reflection->isEnum()) {
+            return ['enum'];
+        }
+
+        if ($reflection->isTrait()) {
+            return ['trait'];
+        }
+
+        if ($reflection->isAbstract()) {
+            // True abstract classes — bases like ``Synthesq\Relay\Events
+            // \SynthesQEvent`` or ``App\Modules\Module``. Profile-defined
+            // ``custom_bases`` may upgrade these to more specific kinds
+            // in Phase 2 of the Python pipeline.
             return ['abstract'];
         }
 

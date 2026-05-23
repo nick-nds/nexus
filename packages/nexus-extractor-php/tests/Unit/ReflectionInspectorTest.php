@@ -8,6 +8,7 @@ use Nexus\Extractor\Extraction\PhaseB\ReflectionInspector;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use SampleApp\DTOs\CustomerDto;
+use SampleApp\Enums\CustomerStatus;
 use SampleApp\Http\Controllers\PostController;
 use SampleApp\Http\Requests\StorePostRequest;
 use SampleApp\Models\User;
@@ -99,5 +100,47 @@ final class ReflectionInspectorTest extends TestCase
         $data = $this->inspector->inspect(new ReflectionClass(User::class));
 
         $this->assertFalse($data['readonly']);
+    }
+
+    public function test_enum_cases_are_captured(): void
+    {
+        // Audit P0-2: enum cases are the only meaningful content of
+        // an enum declaration. The inspector must surface them via a
+        // ``cases`` field with name + backing value.
+        $data = $this->inspector->inspect(new ReflectionClass(CustomerStatus::class));
+
+        $this->assertSame(
+            [
+                ['name' => 'Active', 'value' => 'active'],
+                ['name' => 'Inactive', 'value' => 'inactive'],
+                ['name' => 'Churned', 'value' => 'churned'],
+            ],
+            $data['cases'],
+        );
+    }
+
+    public function test_enum_synthetic_methods_are_suppressed(): void
+    {
+        // Audit P0-2: PHP synthesises ``cases``, ``from``, ``tryFrom``
+        // on backed enums. Their declaring class is the enum itself
+        // (so the inherited-method filter doesn't catch them) but
+        // they have ``line: null`` because no source. Without an
+        // explicit suppress they showed up as fake methods in
+        // describe_class responses.
+        $data = $this->inspector->inspect(new ReflectionClass(CustomerStatus::class));
+
+        $names = array_map(static fn (array $m): string => $m['name'], $data['methods']);
+        $this->assertNotContains('cases', $names);
+        $this->assertNotContains('from', $names);
+        $this->assertNotContains('tryFrom', $names);
+    }
+
+    public function test_cases_field_empty_for_non_enums(): void
+    {
+        // The ``cases`` field must always be present; for non-enums
+        // it's just an empty list. Keeps the Python schema stable.
+        $data = $this->inspector->inspect(new ReflectionClass(User::class));
+
+        $this->assertSame([], $data['cases']);
     }
 }
