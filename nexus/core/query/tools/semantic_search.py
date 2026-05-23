@@ -317,20 +317,20 @@ class SemanticSearchTool:
         )
 
 
+# Audit P0-11: confidence thresholds tuned from synthesq-relay data.
+# Real queries clustered 0.60-0.68; gibberish queries ~0.57; genuine
+# misses fell below ~0.5. The boundaries are deliberately conservative
+# — closer to "is this worth showing the agent at all" than "is this
+# the right answer".
+_CONFIDENCE_HIGH_THRESHOLD = 0.65
+_CONFIDENCE_MEDIUM_THRESHOLD = 0.55
+
+
 def _confidence_for(top_vector_score: float) -> str:
-    """Map a top hit's vector_score to a qualitative confidence label.
-
-    Tuned by feel from the synthesq-relay audit data:
-    - real queries cluster 0.60-0.68
-    - gibberish queries clustered ~0.57
-    - genuine misses fell below ~0.5
-
-    The boundaries are deliberately conservative — closer to "is this
-    worth showing the agent at all" than "is this the right answer".
-    """
-    if top_vector_score >= 0.65:
+    """Map a top hit's vector_score to a qualitative confidence label."""
+    if top_vector_score >= _CONFIDENCE_HIGH_THRESHOLD:
         return "high"
-    if top_vector_score >= 0.55:
+    if top_vector_score >= _CONFIDENCE_MEDIUM_THRESHOLD:
         return "medium"
     return "low"
 
