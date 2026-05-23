@@ -1,13 +1,15 @@
-"""``find_implementations`` — list the classes that implement an interface.
+"""``find_implementations`` — list every class deriving from a target.
 
-Takes an interface FQN and walks ``IMPLEMENTS`` edges backwards
-to enumerate every class that declares it. Useful for "who
-implements ``RepositoryInterface``?" questions and for
-auditing an abstraction's real fan-out before a refactor.
+Walks both ``IMPLEMENTS`` and ``EXTENDS`` edges backwards. Useful
+for both "who implements ``RepositoryInterface``?" and "what
+extends ``SynthesQEvent``?" — agents don't need to know in advance
+whether the target is an interface or an abstract class.
 
-Abstract parent classes can be asked about the same way via the
-``include_abstract`` flag; when set, classes that ``EXTENDS`` the
-target abstract are also included in the response.
+Audit P0-7: prior versions defaulted to ``IMPLEMENTS``-only, which
+returned zero results for abstract-class targets. Abstract base
+classes are the dominant Laravel-codebase abstraction (Module,
+SynthesQEvent, etc.), so the default flipped to inclusive. Set
+``include_subclasses=false`` for the legacy IMPLEMENTS-only walk.
 """
 
 from __future__ import annotations
@@ -29,13 +31,20 @@ class FindImplementationsInput(ToolInput):
     """Identify the interface to search for implementers of."""
 
     interface_fqn: str = Field(
-        description="Fully-qualified interface name.",
+        description=(
+            "Fully-qualified name of an interface OR a class — for "
+            "interfaces the tool walks ``IMPLEMENTS``, for classes "
+            "(abstract or concrete) it walks ``EXTENDS`` to enumerate "
+            "subclasses."
+        ),
     )
     include_subclasses: bool = Field(
-        default=False,
+        default=True,
         description=(
-            "Also include classes that ``extends`` the target (treat the "
-            "query as a super-type walk, not just interface implementers)."
+            "Walk ``EXTENDS`` edges in addition to ``IMPLEMENTS``. "
+            "Default ``true`` (audit P0-7) so abstract-class targets "
+            "return their subclasses without an opt-in. Set ``false`` "
+            "to restrict to interface implementers only."
         ),
     )
 
@@ -78,12 +87,18 @@ class FindImplementationsTool:
 
     name: ClassVar[str] = "find_implementations"
     description: ClassVar[str] = (
-        "Given an interface (or abstract class) FQN, return every class "
-        "that implements it. "
+        "Given an interface OR class FQN, return every class that "
+        "derives from it. "
         "**Argument:** ``interface_fqn`` (string) — e.g. "
-        '``interface_fqn="App\\\\Contracts\\\\PaymentGateway"``. '
-        "**Optional:** ``include_subclasses`` (bool, default false) — "
-        "also walks ``EXTENDS`` edges so abstract-class subclasses appear."
+        '``interface_fqn="App\\\\Contracts\\\\PaymentGateway"`` for an '
+        "interface, or "
+        '``interface_fqn="App\\\\Modules\\\\Module"`` for an abstract '
+        "base class. "
+        "**Optional:** ``include_subclasses`` (bool, default **true** "
+        "since audit P0-7) — walks ``EXTENDS`` edges in addition to "
+        "``IMPLEMENTS``. Set ``false`` for interface-only behaviour. "
+        'Each row carries ``via: "implements" | "extends"`` so the '
+        "agent can tell which relationship was traversed."
     )
     input_model: ClassVar[type[ToolInput]] = FindImplementationsInput
     output_model: ClassVar[type[ToolOutput]] = FindImplementationsOutput
