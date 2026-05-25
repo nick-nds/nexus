@@ -277,6 +277,7 @@ class EmbedAndPersistPass:
             project_slug=ctx.storage.slug,
             project_path=str(ctx.project_path),
             laravel_version=laravel_version,
+            last_indexed_commit=_resolve_git_head(ctx.project_path),
             indexed_at=datetime.now(UTC).isoformat(),
             node_count=len(ctx.graph.nodes),
             edge_count=len(ctx.graph.edges),

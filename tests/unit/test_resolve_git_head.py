@@ -3,10 +3,21 @@
 from __future__ import annotations
 
 import subprocess
+from dataclasses import dataclass, field
 from pathlib import Path
 from unittest.mock import patch
 
-from nexus.pipeline.passes.embed_and_persist import _resolve_git_head
+from nexus.adapters.storage import ProjectStorage
+from nexus.core.graph.graph import Graph
+from nexus.pipeline.context import PipelineContext
+from nexus.pipeline.passes.embed_and_persist import EmbedAndPersistPass, _resolve_git_head
+
+
+@dataclass(frozen=True)
+class _StubProfile:
+    name: str = "stub"
+    custom_bases: dict[str, str] = field(default_factory=dict)
+    custom_suffixes: dict[str, str] = field(default_factory=dict)
 
 
 class TestResolveGitHead:
@@ -61,3 +72,57 @@ class TestResolveGitHead:
             result = _resolve_git_head(tmp_path)
 
         assert result is None
+
+
+def test_write_meta_records_git_head(tmp_path: Path) -> None:
+    """_write_meta populates last_indexed_commit from git HEAD."""
+    # Set up a real git repo
+    subprocess.run(["git", "init"], cwd=tmp_path, capture_output=True, check=True)
+    subprocess.run(
+        ["git", "commit", "--allow-empty", "-m", "init"],
+        cwd=tmp_path,
+        capture_output=True,
+        check=True,
+        env={
+            "GIT_AUTHOR_NAME": "test",
+            "GIT_AUTHOR_EMAIL": "t@t",
+            "GIT_COMMITTER_NAME": "test",
+            "GIT_COMMITTER_EMAIL": "t@t",
+            "HOME": str(tmp_path),
+            "PATH": "/usr/bin:/bin",
+        },
+    )
+
+    storage = ProjectStorage(root=tmp_path / ".nexus", slug="test")
+    graph = Graph()
+    ctx = PipelineContext(
+        project_path=tmp_path,
+        storage=storage,
+        profile=_StubProfile(),
+        graph=graph,
+    )
+
+    EmbedAndPersistPass._write_meta(ctx, embedder_id=None)
+
+    meta = storage.read_meta()
+    assert meta is not None
+    assert meta.last_indexed_commit is not None
+    assert len(meta.last_indexed_commit) == 40
+
+
+def test_write_meta_records_none_outside_git(tmp_path: Path) -> None:
+    """_write_meta sets last_indexed_commit=None when not in a git repo."""
+    storage = ProjectStorage(root=tmp_path / ".nexus", slug="test")
+    graph = Graph()
+    ctx = PipelineContext(
+        project_path=tmp_path,
+        storage=storage,
+        profile=_StubProfile(),
+        graph=graph,
+    )
+
+    EmbedAndPersistPass._write_meta(ctx, embedder_id=None)
+
+    meta = storage.read_meta()
+    assert meta is not None
+    assert meta.last_indexed_commit is None
