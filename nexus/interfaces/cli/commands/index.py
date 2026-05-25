@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING
 
 import click
 
-from nexus.interfaces.cli.commands._index_helpers import run_pipeline
+from nexus.interfaces.cli.commands._index_helpers import _compute_changed_files, run_pipeline
 from nexus.interfaces.cli.output import print_error, render
 
 if TYPE_CHECKING:
@@ -167,6 +167,13 @@ def rebuild_command(
         "contain CALLS edges."
     ),
 )
+@click.option(
+    "--full",
+    "force_full",
+    is_flag=True,
+    default=False,
+    help="Force full LSP enrichment, ignoring incremental optimization.",
+)
 @click.pass_obj
 def sync_command(
     cli_ctx: CliContext,
@@ -175,16 +182,24 @@ def sync_command(
     php_binary: str | None,
     container_project_path: Path | None,
     lsp_choice: str,
+    force_full: bool,
 ) -> None:
     """Run the pipeline without dropping existing storage.
 
-    Phase 3's content-hash embedding cache already gives us ~18x
-    warm-run speedups by skipping unchanged chunks. A more ambitious
-    "true incremental" sync (re-run only affected passes on a diff
-    of changed files) is explicitly scoped out of v1.0 in
-    ``MASTER-PLAN.md``.
+    Uses incremental LSP enrichment when a previous indexed commit is
+    available: only methods in files changed since that commit are
+    re-queried. Pass --full to force full enrichment (e.g., after a
+    rebase that touched many files).
     """
     path = (project_path or cli_ctx.project_path).resolve()
+
+    # Compute changed files for incremental LSP enrichment
+    changed_files: set[Path] | None = None
+    if not force_full:
+        meta = cli_ctx.storage().read_meta()
+        last_commit = meta.last_indexed_commit if meta else None
+        changed_files = _compute_changed_files(path, last_commit)
+
     run_pipeline(
         cli_ctx,
         project_path=path,
@@ -193,6 +208,7 @@ def sync_command(
         php_binary=php_binary,
         container_project_path=container_project_path,
         lsp_choice=lsp_choice,
+        changed_files=changed_files,
     )
 
 

@@ -111,6 +111,7 @@ def run_pipeline(
     php_binary: str | None = None,
     container_project_path: Path | None = None,
     lsp_choice: str = "auto",
+    changed_files: set[Path] | None = None,
 ) -> None:
     """Assemble the pipeline + progress reporter and run it.
 
@@ -159,6 +160,7 @@ def run_pipeline(
         embedder=embedder,
         lsp=lsp,
         lsp_server=lsp_server,
+        changed_files=changed_files,
     )
 
     reporter, manager = _resolve_reporter(cli_ctx)
