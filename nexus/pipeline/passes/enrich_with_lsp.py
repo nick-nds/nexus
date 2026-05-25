@@ -107,7 +107,11 @@ class EnrichWithLspPass:
             self._enrich_full(ctx, method_nodes, file_for_class, methods_by_file)
         else:
             self._enrich_incremental(
-                ctx, method_nodes, file_for_class, methods_by_file, effective,
+                ctx,
+                method_nodes,
+                file_for_class,
+                methods_by_file,
+                effective,
             )
 
     # ------------------------------------------------------------------
