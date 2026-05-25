@@ -34,6 +34,7 @@ caller only wants the graph (tests, dry-run mode).
 from __future__ import annotations
 
 import contextlib
+import subprocess
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -45,10 +46,29 @@ from nexus.pipeline.progress import PassProgress
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from pathlib import Path
 
     from nexus.core.chunking import Chunk
     from nexus.core.graph.graph import Graph
     from nexus.pipeline.context import PipelineContext
+
+
+def _resolve_git_head(project_path: Path) -> str | None:
+    """Return the 40-char git HEAD SHA for the project, or None."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=project_path,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    return None
 
 
 class EmbedAndPersistPass:
