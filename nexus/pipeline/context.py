@@ -91,6 +91,7 @@ class PipelineContext:
     lsp_server: str | None = None
     progress: ProgressReporter = field(default_factory=NullProgressReporter)
     include_tests: bool = False
+    changed_files: set[Path] | None = None
 
     reflection: ReflectionDocument | None = None
     graph: Graph | None = None
