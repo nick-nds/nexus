@@ -47,6 +47,11 @@ class EnrichWithLspPass:
     Skipped when ``ctx.lsp is None``. Adds non-fatal warnings for
     methods whose source file can't be read or whose declaration
     column can't be located; one such failure does not stop the run.
+
+    In incremental mode (``ctx.changed_files`` is set and below the
+    threshold), only methods in changed files are queried; CALLS edges
+    targeting unchanged methods are carried forward from the previously
+    persisted graph.
     """
 
     name = "enrich_with_lsp"
@@ -54,6 +59,11 @@ class EnrichWithLspPass:
     #: How often the pass emits a progress event during the references
     #: scan.  One event every N method nodes processed.
     _PROGRESS_INTERVAL = 50
+
+    #: When changed files exceed this fraction of all indexed files the
+    #: pass falls back to full enrichment (the carry-forward bookkeeping
+    #: would save nothing).
+    _THRESHOLD = 0.5
 
     def run(self, ctx: PipelineContext) -> None:
         """Walk method nodes, ask the LSP for references, add CALLS edges."""
@@ -90,6 +100,30 @@ class EnrichWithLspPass:
             method_nodes,
             file_for_class,
         )
+
+        effective = self._effective_changed_files(ctx, method_nodes, file_for_class)
+
+        if effective is None:
+            self._enrich_full(ctx, method_nodes, file_for_class, methods_by_file)
+        else:
+            self._enrich_incremental(
+                ctx, method_nodes, file_for_class, methods_by_file, effective,
+            )
+
+    # ------------------------------------------------------------------
+    # Full enrichment (existing behaviour, extracted verbatim)
+    # ------------------------------------------------------------------
+
+    def _enrich_full(
+        self,
+        ctx: PipelineContext,
+        method_nodes: list[Node],
+        file_for_class: dict[str, Path],
+        methods_by_file: dict[Path, list[tuple[int, Node]]],
+    ) -> None:
+        """Query LSP references for every method node."""
+        assert ctx.lsp is not None
+        assert ctx.graph is not None
 
         ctx.lsp.prepare(ctx.project_path)
         edges_added = 0
@@ -152,6 +186,177 @@ class EnrichWithLspPass:
                 pass_name=self.name,
                 message=(f"Added {edges_added} CALLS edges across {len(method_nodes)} methods"),
                 detail={"edges_added": edges_added, "methods_scanned": len(method_nodes)},
+            ),
+        )
+
+    # ------------------------------------------------------------------
+    # Threshold check
+    # ------------------------------------------------------------------
+
+    def _effective_changed_files(
+        self,
+        ctx: PipelineContext,
+        method_nodes: list[Node],
+        file_for_class: dict[str, Path],
+    ) -> set[Path] | None:
+        """Decide whether incremental mode is worthwhile.
+
+        Returns the changed-file set to use, or ``None`` when the pass
+        should fall back to full enrichment (either because
+        ``ctx.changed_files`` is ``None`` or because the changed set
+        exceeds the threshold).
+        """
+        if ctx.changed_files is None:
+            return None
+
+        all_files: set[Path] = set()
+        for method in method_nodes:
+            f = _file_for_method(method, file_for_class)
+            if f is not None:
+                all_files.add(f)
+
+        if not all_files:
+            return None
+
+        changed_php_files = ctx.changed_files & all_files
+        if len(changed_php_files) > len(all_files) * self._THRESHOLD:
+            ctx.progress.emit(
+                PassProgress(
+                    pass_name=self.name,
+                    message=(
+                        f"Changed files ({len(changed_php_files)}) exceed "
+                        f"{int(self._THRESHOLD * 100)}% of indexed files "
+                        f"({len(all_files)}); using full enrichment."
+                    ),
+                ),
+            )
+            return None
+
+        return ctx.changed_files
+
+    # ------------------------------------------------------------------
+    # Incremental enrichment
+    # ------------------------------------------------------------------
+
+    def _enrich_incremental(
+        self,
+        ctx: PipelineContext,
+        method_nodes: list[Node],
+        file_for_class: dict[str, Path],
+        methods_by_file: dict[Path, list[tuple[int, Node]]],
+        changed_files: set[Path],
+    ) -> None:
+        """Query LSP only for methods in changed files, carry forward the rest."""
+        assert ctx.lsp is not None
+        assert ctx.graph is not None
+
+        # 1. Load old CALLS edges from persisted graph
+        old_graph = ctx.storage.graph().load()
+        old_calls_edges = [e for e in old_graph.edges if e.kind == EdgeKind.CALLS]
+
+        # 2. Partition methods into query vs skip
+        new_node_ids = {n.id for n in ctx.graph.nodes}
+        methods_to_query: list[Node] = []
+        skipped_ids: set[str] = set()
+
+        for method in method_nodes:
+            file = _file_for_method(method, file_for_class)
+            if file is not None and file in changed_files:
+                methods_to_query.append(method)
+            else:
+                skipped_ids.add(method.id)
+
+        # 3. Carry forward old CALLS edges targeting skipped methods
+        carried = 0
+        for edge in old_calls_edges:
+            if edge.target in skipped_ids and edge.source in new_node_ids:
+                ctx.graph.add_edge(edge)
+                carried += 1
+
+        ctx.progress.emit(
+            PassProgress(
+                pass_name=self.name,
+                message=(
+                    f"Incremental: {len(methods_to_query)} methods to query, "
+                    f"{len(skipped_ids)} unchanged (carried {carried} edges)"
+                ),
+                current=0,
+                total=len(methods_to_query),
+            ),
+        )
+
+        # 4. Query LSP only for methods in changed files
+        ctx.lsp.prepare(ctx.project_path)
+        edges_added = 0
+        try:
+            for index, method in enumerate(methods_to_query, start=1):
+                file = _file_for_method(method, file_for_class)
+                line = _line_for_method(method)
+                if file is None or line is None:
+                    continue
+                column = _find_symbol_column(file, line, method.name)
+                if column is None:
+                    ctx.add_warning(
+                        Warning(
+                            code="lsp_method_position_not_found",
+                            message=(
+                                f"Could not find symbol {method.name!r} on line {line} "
+                                f"of {file}; skipping CALLS enrichment for this method."
+                            ),
+                            context={"method_id": method.id},
+                        ),
+                    )
+                    continue
+
+                refs = ctx.lsp.references(file, line, column)
+                for ref in refs:
+                    caller = _enclosing_method(methods_by_file, ref.file, ref.start_line)
+                    if caller is None or caller.id == method.id:
+                        continue
+                    ctx.graph.add_edge(
+                        Edge(
+                            source=caller.id,
+                            target=method.id,
+                            kind=EdgeKind.CALLS,
+                            attributes={
+                                "file": str(ref.file),
+                                "line": ref.start_line,
+                                "character": ref.start_character,
+                            },
+                        ),
+                    )
+                    edges_added += 1
+
+                if index % self._PROGRESS_INTERVAL == 0:
+                    ctx.progress.emit(
+                        PassProgress(
+                            pass_name=self.name,
+                            message=(
+                                f"Queried LSP for {index} of "
+                                f"{len(methods_to_query)} changed methods "
+                                f"({edges_added} new + {carried} carried CALLS edges)"
+                            ),
+                            current=index,
+                            total=len(methods_to_query),
+                        ),
+                    )
+        finally:
+            ctx.lsp.close()
+
+        ctx.progress.emit(
+            PassProgress(
+                pass_name=self.name,
+                message=(
+                    f"Incremental done: {edges_added} fresh + {carried} carried = "
+                    f"{edges_added + carried} total CALLS edges "
+                    f"(queried {len(methods_to_query)} of {len(method_nodes)} methods)"
+                ),
+                detail={
+                    "edges_added": edges_added,
+                    "edges_carried": carried,
+                    "methods_queried": len(methods_to_query),
+                    "methods_skipped": len(skipped_ids),
+                },
             ),
         )
 

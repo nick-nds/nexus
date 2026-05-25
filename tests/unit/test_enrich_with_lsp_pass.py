@@ -15,7 +15,7 @@ import pytest
 from nexus.adapters.lsp import NullLsp
 from nexus.adapters.storage import ProjectStorage
 from nexus.core.graph.graph import Graph
-from nexus.core.graph.types import EdgeKind, Node, NodeKind
+from nexus.core.graph.types import Edge, EdgeKind, Node, NodeKind
 from nexus.core.lsp import FileLocation
 from nexus.pipeline.context import PipelineContext
 from nexus.pipeline.passes import EnrichWithLspPass
@@ -384,3 +384,472 @@ def test_close_is_called_even_when_iteration_raises(tmp_path: Path) -> None:
         EnrichWithLspPass().run(ctx)
 
     assert lsp.close_calls == 1, "close() must run via the try/finally even on error"
+
+
+# ----------------------------------------------------------------------------
+# Incremental enrichment
+# ----------------------------------------------------------------------------
+
+
+def _make_three_class_graph(
+    foo_file: Path,
+    bar_file: Path,
+    caller_file: Path,
+) -> Graph:
+    """Three classes in three files, one method each. No edges yet."""
+    graph = Graph()
+    graph.add_node(
+        Node(
+            id="class:App\\Foo",
+            kind=NodeKind.CONTROLLER,
+            name="Foo",
+            attributes={"file": str(foo_file)},
+        ),
+    )
+    graph.add_node(
+        Node(
+            id="method:App\\Foo::doFoo",
+            kind=NodeKind.METHOD,
+            name="doFoo",
+            attributes={"class_fqn": "App\\Foo", "line": 4},
+        ),
+    )
+    graph.add_node(
+        Node(
+            id="class:App\\Bar",
+            kind=NodeKind.CONTROLLER,
+            name="Bar",
+            attributes={"file": str(bar_file)},
+        ),
+    )
+    graph.add_node(
+        Node(
+            id="method:App\\Bar::doBar",
+            kind=NodeKind.METHOD,
+            name="doBar",
+            attributes={"class_fqn": "App\\Bar", "line": 4},
+        ),
+    )
+    graph.add_node(
+        Node(
+            id="class:App\\Caller",
+            kind=NodeKind.CONTROLLER,
+            name="Caller",
+            attributes={"file": str(caller_file)},
+        ),
+    )
+    graph.add_node(
+        Node(
+            id="method:App\\Caller::invoke",
+            kind=NodeKind.METHOD,
+            name="invoke",
+            attributes={"class_fqn": "App\\Caller", "line": 4},
+        ),
+    )
+    return graph
+
+
+def test_incremental_only_queries_methods_in_changed_files(tmp_path: Path) -> None:
+    """Only Foo.php changed — LSP must be queried for doFoo only, and the old
+    CALLS edge targeting doBar must be carried forward from the persisted graph."""
+    project = tmp_path / "project"
+    project.mkdir()
+
+    foo_file = project / "Foo.php"
+    foo_file.write_text(
+        "<?php\nnamespace App;\nclass Foo {\n    public function doFoo() {}\n}\n",
+    )
+    bar_file = project / "Bar.php"
+    bar_file.write_text(
+        "<?php\nnamespace App;\nclass Bar {\n    public function doBar() {}\n}\n",
+    )
+    caller_file = project / "Caller.php"
+    caller_file.write_text(
+        "<?php\nnamespace App;\nclass Caller {\n    public function invoke() {\n"
+        "        (new Foo)->doFoo();\n        (new Bar)->doBar();\n    }\n}\n",
+    )
+
+    # Build old graph with a CALLS edge: Caller::invoke → Bar::doBar
+    old_graph = _make_three_class_graph(foo_file, bar_file, caller_file)
+    old_graph.add_edge(
+        Edge(
+            source="method:App\\Caller::invoke",
+            target="method:App\\Bar::doBar",
+            kind=EdgeKind.CALLS,
+            attributes={"file": str(caller_file), "line": 6, "character": 20},
+        ),
+    )
+
+    # Persist the old graph
+    storage = ProjectStorage(root=tmp_path / ".nexus", slug="test")
+    storage.graph().persist(old_graph)
+
+    # Build the new graph (same nodes, no edges yet)
+    new_graph = _make_three_class_graph(foo_file, bar_file, caller_file)
+
+    lsp = _RecordingLsp(
+        canned={
+            # LSP returns a reference to doFoo from Caller
+            ("Foo.php", 4): [
+                FileLocation(
+                    file=caller_file,
+                    start_line=5,
+                    start_character=20,
+                    end_line=5,
+                    end_character=25,
+                ),
+            ],
+        },
+    )
+
+    ctx = PipelineContext(
+        project_path=project,
+        storage=storage,
+        profile=_StubProfile(),
+        graph=new_graph,
+        lsp=lsp,
+        changed_files={foo_file},
+    )
+
+    EnrichWithLspPass().run(ctx)
+
+    # Only Foo.php's method should have been queried
+    queried_files = {call[0].name for call in lsp.references_calls}
+    assert queried_files == {"Foo.php"}
+
+    calls = [e for e in new_graph.edges if e.kind == EdgeKind.CALLS]
+    assert len(calls) == 2
+
+    # Carried edge targeting doBar
+    carried = [e for e in calls if e.target == "method:App\\Bar::doBar"]
+    assert len(carried) == 1
+    assert carried[0].source == "method:App\\Caller::invoke"
+
+    # Fresh edge targeting doFoo
+    fresh = [e for e in calls if e.target == "method:App\\Foo::doFoo"]
+    assert len(fresh) == 1
+    assert fresh[0].source == "method:App\\Caller::invoke"
+
+
+def test_incremental_filters_carried_edges_with_deleted_source(tmp_path: Path) -> None:
+    """An old CALLS edge whose source node no longer exists in the new graph
+    must NOT be carried forward."""
+    project = tmp_path / "project"
+    project.mkdir()
+
+    bar_file = project / "Bar.php"
+    bar_file.write_text(
+        "<?php\nnamespace App;\nclass Bar {\n    public function doBar() {}\n}\n",
+    )
+
+    # Old graph: has a CALLS edge from a now-deleted class
+    old_graph = Graph()
+    old_graph.add_node(
+        Node(
+            id="class:App\\Deleted",
+            kind=NodeKind.CONTROLLER,
+            name="Deleted",
+            attributes={"file": str(project / "Deleted.php")},
+        ),
+    )
+    old_graph.add_node(
+        Node(
+            id="method:App\\Deleted::gone",
+            kind=NodeKind.METHOD,
+            name="gone",
+            attributes={"class_fqn": "App\\Deleted", "line": 4},
+        ),
+    )
+    old_graph.add_node(
+        Node(
+            id="class:App\\Bar",
+            kind=NodeKind.CONTROLLER,
+            name="Bar",
+            attributes={"file": str(bar_file)},
+        ),
+    )
+    old_graph.add_node(
+        Node(
+            id="method:App\\Bar::doBar",
+            kind=NodeKind.METHOD,
+            name="doBar",
+            attributes={"class_fqn": "App\\Bar", "line": 4},
+        ),
+    )
+    old_graph.add_edge(
+        Edge(
+            source="method:App\\Deleted::gone",
+            target="method:App\\Bar::doBar",
+            kind=EdgeKind.CALLS,
+            attributes={"file": str(project / "Deleted.php"), "line": 5, "character": 10},
+        ),
+    )
+
+    storage = ProjectStorage(root=tmp_path / ".nexus", slug="test")
+    storage.graph().persist(old_graph)
+
+    # New graph: Deleted class is gone, only Bar remains
+    new_graph = Graph()
+    new_graph.add_node(
+        Node(
+            id="class:App\\Bar",
+            kind=NodeKind.CONTROLLER,
+            name="Bar",
+            attributes={"file": str(bar_file)},
+        ),
+    )
+    new_graph.add_node(
+        Node(
+            id="method:App\\Bar::doBar",
+            kind=NodeKind.METHOD,
+            name="doBar",
+            attributes={"class_fqn": "App\\Bar", "line": 4},
+        ),
+    )
+
+    lsp = _RecordingLsp()
+
+    ctx = PipelineContext(
+        project_path=project,
+        storage=storage,
+        profile=_StubProfile(),
+        graph=new_graph,
+        lsp=lsp,
+        changed_files=set(),
+    )
+
+    EnrichWithLspPass().run(ctx)
+
+    calls = [e for e in new_graph.edges if e.kind == EdgeKind.CALLS]
+    assert calls == [], "Edge with deleted source must not be carried forward"
+
+
+def test_incremental_threshold_triggers_full_enrichment(tmp_path: Path) -> None:
+    """When changed files exceed the 50% threshold, full enrichment runs
+    and BOTH methods get LSP queries."""
+    project = tmp_path / "project"
+    project.mkdir()
+
+    foo_file = project / "Foo.php"
+    foo_file.write_text(
+        "<?php\nnamespace App;\nclass Foo {\n    public function doFoo() {}\n}\n",
+    )
+    bar_file = project / "Bar.php"
+    bar_file.write_text(
+        "<?php\nnamespace App;\nclass Bar {\n    public function doBar() {}\n}\n",
+    )
+
+    graph = Graph()
+    graph.add_node(
+        Node(
+            id="class:App\\Foo",
+            kind=NodeKind.CONTROLLER,
+            name="Foo",
+            attributes={"file": str(foo_file)},
+        ),
+    )
+    graph.add_node(
+        Node(
+            id="method:App\\Foo::doFoo",
+            kind=NodeKind.METHOD,
+            name="doFoo",
+            attributes={"class_fqn": "App\\Foo", "line": 4},
+        ),
+    )
+    graph.add_node(
+        Node(
+            id="class:App\\Bar",
+            kind=NodeKind.CONTROLLER,
+            name="Bar",
+            attributes={"file": str(bar_file)},
+        ),
+    )
+    graph.add_node(
+        Node(
+            id="method:App\\Bar::doBar",
+            kind=NodeKind.METHOD,
+            name="doBar",
+            attributes={"class_fqn": "App\\Bar", "line": 4},
+        ),
+    )
+
+    lsp = _RecordingLsp()
+
+    ctx = PipelineContext(
+        project_path=project,
+        storage=ProjectStorage(root=tmp_path / ".nexus", slug="test"),
+        profile=_StubProfile(),
+        graph=graph,
+        lsp=lsp,
+        # Both files changed — 100% > 50% threshold
+        changed_files={foo_file, bar_file},
+    )
+
+    EnrichWithLspPass().run(ctx)
+
+    # Both methods should have been queried (full mode)
+    queried_files = {call[0].name for call in lsp.references_calls}
+    assert queried_files == {"Foo.php", "Bar.php"}
+
+
+def test_incremental_empty_changed_files_skips_all_lsp_queries(tmp_path: Path) -> None:
+    """Empty changed_files set means nothing changed — carry old edges, skip LSP."""
+    project = tmp_path / "project"
+    project.mkdir()
+
+    foo_file = project / "Foo.php"
+    foo_file.write_text(
+        "<?php\nnamespace App;\nclass Foo {\n    public function doFoo() {}\n}\n",
+    )
+    caller_file = project / "Caller.php"
+    caller_file.write_text(
+        "<?php\nnamespace App;\nclass Caller {\n    public function invoke() {}\n}\n",
+    )
+
+    # Old graph with a CALLS edge
+    old_graph = _make_two_method_graph(foo_file, caller_file)
+    old_graph.add_edge(
+        Edge(
+            source="method:App\\Caller::callBar",
+            target="method:App\\Foo::bar",
+            kind=EdgeKind.CALLS,
+            attributes={"file": str(caller_file), "line": 5, "character": 20},
+        ),
+    )
+
+    storage = ProjectStorage(root=tmp_path / ".nexus", slug="test")
+    storage.graph().persist(old_graph)
+
+    # New graph has the same nodes
+    new_graph = _make_two_method_graph(foo_file, caller_file)
+
+    lsp = _RecordingLsp()
+
+    ctx = PipelineContext(
+        project_path=project,
+        storage=storage,
+        profile=_StubProfile(),
+        graph=new_graph,
+        lsp=lsp,
+        changed_files=set(),
+    )
+
+    EnrichWithLspPass().run(ctx)
+
+    # Zero LSP queries
+    assert lsp.references_calls == []
+
+    # Carried edge should be present
+    calls = [e for e in new_graph.edges if e.kind == EdgeKind.CALLS]
+    assert len(calls) == 1
+    assert calls[0].source == "method:App\\Caller::callBar"
+    assert calls[0].target == "method:App\\Foo::bar"
+
+
+def test_incremental_with_no_old_calls_edges_still_queries_changed(tmp_path: Path) -> None:
+    """Old graph has nodes but no CALLS edges (e.g. previous run had no LSP).
+    Incremental mode still queries the LSP for changed-file methods."""
+    project = tmp_path / "project"
+    project.mkdir()
+
+    foo_file = project / "Foo.php"
+    foo_file.write_text(
+        "<?php\nnamespace App;\nclass Foo {\n    public function doFoo() {}\n}\n",
+    )
+    caller_file = project / "Caller.php"
+    caller_file.write_text(
+        "<?php\nnamespace App;\nclass Caller {\n    public function invoke() {\n"
+        "        (new Foo)->doFoo();\n    }\n}\n",
+    )
+
+    # Old graph: nodes but no CALLS edges
+    old_graph = Graph()
+    old_graph.add_node(
+        Node(
+            id="class:App\\Foo",
+            kind=NodeKind.CONTROLLER,
+            name="Foo",
+            attributes={"file": str(foo_file)},
+        ),
+    )
+    old_graph.add_node(
+        Node(
+            id="method:App\\Foo::doFoo",
+            kind=NodeKind.METHOD,
+            name="doFoo",
+            attributes={"class_fqn": "App\\Foo", "line": 4},
+        ),
+    )
+
+    storage = ProjectStorage(root=tmp_path / ".nexus", slug="test")
+    storage.graph().persist(old_graph)
+
+    # New graph: same two classes
+    new_graph = Graph()
+    new_graph.add_node(
+        Node(
+            id="class:App\\Foo",
+            kind=NodeKind.CONTROLLER,
+            name="Foo",
+            attributes={"file": str(foo_file)},
+        ),
+    )
+    new_graph.add_node(
+        Node(
+            id="method:App\\Foo::doFoo",
+            kind=NodeKind.METHOD,
+            name="doFoo",
+            attributes={"class_fqn": "App\\Foo", "line": 4},
+        ),
+    )
+    new_graph.add_node(
+        Node(
+            id="class:App\\Caller",
+            kind=NodeKind.CONTROLLER,
+            name="Caller",
+            attributes={"file": str(caller_file)},
+        ),
+    )
+    new_graph.add_node(
+        Node(
+            id="method:App\\Caller::invoke",
+            kind=NodeKind.METHOD,
+            name="invoke",
+            attributes={"class_fqn": "App\\Caller", "line": 4},
+        ),
+    )
+
+    lsp = _RecordingLsp(
+        canned={
+            ("Foo.php", 4): [
+                FileLocation(
+                    file=caller_file,
+                    start_line=5,
+                    start_character=20,
+                    end_line=5,
+                    end_character=25,
+                ),
+            ],
+        },
+    )
+
+    ctx = PipelineContext(
+        project_path=project,
+        storage=storage,
+        profile=_StubProfile(),
+        graph=new_graph,
+        lsp=lsp,
+        changed_files={foo_file},
+    )
+
+    EnrichWithLspPass().run(ctx)
+
+    # LSP was queried for the changed file
+    queried_files = {call[0].name for call in lsp.references_calls}
+    assert queried_files == {"Foo.php"}
+
+    # Fresh edge was added
+    calls = [e for e in new_graph.edges if e.kind == EdgeKind.CALLS]
+    assert len(calls) == 1
+    assert calls[0].source == "method:App\\Caller::invoke"
+    assert calls[0].target == "method:App\\Foo::doFoo"
