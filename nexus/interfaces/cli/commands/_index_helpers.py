@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import contextlib
 import shutil
+import subprocess
 import sys
 from typing import TYPE_CHECKING
 
@@ -44,6 +45,61 @@ if TYPE_CHECKING:
 #: take an action (install something, change a flag) before the
 #: command can succeed.
 EXIT_USER_ACTION_REQUIRED = 2
+
+
+def _compute_changed_files(
+    project_path: Path,
+    last_indexed_commit: str | None,
+) -> set[Path] | None:
+    """Return absolute paths of PHP files changed since the last indexed commit.
+
+    Returns None (triggering full enrichment) when:
+    - last_indexed_commit is None (no baseline)
+    - project_path is not a git repo
+    - The baseline commit is unreachable (rebase, force-push)
+    - git binary is not on PATH
+    - Any subprocess times out
+    """
+    if last_indexed_commit is None:
+        return None
+
+    try:
+        verify = subprocess.run(
+            ["git", "rev-parse", "--verify", last_indexed_commit],
+            cwd=project_path,
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+        if verify.returncode != 0:
+            return None
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+
+    try:
+        diff = subprocess.run(
+            ["git", "diff", "--name-only", f"{last_indexed_commit}..HEAD"],
+            cwd=project_path,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
+        )
+        if diff.returncode != 0:
+            return None
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+
+    changed: set[Path] = set()
+    for raw_line in diff.stdout.strip().splitlines():
+        name = raw_line.strip()
+        if not name:
+            continue
+        path = (project_path / name).resolve()
+        if path.suffix == ".php":
+            changed.add(path)
+
+    return changed
 
 
 def run_pipeline(
