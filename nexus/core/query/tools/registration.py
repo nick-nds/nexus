@@ -4,7 +4,7 @@ Called once from the query engine's bootstrap code. A user plugin
 that wants to override a built-in tool can register a replacement
 after the built-ins; since :class:`ToolRegistry.register` rejects
 duplicates, plugins must either use a different name or intercept
-the bootstrap flow — the same deliberate friction the embedder
+the bootstrap flow - the same deliberate friction the embedder
 registry applies.
 """
 
@@ -79,7 +79,7 @@ def register_builtin_tools(registry: ToolRegistry) -> None:
     # Semantic retrieval.
     registry.register(SemanticSearchTool)
 
-    # Body retrieval — escape hatch when ``semantic_search`` misses a
+    # Body retrieval - escape hatch when ``semantic_search`` misses a
     # known chunk. See ``nexus-feedback-method-body-retrieval.md`` for
     # the user-pain motivation.
     registry.register(GetFullBlockTool)

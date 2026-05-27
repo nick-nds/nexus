@@ -70,7 +70,7 @@ def build_post_extraction_pipeline(
     Used by :class:`~nexus.pipeline.package_indexer.PackageIndexer` when
     the caller has already run extraction and normalized the resulting
     :class:`~nexus.core.reflection.document.ReflectionDocument`. The
-    ``RunExtractorPass`` is intentionally omitted — the context must have
+    ``RunExtractorPass`` is intentionally omitted - the context must have
     ``ctx.reflection`` populated before :meth:`Pipeline.run` is called.
 
     LSP enrichment is also omitted: Testbench-booted packages run inside

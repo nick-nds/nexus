@@ -7,7 +7,7 @@ handles batch inference efficiently for text-length inputs typical
 of code chunks.
 
 On the validation hardware with an already-downloaded ``nomic-embed-text``
-model, Ollama processes ~76 real chunks/sec — about **15x faster than
+model, Ollama processes ~76 real chunks/sec - about **15x faster than
 fastembed on CPU** on the same machine. For enterprise-scale projects
 (20k+ chunks) that's the difference between a 4-minute embed phase
 and a 67-minute one.
@@ -67,7 +67,7 @@ _DEFAULT_DIMENSIONS = 768
 _DEFAULT_MAX_INPUT_CHARS = 6000
 
 #: ``num_batch`` option passed to Ollama. Ollama's default of 512 is
-#: too small for real code chunks — nomic-embed-text will panic with
+#: too small for real code chunks - nomic-embed-text will panic with
 #: ``"caching disabled but unable to fit entire input in a batch"``
 #: on any input that tokenises to more than 512 tokens in one
 #: request. Setting num_batch to 2048 avoids the panic while still
@@ -97,7 +97,7 @@ class OllamaEmbedder:
         Args:
             model: Model name as understood by the local Ollama
                 daemon (e.g. ``nomic-embed-text``, ``mxbai-embed-large``).
-                The model must already be pulled — Nexus does not
+                The model must already be pulled - Nexus does not
                 fetch models on the user's behalf.
             host: Ollama daemon base URL. Defaults to the
                 ``OLLAMA_HOST`` environment variable if set, else

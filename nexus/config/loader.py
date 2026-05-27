@@ -71,7 +71,7 @@ def check_schema_major(
 ) -> None:
     """Validate the ``schema_version`` field against an expected major.
 
-    Missing ``schema_version`` is treated as ``<expected_major>.0`` —
+    Missing ``schema_version`` is treated as ``<expected_major>.0`` -
     user config files should not be required to spell out a version
     string in the common case.
     """

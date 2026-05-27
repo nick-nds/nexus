@@ -15,14 +15,14 @@ Design rules this module follows:
    helpers in :mod:`nexus.core.graph.ids` and via stable iteration
    order over the input document (which is itself sorted by Phase 1).
 3. **Lossy on purpose.** Not every reflection field becomes a node or
-   an edge — chunks (Phase 3), call edges (Phase 3 LSP enrichment),
+   an edge - chunks (Phase 3), call edges (Phase 3 LSP enrichment),
    embeddings (Phase 3) all live downstream. Phase 2's job is to
    produce the *structural skeleton* the rest of the pipeline hangs
    off.
 4. **Errors are warnings.** A class with a missing parent, a route
    with an unknown action kind, or any other unmappable condition
    becomes a :class:`~nexus.core.outcome.Warning` in the resulting
-   :class:`Outcome` — never an exception.
+   :class:`Outcome` - never an exception.
 
 The builder is intentionally not configurable beyond the profile. Each
 section's mapping logic lives in a private method named after the
@@ -72,7 +72,7 @@ if TYPE_CHECKING:
 # Audit P0-6: when ``profile.custom_bases`` labels a class via its
 # parent chain, this map translates the label back to a concrete
 # NodeKind. Keep narrow to labels that have semantic meaning beyond
-# "this class belongs to a category" — only kinds the agent-facing
+# "this class belongs to a category" - only kinds the agent-facing
 # query tools care about. Labels not in this map preserve the
 # original ``NodeKind.CLASS`` behaviour, with the custom label still
 # captured in the node's ``kinds`` attribute.
@@ -100,7 +100,7 @@ def _walk_for_custom_base(
     """Walk the parent chain of ``fqn`` looking for a configured base.
 
     Returns the NodeKind that label maps to, or ``None`` when no
-    ancestor matches. The walk is bounded by ``parent_chain`` — i.e.
+    ancestor matches. The walk is bounded by ``parent_chain`` - i.e.
     only classes we have reflection data for are followed; an
     unindexed parent terminates the walk. A simple cycle guard
     prevents infinite loops on malformed inputs.
@@ -114,7 +114,7 @@ def _walk_for_custom_base(
             kind = _LABEL_TO_NODEKIND.get(label)
             if kind is not None:
                 return kind
-            # Label matched a base but isn't a known kind — fall back
+            # Label matched a base but isn't a known kind - fall back
             # to CLASS, preserving the convention from the legacy
             # custom_bases handling.
             return NodeKind.CLASS
@@ -124,13 +124,13 @@ def _walk_for_custom_base(
 
 _KIND_PRIORITY: list[tuple[str, NodeKind]] = [
     # PHP language constructs win over Laravel role-based kinds when
-    # both apply (which is rare but happens — e.g. a Notification
+    # both apply (which is rare but happens - e.g. a Notification
     # implementation that happens to be abstract). Audit P0-1, P0-2.
     ("interface", NodeKind.INTERFACE),
     ("enum", NodeKind.ENUM),
     ("trait", NodeKind.TRAIT),
     # ``bootstrap`` ranks above ``service_provider`` because the
-    # package's primary entry point — e.g. ``Relay::class`` — is more
+    # package's primary entry point - e.g. ``Relay::class`` - is more
     # semantically specific than the generic "I extend ServiceProvider"
     # signal. Audit P2-20.
     ("bootstrap", NodeKind.BOOTSTRAP),
@@ -228,7 +228,7 @@ class GraphBuilder:
         # Audit P0-6: pre-compute a parent map so ``_pick_class_kind``
         # can walk the inheritance chain when checking
         # ``profile.custom_bases``. Without this, only the IMMEDIATE
-        # parent counts — but events like ``CustomerCreated extends
+        # parent counts - but events like ``CustomerCreated extends
         # SynthesQEvent`` were sometimes ``CustomerCreated extends
         # CustomerEvent extends SynthesQEvent`` and the configured
         # base sat two hops away.
@@ -265,7 +265,7 @@ class GraphBuilder:
                     {"name": case.name, "value": case.value} for case in entry.reflection.cases
                 ]
             # Audit P0-4: transitively-inherited interfaces stored as an
-            # attribute (not edges) — they don't represent contracts
+            # attribute (not edges) - they don't represent contracts
             # the class itself declared, so making them first-class
             # IMPLEMENTS edges would inflate find_implementations
             # results with noise. Only set when non-empty.
@@ -306,7 +306,7 @@ class GraphBuilder:
         3. Profile ``custom_suffixes``: a class-name suffix match wins.
         4. Fallback to :attr:`NodeKind.CLASS` for unclassified classes.
         """
-        # Built-in priority match — most common case, check first for
+        # Built-in priority match - most common case, check first for
         # speed on the large enterprise fixtures.
         for label, node_kind in _KIND_PRIORITY:
             if label in kinds:
@@ -634,7 +634,7 @@ class GraphBuilder:
             # reference). Command-signature scheduling
             # (``->command('cache:clear')``) doesn't carry the FQN
             # here, so it stays attribute-only on the scheduled_task
-            # node — a future iteration could resolve the signature
+            # node - a future iteration could resolve the signature
             # to its command FQN via the classes section.
             if event.target:
                 graph.add_edge(

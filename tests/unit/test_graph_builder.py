@@ -98,7 +98,7 @@ class TestBuildAgainstRealFixture:
         # The strict 1:1 check: every entry in the classes section must
         # appear in the graph as a node with id ``class:<fqn>``. Listener
         # nodes, middleware-alias nodes, and policy nodes are derived
-        # from other sections and live under different id prefixes —
+        # from other sections and live under different id prefixes -
         # they correctly do NOT count toward this total.
         assert document.sections.classes is not None
         class_ids = {f"class:{c.reflection.name}" for c in document.sections.classes.items}
@@ -152,7 +152,7 @@ class TestBuildAgainstRealFixture:
 
         extends_edges = [e for e in result.value.edges if e.kind == EdgeKind.EXTENDS]
         # The fixture has many controllers, models, jobs etc. with
-        # parents — at least dozens of EXTENDS edges.
+        # parents - at least dozens of EXTENDS edges.
         assert len(extends_edges) > 10
 
     def test_method_nodes_have_part_of_edges(
@@ -215,7 +215,7 @@ class TestPerformance:
         elapsed = time.perf_counter() - start
 
         assert result.ok
-        # Generous bound — momskitchen should build in well under 100 ms.
+        # Generous bound - momskitchen should build in well under 100 ms.
         # If this fails, the eager-index fix has likely been undone.
         assert elapsed < 0.5, f"Build took {elapsed * 1000:.0f}ms (regression)"
 
@@ -554,7 +554,7 @@ class TestStaticEdges:
     def test_notification_dispatch_creates_notifies_edge(
         self, builder: GraphBuilder, empty_profile: StubProfile
     ) -> None:
-        """Notifications get their own ``NOTIFIES`` edge — separate from job ``DISPATCHES``.
+        """Notifications get their own ``NOTIFIES`` edge - separate from job ``DISPATCHES``.
 
         Conflating them under ``DISPATCHES`` (the previous behaviour)
         forced agents to filter dispatches by class kind to answer
@@ -589,7 +589,7 @@ class TestStaticEdges:
         notifies = [e for e in result.value.edges if e.kind == EdgeKind.NOTIFIES]
         assert len(notifies) == 1
         assert notifies[0].target == "class:App\\Notifications\\InvoiceReady"
-        # And — crucially — there must be NO leakage into the
+        # And - crucially - there must be NO leakage into the
         # ``DISPATCHES`` bucket; that would re-conflate the two.
         dispatches = [e for e in result.value.edges if e.kind == EdgeKind.DISPATCHES]
         assert dispatches == []
@@ -600,7 +600,7 @@ class TestStaticEdges:
         """``view_return`` findings produce a ``view`` node + ``RETURNS_VIEW`` edge.
 
         Same blade view returned from two methods collapses to a
-        single view node — agents asking "which controllers render
+        single view node - agents asking "which controllers render
         auth.login?" get a clean reverse traversal.
         """
         from nexus.core.reflection.document import (
@@ -1012,7 +1012,7 @@ class TestStaticEdges:
                 findings=[
                     StaticAnalysisFinding(
                         kind="event_dispatch",
-                        target=None,  # dynamic dispatch — can't resolve
+                        target=None,  # dynamic dispatch - can't resolve
                         in_class="App\\Http\\Controllers\\Foo",
                         in_method="bar",
                         file=None,

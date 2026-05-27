@@ -2,9 +2,9 @@
 
 Extracted from ``index.py`` to keep that module under the project's
 500-LOC ceiling. The four ``index`` subcommands (rebuild, sync,
-status, clear) live in ``index.py``; everything below — pipeline
+status, clear) live in ``index.py``; everything below - pipeline
 assembly, LSP resolution, cost estimation, profile detection,
-progress-reporter selection, vectors-directory reset — lives here.
+progress-reporter selection, vectors-directory reset - lives here.
 
 These helpers are CLI-only (they reach into ``CliContext``,
 ``click.echo``, etc.) and are not part of any public API.
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from nexus.pipeline.progress import ProgressReporter
 
 
-#: Distinct from generic errors per D5.9 — used when the user must
+#: Distinct from generic errors per D5.9 - used when the user must
 #: take an action (install something, change a flag) before the
 #: command can succeed.
 EXIT_USER_ACTION_REQUIRED = 2
@@ -119,9 +119,9 @@ def run_pipeline(
 
     * Extractor liveness check with a copy-pasteable install hint
       when the Composer package is missing (D5.9).
-    * Profile auto-detection — falls back to the first built-in and
+    * Profile auto-detection - falls back to the first built-in and
       emits a warning if no profile fires for the project.
-    * LSP resolution — based on ``--lsp`` (auto/none/binary), the
+    * LSP resolution - based on ``--lsp`` (auto/none/binary), the
       pipeline either gets an :class:`LspClient` for CALLS-edge
       enrichment or runs without it. ``auto`` with no server present
       falls back to ``None`` and emits a one-line warning.
@@ -172,7 +172,7 @@ def run_pipeline(
             print_error(
                 cli_ctx,
                 f"PHP extractor not available: {e}",
-                hint="install it with `composer require --dev nexus/extractor-php`",
+                hint="install it with `composer require --dev nick-nds/nexus-extractor`",
             )
             raise click.exceptions.Exit(EXIT_USER_ACTION_REQUIRED) from e
         except ExtractorTimeoutError as e:
@@ -215,12 +215,12 @@ def resolve_lsp_for_run(
 
     ``lsp_choice`` values:
 
-    * ``"none"`` — disable enrichment; returns ``(None, None)``.
-    * ``"auto"`` — auto-discover an LSP via :func:`resolve_lsp_binary`.
+    * ``"none"`` - disable enrichment; returns ``(None, None)``.
+    * ``"auto"`` - auto-discover an LSP via :func:`resolve_lsp_binary`.
       If a server is found, returns it. If none, emits a one-line
       stderr warning and returns ``(None, None)`` so the pipeline
       still produces a structural graph.
-    * ``"intelephense"`` / ``"phpactor"`` / absolute path — requested
+    * ``"intelephense"`` / ``"phpactor"`` / absolute path - requested
       explicitly. If not found, exits with
       :data:`EXIT_USER_ACTION_REQUIRED` so the user can install or
       correct the path.
@@ -317,7 +317,7 @@ def confirm_cost_if_paid(cli_ctx: CliContext, project_path: Path) -> None:
     click.echo(
         f"Estimated embedding cost: ~${est_cost_usd:.4f} USD "
         f"({est_tokens:,} tokens x ${cost_per_million}/M via {provider})\n"
-        f"(Threshold: ${threshold:.2f} USD — set cost.confirm_above_usd in "
+        f"(Threshold: ${threshold:.2f} USD - set cost.confirm_above_usd in "
         f"~/.nexus/config.yml to change)",
         err=True,
     )
@@ -377,11 +377,11 @@ def _build_embedder(cli_ctx: CliContext) -> Embedder | None:
     config_path = cli_ctx.storage_root / "config.yml"
     embedder = build_embedder_from_config(cli_ctx.storage_root)
     if embedder is None and config_path.exists():
-        # Config exists but the helper returned None — the provider name
+        # Config exists but the helper returned None - the provider name
         # is unknown to the plugin registry. Surface that, since the user
         # explicitly configured something.
         click.echo(
-            "WARNING: configured embedder provider is unknown — running without embedder.",
+            "WARNING: configured embedder provider is unknown - running without embedder.",
             file=sys.stderr,
         )
     return embedder

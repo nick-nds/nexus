@@ -79,7 +79,7 @@ final class ContainerBindingVisitorTest extends TestCase
 
     public function test_scoped_binding_is_detected(): void
     {
-        // PHP 8.2+ added ``scoped`` to the container — used heavily for
+        // PHP 8.2+ added ``scoped`` to the container - used heavily for
         // per-request resolvers (tenant resolution, request context).
         $code = <<<'PHP'
         <?php
@@ -103,7 +103,7 @@ final class ContainerBindingVisitorTest extends TestCase
 
     public function test_class_const_concrete_is_resolved_without_a_closure(): void
     {
-        // ``$this->app->bind(X::class, Y::class)`` — the non-closure form.
+        // ``$this->app->bind(X::class, Y::class)`` - the non-closure form.
         // We surface it too so all binding-shaped callsites land in one
         // finding stream.
         $code = <<<'PHP'
@@ -127,7 +127,7 @@ final class ContainerBindingVisitorTest extends TestCase
 
     public function test_return_type_declaration_is_used_when_no_new(): void
     {
-        // ``function (): X { ... }`` — the closure's return type acts as
+        // ``function (): X { ... }`` - the closure's return type acts as
         // a static promise of the concrete kind.
         $code = <<<'PHP'
         <?php
@@ -195,7 +195,7 @@ final class ContainerBindingVisitorTest extends TestCase
     public function test_dynamic_concrete_in_closure_emits_nothing(): void
     {
         // A closure that returns ``$variable`` or ``static`` can't be
-        // statically resolved. Skip silently — the agent will see a
+        // statically resolved. Skip silently - the agent will see a
         // closure-flavoured binding without a BOUND_TO edge.
         $code = <<<'PHP'
         <?php

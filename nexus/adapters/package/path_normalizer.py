@@ -10,7 +10,7 @@ lives under ``vendor_path`` to a path relative to ``package_root``
 unchanged.
 
 The normalizer is idempotent: applying it twice yields the same result
-(needed for the cross-mode idempotency guarantee — in-repo and
+(needed for the cross-mode idempotency guarantee - in-repo and
 Nexus-driven modes produce byte-identical normalized output).
 
 Decision #8: File paths in reflection.json are normalized to be
@@ -124,9 +124,9 @@ def _section_updates(sections: ReflectionSections, rewriter: _PathRewriter) -> d
     if sections.events is not None:
         updates["events"] = _rewrite_events(sections.events, rewriter)
 
-    # middleware: contains only class-name strings, no file paths — skip.
-    # config:     arbitrary JSON blob, no file paths — skip.
-    # schedule:   only command strings and descriptions — skip.
+    # middleware: contains only class-name strings, no file paths - skip.
+    # config:     arbitrary JSON blob, no file paths - skip.
+    # schedule:   only command strings and descriptions - skip.
 
     return updates
 
@@ -169,7 +169,7 @@ def _rewrite_gates(section: GatesPoliciesSection, rewriter: _PathRewriter) -> Ga
         )
         for g in section.gates
     ]
-    # policies only carry class names (not file paths) — pass through as-is.
+    # policies only carry class names (not file paths) - pass through as-is.
     return section.model_copy(update={"gates": new_gates})
 
 
@@ -180,7 +180,7 @@ def _rewrite_bindings(section: BindingsSection, rewriter: _PathRewriter) -> Bind
         )
         for b in section.bindings
     ]
-    # aliases and instances carry only class-name strings — pass through.
+    # aliases and instances carry only class-name strings - pass through.
     return section.model_copy(update={"bindings": new_bindings})
 
 

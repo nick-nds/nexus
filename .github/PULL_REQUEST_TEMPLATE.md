@@ -5,7 +5,7 @@ Thanks for the PR. Keep titles short (~70 chars) and conventional:
   fix(graph): handle dangling edges from vendor classes
   docs(error-codes): document key_not_found
 
-The body fields below are the contract. Keep them — empty
+The body fields below are the contract. Keep them - empty
 sections are fine, but don't delete the headings.
 -->
 
@@ -17,7 +17,7 @@ sections are fine, but don't delete the headings.
 
 ## Linked issue
 
-<!-- "Closes #123", or "n/a — chore" -->
+<!-- "Closes #123", or "n/a - chore" -->
 
 
 
@@ -45,9 +45,9 @@ Cover what you ran locally. CI runs the same gates but loud
 local results catch problems faster.
 -->
 
-- [ ] `uv run pytest -q` — all tests pass
-- [ ] `uv run mypy --strict nexus/` — clean
-- [ ] `uv run ruff check . && uv run ruff format --check .` — clean
+- [ ] `uv run pytest -q` - all tests pass
+- [ ] `uv run mypy --strict nexus/` - clean
+- [ ] `uv run ruff check . && uv run ruff format --check .` - clean
 - [ ] Coverage stays ≥ 90% (`pytest --cov-fail-under=90`)
 - [ ] PHP package (if touched): `composer lint && composer stan && composer test`
 
@@ -72,7 +72,7 @@ local results catch problems faster.
 
 - [ ] No public-API changes (CLI surface, MCP tool names, output schemas)
 - [ ] Public-API change behind a deprecation path
-- [ ] **Breaking** change — and the freeze test (`tests/unit/test_interface_freeze.py`) is updated
+- [ ] **Breaking** change - and the freeze test (`tests/unit/test_interface_freeze.py`) is updated
 
 ## Anything reviewers should look at first
 

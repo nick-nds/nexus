@@ -4,15 +4,15 @@ The pipeline is the glue between Phase 2's pure domain code and the
 actual work of turning a Laravel project into a queryable index. It
 is a thin, explicit sequence of passes:
 
-1. **RunExtractorPass** — invokes ``php artisan nexus:extract`` via the
+1. **RunExtractorPass** - invokes ``php artisan nexus:extract`` via the
    subprocess adapter and writes ``reflection.json`` to project storage.
-2. **BuildGraphPass** — loads the reflection document and runs the
+2. **BuildGraphPass** - loads the reflection document and runs the
    :class:`~nexus.core.graph.builder.GraphBuilder`, placing the
    resulting :class:`~nexus.core.graph.Graph` on the context.
-3. **ChunkPass** — walks the project's PHP files with tree-sitter and
+3. **ChunkPass** - walks the project's PHP files with tree-sitter and
    produces :class:`~nexus.core.chunking.Chunk` records linked back to
    the graph nodes they came from.
-4. **EmbedAndPersistPass** — runs each chunk's enriched text through
+4. **EmbedAndPersistPass** - runs each chunk's enriched text through
    the active embedder (with cache), writes the graph and vectors to
    the project storage, and stamps ``meta.json``.
 

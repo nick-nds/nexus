@@ -2,7 +2,7 @@
 
 Every tool that Nexus exposes over MCP, with input schema, example call, and example response.
 
-All tools are registered automatically from the `ToolRegistry` when `nexus mcp serve` starts. Tool names, input schemas, and output shapes are **frozen at v1.0** — breaking changes require a semver major bump.
+All tools are registered automatically from the `ToolRegistry` when `nexus mcp serve` starts. Tool names, input schemas, and output shapes are **frozen at v1.0** - breaking changes require a semver major bump.
 
 ---
 
@@ -60,7 +60,7 @@ Describe a PHP class: its kind, parent, methods, properties, and which routes re
 
 Find all call sites of a method across the codebase.
 
-> **Note:** `find_callers` relies on `CALLS` edges, which are populated by Phase 3 LSP-driven analysis (Intelephense or phpactor). If no LSP server is configured, this tool returns an empty result. For dispatch-based questions, use `find_dispatchers` or `find_jobs_dispatching` instead — those work via static AST analysis and do not require an LSP.
+> **Note:** `find_callers` relies on `CALLS` edges, which are populated by Phase 3 LSP-driven analysis (Intelephense or phpactor). If no LSP server is configured, this tool returns an empty result. For dispatch-based questions, use `find_dispatchers` or `find_jobs_dispatching` instead - those work via static AST analysis and do not require an LSP.
 
 **Input schema**
 
@@ -108,7 +108,7 @@ Find all call sites of a method across the codebase.
 
 ## find_dispatchers
 
-Find all places that dispatch a given event. Results are populated from static AST analysis — no LSP server required.
+Find all places that dispatch a given event. Results are populated from static AST analysis - no LSP server required.
 
 **Input schema**
 
@@ -160,7 +160,7 @@ Trace the full listener/subscriber chain triggered by an event, up to `max_depth
 
 | Field | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `event` | string | yes | — | Event class FQN or graph node ID. |
+| `event` | string | yes | - | Event class FQN or graph node ID. |
 | `max_depth` | integer | no | `3` | Maximum chain depth to traverse. Must be ≥ 1. |
 
 **Example**
@@ -258,7 +258,7 @@ Find all concrete implementations of an interface or abstract class.
 
 | Field | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `interface_fqn` | string | yes | — | Fully-qualified interface or abstract class name. |
+| `interface_fqn` | string | yes | - | Fully-qualified interface or abstract class name. |
 | `include_subclasses` | boolean | no | `false` | Also include subclasses (not just direct implementors). |
 
 **Example**
@@ -298,7 +298,7 @@ Find all concrete implementations of an interface or abstract class.
 
 ## find_jobs_dispatching
 
-Find all dispatch sites for a given job class. Results are populated from static AST analysis — no LSP server required.
+Find all dispatch sites for a given job class. Results are populated from static AST analysis - no LSP server required.
 
 **Input schema**
 
@@ -640,7 +640,7 @@ Search the codebase semantically using vector similarity.
 
 | Field | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `query` | string | yes | — | Natural-language query string. |
+| `query` | string | yes | - | Natural-language query string. |
 | `top_k` | integer | no | `30` | Candidate results to retrieve from the vector store before re-ranking. |
 | `final_k` | integer | no | `10` | Results to return after re-ranking. |
 
@@ -682,7 +682,7 @@ Search the codebase semantically using vector similarity.
 
 ## trace_route
 
-Trace all code touched by a route: middleware, form request, controller, services, events, and jobs — in execution order.
+Trace all code touched by a route: middleware, form request, controller, services, events, and jobs - in execution order.
 
 **Input schema**
 

@@ -1,4 +1,4 @@
-r"""``find_cache_users`` — reverse lookup from cache key to caller methods.
+r"""``find_cache_users`` - reverse lookup from cache key to caller methods.
 
 The static analyser turns each ``Cache::get('foo')`` /
 ``Cache::put('foo', …)`` call into a ``cache_key:foo`` node and a
@@ -17,7 +17,7 @@ Match strategy
   is queried. (Most common case for literal keys.)
 * If ``key`` contains a glob character (``*`` or ``?``), every
   ``cache_key`` node whose name matches the glob is queried.
-* Otherwise — substring match against every ``cache_key`` node's
+* Otherwise - substring match against every ``cache_key`` node's
   name. Lets the agent ask "anything caching `feature.flags`"
   without typing the surrounding namespace.
 """
@@ -51,7 +51,7 @@ class FindCacheUsersInput(ToolInput):
         description=(
             "Cache key to search for. Exact match if the key resolves "
             "to a graph node; otherwise glob (``user.*.session``) or "
-            "substring match (``flags``). Always case-sensitive — "
+            "substring match (``flags``). Always case-sensitive - "
             "Laravel cache keys are."
         ),
     )
@@ -75,7 +75,7 @@ class CacheUsageRow(ToolOutput):
     line: int | None = None
     form: str | None = Field(
         default=None,
-        description="``literal`` or ``prefix`` — see ``CacheKeyUsage`` for context.",
+        description="``literal`` or ``prefix`` - see ``CacheKeyUsage`` for context.",
     )
 
 
@@ -108,7 +108,7 @@ class FindCacheUsersTool:
     name: ClassVar[str] = "find_cache_users"
     description: ClassVar[str] = (
         "Find every method that reads or writes a cache key. "
-        "**Argument:** ``key`` (string) — an exact key "
+        "**Argument:** ``key`` (string) - an exact key "
         '(``key="settings.timezone"``), a shell glob '
         '(``key="user.*.session"``), or a substring '
         '(``key="flags"``). '

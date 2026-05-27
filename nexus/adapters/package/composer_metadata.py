@@ -56,11 +56,11 @@ def read_composer_metadata(
 
     Raises:
         ComposerMetadataError: with a stable ``code`` per the error taxonomy:
-            - ``package_path_missing`` — ``path`` does not exist or is not a directory.
-            - ``package_composer_missing`` — no composer.json found.
-            - ``package_composer_invalid`` — composer.json is invalid JSON or missing ``name``.
-            - ``package_testbench_yaml_missing`` — testbench.yaml not present.
-            - ``package_version_unresolvable`` — no version in composer.json, no git tag, no branch.
+            - ``package_path_missing`` - ``path`` does not exist or is not a directory.
+            - ``package_composer_missing`` - no composer.json found.
+            - ``package_composer_invalid`` - composer.json is invalid JSON or missing ``name``.
+            - ``package_testbench_yaml_missing`` - testbench.yaml not present.
+            - ``package_version_unresolvable`` - no version in composer.json, no git tag, no branch.
     """
     if not path.is_dir():
         raise ComposerMetadataError(
@@ -72,7 +72,7 @@ def read_composer_metadata(
     if not composer_path.is_file():
         raise ComposerMetadataError(
             "package_composer_missing",
-            f"Path is not a Composer package — composer.json missing in {path}",
+            f"Path is not a Composer package - composer.json missing in {path}",
         )
 
     try:

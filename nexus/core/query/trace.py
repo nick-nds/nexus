@@ -23,12 +23,12 @@ Each line is a JSON object with at least::
 
 where ``kind`` is one of:
 
-* ``classifier_decision`` — the classifier picked a tool for a
+* ``classifier_decision`` - the classifier picked a tool for a
   free-text query (CLI ``ask`` only).
-* ``tool_executed`` — one tool dispatch with timing + outcome.
-* ``ask_envelope`` — the ``ask`` command picked a usable result;
+* ``tool_executed`` - one tool dispatch with timing + outcome.
+* ``ask_envelope`` - the ``ask`` command picked a usable result;
   records which tool answered and the alternatives tried.
-* ``ask_refusal`` — the ``ask`` command emitted a structured
+* ``ask_refusal`` - the ``ask`` command emitted a structured
   ``no_confident_match`` refusal.
 
 Schema is stable; new fields may be added (consumers must tolerate
@@ -90,7 +90,7 @@ class QueryTrace(Protocol):
 class NullQueryTrace:
     """No-op trace used when the caller didn't enable tracing.
 
-    Keeps call sites in the engine + ``ask`` simple — they always
+    Keeps call sites in the engine + ``ask`` simple - they always
     call ``trace.record(...)`` regardless of whether tracing is on.
     """
 
@@ -164,7 +164,7 @@ class JsonlQueryTrace:
             self._handle.flush()
         except Exception:
             # Tracing must never crash the pipeline. We deliberately
-            # don't log here — the noisy structlog warning belongs at
+            # don't log here - the noisy structlog warning belongs at
             # the file-open site, which already does it.
             self._failed = True
 
@@ -236,7 +236,7 @@ def trace_path_from_env(*, env_var: str = "NEXUS_TRACE_DIR") -> Path | None:
 
 
 # ---------------------------------------------------------------------------
-# High-level record helpers — keep call-site code declarative
+# High-level record helpers - keep call-site code declarative
 # ---------------------------------------------------------------------------
 
 

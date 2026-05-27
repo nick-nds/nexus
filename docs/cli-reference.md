@@ -20,7 +20,7 @@ nexus [OPTIONS] COMMAND [ARGS]...
 | `--color / --no-color` | flag | `--color` | Enable or suppress ANSI colour codes. |
 | `-v, --verbose` | flag | off | Emit debug-level log output. |
 | `-y, --yes` | flag | off | Answer yes to all confirmation prompts (non-interactive mode). |
-| `-V, --version` | flag | — | Print the installed Nexus version and exit. |
+| `-V, --version` | flag | - | Print the installed Nexus version and exit. |
 
 ### Exit codes
 
@@ -217,7 +217,7 @@ nexus query describe_class [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--fqn TEXT` | str | yes | — | Fully-qualified class name (e.g. `App\Models\User`). |
+| `--fqn TEXT` | str | yes | - | Fully-qualified class name (e.g. `App\Models\User`). |
 
 ---
 
@@ -231,7 +231,7 @@ nexus query find_callers [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--method-fqn TEXT` | str | yes | — | Fully-qualified method name (e.g. `App\Services\Auth::login`). |
+| `--method-fqn TEXT` | str | yes | - | Fully-qualified method name (e.g. `App\Services\Auth::login`). |
 
 ---
 
@@ -245,7 +245,7 @@ nexus query find_dispatchers [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--event TEXT` | str | yes | — | Event class FQN or short name (e.g. `App\Events\UserRegistered`). |
+| `--event TEXT` | str | yes | - | Event class FQN or short name (e.g. `App\Events\UserRegistered`). |
 
 ---
 
@@ -259,7 +259,7 @@ nexus query find_event_chains [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--event TEXT` | str | yes | — | Event class FQN or short name. |
+| `--event TEXT` | str | yes | - | Event class FQN or short name. |
 | `--max-depth INT` | int | no | `3` | Maximum chain depth to traverse. |
 
 ---
@@ -274,9 +274,9 @@ nexus query find_handlers [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--uri-glob TEXT` | str\|None | no | — | Shell-style glob for the URI (e.g. `/api/users*`). |
-| `--method TEXT` | str\|None | no | — | HTTP method filter (e.g. `GET`, `POST`). |
-| `--handler-fqn TEXT` | str\|None | no | — | Handler class/method FQN filter. |
+| `--uri-glob TEXT` | str\|None | no | - | Shell-style glob for the URI (e.g. `/api/users*`). |
+| `--method TEXT` | str\|None | no | - | HTTP method filter (e.g. `GET`, `POST`). |
+| `--handler-fqn TEXT` | str\|None | no | - | Handler class/method FQN filter. |
 
 ---
 
@@ -290,7 +290,7 @@ nexus query find_implementations [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--interface-fqn TEXT` | str | yes | — | Fully-qualified interface or abstract class name. |
+| `--interface-fqn TEXT` | str | yes | - | Fully-qualified interface or abstract class name. |
 | `--include-subclasses` | bool | no | `False` | Also include subclasses (not just direct implementations). |
 
 ---
@@ -305,7 +305,7 @@ nexus query find_jobs_dispatching [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--job TEXT` | str | yes | — | Job class FQN or short name (e.g. `App\Jobs\SendWelcomeEmail`). |
+| `--job TEXT` | str | yes | - | Job class FQN or short name (e.g. `App\Jobs\SendWelcomeEmail`). |
 
 ---
 
@@ -319,7 +319,7 @@ nexus query find_listeners [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--event TEXT` | str | yes | — | Event class FQN or short name. |
+| `--event TEXT` | str | yes | - | Event class FQN or short name. |
 
 ---
 
@@ -333,7 +333,7 @@ nexus query get_model_context [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--fqn TEXT` | str | yes | — | Fully-qualified model class name (e.g. `App\Models\Order`). |
+| `--fqn TEXT` | str | yes | - | Fully-qualified model class name (e.g. `App\Models\Order`). |
 
 ---
 
@@ -347,7 +347,7 @@ nexus query get_policy_for [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--model-fqn TEXT` | str | yes | — | Fully-qualified model class name. |
+| `--model-fqn TEXT` | str | yes | - | Fully-qualified model class name. |
 
 ---
 
@@ -361,9 +361,9 @@ nexus query get_request_flow [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--route-id TEXT` | str\|None | no | — | Internal route identifier (from `list_routes`). |
-| `--method TEXT` | str\|None | no | — | HTTP method (e.g. `POST`). |
-| `--uri TEXT` | str\|None | no | — | Exact URI path (e.g. `/api/orders`). |
+| `--route-id TEXT` | str\|None | no | - | Internal route identifier (from `list_routes`). |
+| `--method TEXT` | str\|None | no | - | HTTP method (e.g. `POST`). |
+| `--uri TEXT` | str\|None | no | - | Exact URI path (e.g. `/api/orders`). |
 
 At least one of `--route-id`, `--method`/`--uri` must be supplied.
 
@@ -379,10 +379,10 @@ nexus query list_routes [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--method TEXT` | str\|None | no | — | HTTP method filter. |
-| `--uri-glob TEXT` | str\|None | no | — | Shell-style glob for the URI. |
-| `--name-glob TEXT` | str\|None | no | — | Shell-style glob for the route name. |
-| `--middleware TEXT` | str\|None | no | — | Filter to routes that apply this middleware. |
+| `--method TEXT` | str\|None | no | - | HTTP method filter. |
+| `--uri-glob TEXT` | str\|None | no | - | Shell-style glob for the URI. |
+| `--name-glob TEXT` | str\|None | no | - | Shell-style glob for the route name. |
+| `--middleware TEXT` | str\|None | no | - | Filter to routes that apply this middleware. |
 
 ---
 
@@ -396,7 +396,7 @@ nexus query resolve_binding [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--abstract TEXT` | str | yes | — | Abstract class or interface FQN registered in the container. |
+| `--abstract TEXT` | str | yes | - | Abstract class or interface FQN registered in the container. |
 
 ---
 
@@ -410,7 +410,7 @@ nexus query semantic_search [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--query TEXT` | str | yes | — | Natural-language query string. |
+| `--query TEXT` | str | yes | - | Natural-language query string. |
 | `--top-k INT` | int | no | `30` | Candidate results to retrieve from the vector store. |
 | `--final-k INT` | int | no | `10` | Results to return after re-ranking. |
 
@@ -426,9 +426,9 @@ nexus query trace_route [OPTIONS]
 
 | Option | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `--route-id TEXT` | str\|None | no | — | Internal route identifier (from `list_routes`). |
-| `--method TEXT` | str\|None | no | — | HTTP method (e.g. `GET`). |
-| `--uri TEXT` | str\|None | no | — | Exact URI path (e.g. `/api/users/{id}`). |
+| `--route-id TEXT` | str\|None | no | - | Internal route identifier (from `list_routes`). |
+| `--method TEXT` | str\|None | no | - | HTTP method (e.g. `GET`). |
+| `--uri TEXT` | str\|None | no | - | Exact URI path (e.g. `/api/users/{id}`). |
 
 At least one of `--route-id`, `--method`/`--uri` must be supplied.
 
@@ -527,7 +527,7 @@ nexus doctor [OPTIONS]
 | `php` | `php` is on `PATH` and is version 8.2+ |
 | `composer` | `composer` is on `PATH` |
 | `nexus_yml` | `nexus.yml` present and valid in `--project-path` |
-| `extractor` | Composer package `nexus/extractor-php` installed in project |
+| `extractor` | Composer package `nick-nds/nexus-extractor` installed in project |
 | `lsp` | At least one supported LSP (Intelephense or phpactor) is available |
 | `embedder` | Configured embedder is reachable |
 

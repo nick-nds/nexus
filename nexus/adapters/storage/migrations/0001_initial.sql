@@ -1,11 +1,11 @@
--- Nexus graph store — initial schema.
+-- Nexus graph store - initial schema.
 --
 -- Two primary tables (nodes, edges) plus a single-row migrations table
 -- so the store can detect which migrations have been applied. Covering
 -- indices support the query engine's common lookups (Phase 4) without
 -- requiring extra joins.
 --
--- The schema is intentionally narrow — every in-memory Node and Edge
+-- The schema is intentionally narrow - every in-memory Node and Edge
 -- field maps 1:1 to a column, with the free-form ``attributes`` blob
 -- serialised as JSON TEXT. This avoids Pydantic-on-read overhead and
 -- matches the way SQLite's JSON functions can query nested values when

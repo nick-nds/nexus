@@ -6,8 +6,8 @@ Testbench and run the PHP extractor, so the gate mirrors the
 integration-test gate.
 
 Test coverage:
-* ``list_routes``   — the sample route is present; workbench route absent.
-* ``describe_class`` — ``SampleModel`` is present with method ``children``.
+* ``list_routes``   - the sample route is present; workbench route absent.
+* ``describe_class`` - ``SampleModel`` is present with method ``children``.
 
 ``find_listeners`` is intentionally omitted: the event graph requires
 FIRES/LISTENS edges that only appear after full wiring of the
@@ -66,7 +66,7 @@ def test_index_sample_package_then_query_structural_tools(tmp_path: Path) -> Non
     assert result.slug == "nexus-fixtures--sample", f"Unexpected slug: {result.slug!r}"
 
     # Build a query engine against the indexed project.
-    # No embedder is needed — we only exercise structural (non-semantic) tools.
+    # No embedder is needed - we only exercise structural (non-semantic) tools.
     storage = ProjectStorage(root=tmp_path / "nexus", slug=result.slug)
     registry = ToolRegistry()
     register_builtin_tools(registry)
@@ -74,7 +74,7 @@ def test_index_sample_package_then_query_structural_tools(tmp_path: Path) -> Non
     engine = QueryEngine(registry, ctx)
 
     # ------------------------------------------------------------------
-    # list_routes — sample route present, workbench route absent.
+    # list_routes - sample route present, workbench route absent.
     # ------------------------------------------------------------------
     routes_out = engine.query("list_routes", {})
     uris = [r.uri for r in routes_out.routes]
@@ -86,7 +86,7 @@ def test_index_sample_package_then_query_structural_tools(tmp_path: Path) -> Non
     )
 
     # ------------------------------------------------------------------
-    # describe_class — SampleModel present with method ``children``.
+    # describe_class - SampleModel present with method ``children``.
     # ------------------------------------------------------------------
     describe_out = engine.query(
         "describe_class",

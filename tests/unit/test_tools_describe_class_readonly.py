@@ -1,6 +1,6 @@
 """Unit tests for the ``readonly`` field on :class:`DescribeClassOutput`.
 
-Pins audit finding P0-5. PHP 8.2+ added ``final readonly class Foo`` —
+Pins audit finding P0-5. PHP 8.2+ added ``final readonly class Foo`` -
 heavily used in DTOs. The modifier changes object semantics (every
 property is implicitly readonly after construction), so dropping it
 loses meaningful information. The reflection schema bumped to 2.2.0
@@ -34,7 +34,7 @@ def _make_ctx(graph: Graph) -> QueryContext:
 def _add_class(graph: Graph, fqn: str, *, readonly: object) -> None:
     """Add a class node. ``readonly`` may be True, False, or omitted (sentinel)."""
     attrs: dict[str, object] = {"fqn": fqn, "final": True, "abstract": False}
-    # Sentinel ``...`` means "don't add the key" — simulates an old
+    # Sentinel ``...`` means "don't add the key" - simulates an old
     # schema-2.1.0 index that predates the field entirely.
     if readonly is not ...:
         attrs["readonly"] = readonly
@@ -78,7 +78,7 @@ def test_describe_class_readonly_is_none_when_attr_absent_old_schema() -> None:
     """Indexes built with schema ≤ 2.1.0 don't carry the attribute.
 
     The agent reading ``readonly: null`` should treat that as "unknown",
-    not as ``false`` — important because the difference matters when
+    not as ``false`` - important because the difference matters when
     deciding whether the class is a DTO.
     """
     g = Graph()

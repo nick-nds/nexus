@@ -14,7 +14,7 @@ Design notes
 * Pretty output uses Rich's :class:`Console` and degrades gracefully
   when colour is disabled. Tables are built for list-shaped payloads;
   scalar / nested payloads fall through to a syntax-highlighted JSON
-  block — good enough for v1.
+  block - good enough for v1.
 * Nothing in this module opens files. Callers pass a
   :class:`rich.console.Console` (or let the helper default to
   ``Console(file=sys.stdout)``) so tests can capture output.
@@ -51,10 +51,10 @@ def render(
     When *meta* is supplied and ``meta.kind == "package"``, the rendered
     output is augmented with attribution data:
 
-    * **JSON format** — a top-level ``"package"`` key is added to the
+    * **JSON format** - a top-level ``"package"`` key is added to the
       serialised dict. The tool's own ``output_model`` is never mutated;
       the key is injected into the intermediate JSON dict only.
-    * **Pretty format** — a footer line is appended after the highlighted
+    * **Pretty format** - a footer line is appended after the highlighted
       JSON block (``Indexed from vendor/name@version ...``).
 
     Project-kind output (or calls where *meta* is ``None``) is unchanged.
@@ -72,7 +72,7 @@ def render(
     fmt = ctx.resolved_format()
 
     if isinstance(payload, str):
-        # Plain strings bypass format resolution — the caller has
+        # Plain strings bypass format resolution - the caller has
         # already decided on the shape.
         console.print(payload)
         return
@@ -81,7 +81,7 @@ def render(
 
     if fmt == OutputFormat.JSON:
         # Inject the attribution block into the serialised dict when the
-        # project is a package. The tool's output_model is NOT touched —
+        # project is a package. The tool's output_model is NOT touched -
         # we work on the plain dict that _to_jsonable already produced.
         if meta is not None:
             attribution = build_attribution(meta)

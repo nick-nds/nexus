@@ -56,7 +56,7 @@ class Error:
 
     Errors are intentionally distinct from warnings even though they
     share a similar shape: code, message, optional context. The semantic
-    difference matters at the call site — an :class:`Outcome` carrying any
+    difference matters at the call site - an :class:`Outcome` carrying any
     error must be treated as an unsuccessful result even if its ``value``
     field is populated.
 
@@ -87,15 +87,15 @@ class Outcome(Generic[T]):
       union forces an awkward "Result with warnings on the success arm,
       Result with no value on the failure arm" split that hides exactly
       the partial-success case we care about.
-    * One concrete type makes the public protocols simpler — every
+    * One concrete type makes the public protocols simpler - every
       pipeline step's signature reads ``Outcome[T]`` and the consumer
       always checks ``.ok``.
     * Frozen + slots keeps the runtime cost in line with a tagged union.
 
     Two helper constructors are provided for the common cases:
 
-    * :meth:`success` — wrap a value with optional warnings.
-    * :meth:`failure` — wrap a value with at least one error.
+    * :meth:`success` - wrap a value with optional warnings.
+    * :meth:`failure` - wrap a value with at least one error.
 
     Examples:
         >>> Outcome.success(42, warnings=[Warning("noop", "nothing to do")])
@@ -124,7 +124,7 @@ class Outcome(Generic[T]):
     def with_error(self, error: Error) -> Outcome[T]:
         """Return a new outcome with one additional error appended.
 
-        Note this does not change the ``value`` — keep that explicit so
+        Note this does not change the ``value`` - keep that explicit so
         partial successes remain visible.
         """
         return Outcome(value=self.value, warnings=self.warnings, errors=(*self.errors, error))

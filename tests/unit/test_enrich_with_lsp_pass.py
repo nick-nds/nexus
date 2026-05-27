@@ -2,7 +2,7 @@
 
 The pass takes a graph plus an :class:`Lsp` and writes ``CALLS`` edges.
 We use a hand-rolled stub LSP that returns canned references, so the
-tests are pure — no real subprocess, no real language server.
+tests are pure - no real subprocess, no real language server.
 """
 
 from __future__ import annotations
@@ -297,7 +297,7 @@ def test_pass_emits_error_when_graph_is_missing(tmp_path: Path) -> None:
 
 
 def test_pass_handles_graph_with_no_method_nodes(tmp_path: Path) -> None:
-    """Empty method set is treated as 'nothing to enrich' — not an error."""
+    """Empty method set is treated as 'nothing to enrich' - not an error."""
     graph = Graph()
     graph.add_node(
         Node(id="class:Foo", kind=NodeKind.CONTROLLER, name="Foo", attributes={}),
@@ -450,7 +450,7 @@ def _make_three_class_graph(
 
 
 def test_incremental_only_queries_methods_in_changed_files(tmp_path: Path) -> None:
-    """Only Foo.php changed — LSP must be queried for doFoo only, and the old
+    """Only Foo.php changed - LSP must be queried for doFoo only, and the old
     CALLS edge targeting doBar must be carried forward from the persisted graph."""
     project = tmp_path / "project"
     project.mkdir()
@@ -681,7 +681,7 @@ def test_incremental_threshold_triggers_full_enrichment(tmp_path: Path) -> None:
         profile=_StubProfile(),
         graph=graph,
         lsp=lsp,
-        # Both files changed — 100% > 50% threshold
+        # Both files changed - 100% > 50% threshold
         changed_files={foo_file, bar_file},
     )
 
@@ -693,7 +693,7 @@ def test_incremental_threshold_triggers_full_enrichment(tmp_path: Path) -> None:
 
 
 def test_incremental_empty_changed_files_skips_all_lsp_queries(tmp_path: Path) -> None:
-    """Empty changed_files set means nothing changed — carry old edges, skip LSP."""
+    """Empty changed_files set means nothing changed - carry old edges, skip LSP."""
     project = tmp_path / "project"
     project.mkdir()
 

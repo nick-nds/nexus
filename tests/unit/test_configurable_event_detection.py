@@ -6,7 +6,7 @@ base class (``Synthesq\\Relay\\Events\\SynthesQEvent``,
 Every event-graph tool (``find_dispatchers``, ``find_listeners``)
 returned ``event_not_found`` even though the symbol existed.
 
-The fix lets a user — via ``nexus.yml`` or a built-in profile —
+The fix lets a user - via ``nexus.yml`` or a built-in profile -
 declare event base classes in ``custom_bases``:
 
     custom_bases:
@@ -161,7 +161,7 @@ def test_cycle_in_parent_chain_does_not_loop() -> None:
     )
     profile = _StubProfile()
 
-    # Just exercising the cycle guard — the result is whatever it is,
+    # Just exercising the cycle guard - the result is whatever it is,
     # as long as the call returns.
     result = GraphBuilder().build(doc, profile)  # type: ignore[arg-type]
     assert result.value is not None

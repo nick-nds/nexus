@@ -6,13 +6,13 @@ the PHP side writes to a path we specify. Isolation from Laravel's
 destructive application boot lives in the subprocess boundary itself;
 this wrapper adds:
 
-* **Timeout handling** — a configurable wall-clock limit so a hung
+* **Timeout handling** - a configurable wall-clock limit so a hung
   boot doesn't block the pipeline forever.
-* **Exit-code mapping** — translate Phase 1's documented exit codes
+* **Exit-code mapping** - translate Phase 1's documented exit codes
   (0 / 1 / 2 / non-zero on fatal) into typed exceptions.
-* **Output verification** — if the command returns 0 but the output
+* **Output verification** - if the command returns 0 but the output
   file wasn't written, raise :class:`ExtractorFailedError`.
-* **Environment hygiene** — run with a minimal, deterministic env so
+* **Environment hygiene** - run with a minimal, deterministic env so
   runs are reproducible across user shells.
 
 What it does NOT do
@@ -67,7 +67,7 @@ class ExtractorResult:
 class PhpExtractor:
     """Runs the Composer-provided ``nexus:extract`` Artisan command.
 
-    Instances are cheap — construct one per indexing run. The
+    Instances are cheap - construct one per indexing run. The
     configuration lives on the instance so the pipeline can set a
     different timeout or ``php`` binary path without touching the
     call site.
@@ -96,7 +96,7 @@ class PhpExtractor:
                 invoking PHP, so the subprocess sees valid in-container paths.
             timeout_seconds: Maximum wall-clock time before the
                 subprocess is killed and :class:`ExtractorTimeoutError`
-                is raised. Defaults to 10 minutes — generous enough
+                is raised. Defaults to 10 minutes - generous enough
                 for the largest projects we've seen (helm-v7 scale).
             extra_args: Additional CLI flags to pass through to the
                 Artisan command (``--include-tests``, ``--include-vendor``,
@@ -289,7 +289,7 @@ class PhpExtractor:
             raise ExtractorMissingError(
                 "The 'nexus:extract' Artisan command is not registered in this "
                 "project. Install the Composer package with: "
-                "composer require --dev nexus/extractor-php",
+                "composer require --dev nick-nds/nexus-extractor",
                 stderr=stderr,
                 exit_code=exit_code,
             )

@@ -1,7 +1,7 @@
-r"""``list_scheduled_tasks`` — enumerate Laravel's ``app/Console/Kernel`` schedule.
+r"""``list_scheduled_tasks`` - enumerate Laravel's ``app/Console/Kernel`` schedule.
 
-Each scheduled entry — ``$schedule->job(...)``, ``$schedule->command(...)``,
-``$schedule->call(...)`` — produces one row in the response. Rows
+Each scheduled entry - ``$schedule->job(...)``, ``$schedule->command(...)``,
+``$schedule->call(...)`` - produces one row in the response. Rows
 include the cron expression, timezone, the dispatched class FQN
 (when statically resolvable), and the ``without_overlapping`` /
 ``on_one_server`` modifiers an agent typically wants to confirm
@@ -13,7 +13,7 @@ Why a dedicated tool instead of "look it up in describe_class"
 Schedule entries don't live on a class. They're attached to the
 ``Console\Kernel`` instance via the ``->schedule()`` method, but
 agents asking "what's scheduled?" don't want to traverse a kernel
-class — they want a flat list. This tool gives them one.
+class - they want a flat list. This tool gives them one.
 
 The data is sourced from the ``scheduled_task`` graph nodes
 populated by :meth:`nexus.core.graph.builder.GraphBuilder._build_schedule`
@@ -82,7 +82,7 @@ class ScheduledTaskRow(ToolOutput):
     target: str | None = Field(
         default=None,
         description=(
-            "Resolved target FQN when statically determinable — the job/"
+            "Resolved target FQN when statically determinable - the job/"
             "command class. ``None`` for closure-based ``->call()`` "
             "entries we can't trace at extraction time."
         ),
@@ -191,7 +191,7 @@ def _resolve_target(graph: "Graph", scheduled_task_id: str) -> str | None:  # no
 
     Falls back to the ``callback_target`` attribute when no edge
     exists (command-signature schedules, closures).  Returning the
-    bare FQN — without a ``class:`` prefix — keeps the response
+    bare FQN - without a ``class:`` prefix - keeps the response
     consistent with the rest of the tool surface; agents shouldn't
     have to know about graph-internal id schemes.
     """

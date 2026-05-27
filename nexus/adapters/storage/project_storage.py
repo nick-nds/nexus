@@ -34,7 +34,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from nexus.adapters.storage.lancedb_vector_store import LanceDbVectorStore
 from nexus.adapters.storage.sqlite_graph_store import SqliteGraphStore
-from nexus.core.reflection.document import (  # noqa: TC001 — runtime Pydantic field type
+from nexus.core.reflection.document import (  # noqa: TC001 - runtime Pydantic field type
     PackageMetadata,
 )
 
@@ -95,7 +95,7 @@ class ProjectStorage:
 
     Instances are opened once per indexing run and closed when the run
     ends. Neither the constructor nor ``initialise`` perform any writes
-    beyond directory creation — the stores are created lazily when the
+    beyond directory creation - the stores are created lazily when the
     caller asks for them, so an unused :class:`ProjectStorage` leaves no
     trace on disk.
     """
@@ -142,7 +142,7 @@ class ProjectStorage:
         """Create the per-project directory tree if it doesn't already exist.
 
         Safe to call multiple times. Does NOT create the SQLite or
-        LanceDB stores — those are created on first use by the accessor
+        LanceDB stores - those are created on first use by the accessor
         methods below.
         """
         self.project_dir.mkdir(parents=True, exist_ok=True)

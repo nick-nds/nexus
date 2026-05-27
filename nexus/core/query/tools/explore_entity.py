@@ -1,4 +1,4 @@
-r"""``explore_entity`` — fuzzy-search across the graph by name.
+r"""``explore_entity`` - fuzzy-search across the graph by name.
 
 The first question an agent asks on an unfamiliar codebase is some
 form of *"explain the X entity"*: a short name with no namespace
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 
 
 # Class-shaped kinds ``explore_entity`` searches across. ``CHUNK``,
-# ``ROUTE``, ``MIDDLEWARE``, etc. are excluded — those have dedicated
+# ``ROUTE``, ``MIDDLEWARE``, etc. are excluded - those have dedicated
 # list tools and aren't what an agent means when it asks about an
 # "entity" or "class".
 _SEARCHABLE_KINDS: frozenset[NodeKind] = frozenset(
@@ -141,13 +141,13 @@ class ExploreEntityTool:
     name: ClassVar[str] = "explore_entity"
     description: ClassVar[str] = (
         "Discover candidate classes by short name or fragment. "
-        "**Argument:** ``name`` (string) — short name, fragment, or FQN "
+        "**Argument:** ``name`` (string) - short name, fragment, or FQN "
         'to search for (e.g. ``name="Product"`` or '
         '``name="App\\\\Models\\\\User"``). '
         "Returns every class node whose name matches, grouped by kind "
         "(model, command, event, listener, controller, …) and sorted "
         "by match quality. Use this as the first step on an unfamiliar "
-        "codebase when you don't have a fully-qualified name yet — "
+        "codebase when you don't have a fully-qualified name yet - "
         "pair the result with ``describe_class`` or "
         "``get_model_context`` once you've picked the right FQN. "
         'Returns ``error_code: "no_matches"`` when nothing matches so '

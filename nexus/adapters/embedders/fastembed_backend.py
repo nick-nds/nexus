@@ -10,7 +10,7 @@ Models shipped with fastembed at the time of writing include
 :code:`BAAI/bge-small-en-v1.5` (the default), :code:`jinaai/jina-embeddings-v2-base-code`
 (a code-tuned model), and a handful of multilingual options. The
 backend surfaces the model choice as constructor configuration so
-callers — and the Phase 5 CLI — can swap models without touching
+callers - and the Phase 5 CLI - can swap models without touching
 adapter internals.
 
 Determinism

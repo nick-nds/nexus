@@ -156,7 +156,7 @@ class TestMcpCliSurface:
 class TestGraphWarmup:
     """``build_mcp_server`` triggers a single ``graph().load()`` to amortise
     the cold-cache penalty.  Failures must be caught and logged but never
-    raise — the agent will see the real error on its first tool call.
+    raise - the agent will see the real error on its first tool call.
 
     Uses a fully-mocked storage so we can swap ``graph()`` cleanly;
     ``ProjectStorage`` itself is slot-defined and rejects monkey-patching.

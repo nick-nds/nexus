@@ -25,7 +25,7 @@ final class ClassMapWalkerTest extends TestCase
         mkdir($this->tmpDir.'/vendor/composer', 0o755, true);
         mkdir($this->tmpDir.'/vendor/acme/lib/src', 0o755, true);
 
-        // Create files so realpath() resolves. Contents don't matter — the
+        // Create files so realpath() resolves. Contents don't matter - the
         // walker never requires them; it only maps class => file path.
         file_put_contents($this->tmpDir.'/app/Models/User.php', '<?php');
         file_put_contents($this->tmpDir.'/tests/Unit/UserTest.php', '<?php');

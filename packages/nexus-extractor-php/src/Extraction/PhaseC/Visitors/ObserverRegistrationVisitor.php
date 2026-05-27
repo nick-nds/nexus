@@ -22,7 +22,7 @@ use PhpParser\Node\Name;
  * these to populate ``OBSERVES`` edges.
  *
  * The attribute-based form (``#[ObservedBy([UserObserver::class])]``)
- * lives on the Model class itself, not in a method body — it's caught
+ * lives on the Model class itself, not in a method body - it's caught
  * by the class-level reflection in Phase B, not by this AST visitor.
  *
  * Why a static call and not a generic method call: the observe() form
@@ -72,7 +72,7 @@ final class ObserverRegistrationVisitor extends ContextTrackingVisitor
      * Resolve the observer argument to one or more class FQNs.
      *
      * Accepts a bare ``Observer::class`` or an array of them. Skips
-     * dynamic forms (variables, function-call results) — those would
+     * dynamic forms (variables, function-call results) - those would
      * require runtime tracing that the AST pass can't do.
      *
      * @return list<string>
@@ -98,6 +98,7 @@ final class ObserverRegistrationVisitor extends ContextTrackingVisitor
                     $items[] = $item->value->class->toString();
                 }
             }
+
             return $items;
         }
 

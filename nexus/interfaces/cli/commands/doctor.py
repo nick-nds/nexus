@@ -1,15 +1,15 @@
-"""``nexus doctor`` — environment diagnostic.
+"""``nexus doctor`` - environment diagnostic.
 
 Checks the installation and reports per-check status in both the rich
 pretty format and the JSON-lines format for CI/scripted use. The design
 goal is that the first thing any bug report should say is "run
-``nexus doctor``" — the output is the canonical snapshot of the
+``nexus doctor``" - the output is the canonical snapshot of the
 environment.
 
 Checks performed (in order):
 1.  Python version (≥ 3.11 required).
 2.  Nexus version (the installed package).
-3.  Data directory (``~/.nexus/`` or ``--storage-root``) — writable.
+3.  Data directory (``~/.nexus/`` or ``--storage-root``) - writable.
 4.  PHP binary on PATH and its version.
 5.  Composer binary on PATH.
 6.  ``nexus.yml`` presence in the current / specified project directory.
@@ -151,7 +151,7 @@ def _check_python_version() -> CheckResult:
         return CheckResult(
             name="python_version",
             status=_ERROR,
-            message=f"Python {version_str} — requires ≥ 3.11",
+            message=f"Python {version_str} - requires ≥ 3.11",
             hint="Upgrade Python: https://python.org/downloads/",
         )
     return CheckResult(
@@ -187,7 +187,7 @@ def _check_data_dir(cli_ctx: CliContext) -> CheckResult:
         return CheckResult(
             name="data_directory",
             status=_ERROR,
-            message=f"{data_dir} — not writable: {exc}",
+            message=f"{data_dir} - not writable: {exc}",
             hint="Check filesystem permissions on the storage root.",
         )
 
@@ -229,7 +229,7 @@ def _check_composer() -> CheckResult:
             message="composer not found on PATH",
             hint=(
                 "Install Composer: https://getcomposer.org/download/ "
-                "then run `composer require --dev nexus/extractor-php`."
+                "then run `composer require --dev nick-nds/nexus-extractor`."
             ),
         )
     try:
@@ -282,11 +282,11 @@ def _check_lsp() -> CheckResult:
 
     Three distinct outcomes:
 
-    * **ok** — a binary was resolved AND it answered an ``initialize``
+    * **ok** - a binary was resolved AND it answered an ``initialize``
       request within the timeout. CALLS enrichment will work.
-    * **warning / not_found** — no binary available. The pipeline can
+    * **warning / not_found** - no binary available. The pipeline can
       still build a structural-only graph.
-    * **error / found_but_unresponsive** — a binary was found but it
+    * **error / found_but_unresponsive** - a binary was found but it
       didn't respond. This is worth flagging loudly because indexing
       will hang on it; the user should pick a different ``--lsp`` value
       or fix the install.
@@ -354,8 +354,8 @@ def _check_extractor(project_path: Path) -> CheckResult:
         return CheckResult(
             name="extractor",
             status=_WARN,
-            message="vendor/autoload.php missing — run `composer install` in the project",
-            hint="Run `composer install` then `composer require --dev nexus/extractor-php`.",
+            message="vendor/autoload.php missing - run `composer install` in the project",
+            hint="Run `composer install` then `composer require --dev nick-nds/nexus-extractor`.",
         )
 
     # Look for the extractor binary that the Composer package installs
@@ -391,6 +391,6 @@ def _check_extractor(project_path: Path) -> CheckResult:
     return CheckResult(
         name="extractor",
         status=_WARN,
-        message="nexus/extractor-php not found in project vendor",
-        hint="Install with: composer require --dev nexus/extractor-php",
+        message="nick-nds/nexus-extractor not found in project vendor",
+        hint="Install with: composer require --dev nick-nds/nexus-extractor",
     )

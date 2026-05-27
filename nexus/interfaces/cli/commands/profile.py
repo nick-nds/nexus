@@ -1,10 +1,10 @@
-"""``nexus profile`` — inspect built-in profiles and auto-detection.
+"""``nexus profile`` - inspect built-in profiles and auto-detection.
 
 Three subcommands:
 
-* ``list``   — print every built-in profile name (or a rich table).
-* ``detect`` — run auto-detection on a directory and show ranked matches.
-* ``show``   — print the full definition of one built-in profile.
+* ``list``   - print every built-in profile name (or a rich table).
+* ``detect`` - run auto-detection on a directory and show ranked matches.
+* ``show``   - print the full definition of one built-in profile.
 
 These are read-only inspection commands; they never write to disk.
 """

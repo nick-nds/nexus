@@ -238,7 +238,7 @@ class TestEmbedAndPersistPass:
         assert meta.embedder_id == "fake:test"
         assert meta.node_count == len(ctx.graph.nodes)
 
-        # Cache is populated — a second run reuses every vector.
+        # Cache is populated - a second run reuses every vector.
         before_calls = embedder.call_count
         # Reset graph/chunks so we re-run end-to-end.
         ctx2 = PipelineContext(
@@ -249,7 +249,7 @@ class TestEmbedAndPersistPass:
         )
         pipeline.run(ctx2)
 
-        # The embedder's second call count should be unchanged — all
+        # The embedder's second call count should be unchanged - all
         # texts hit the cache.
         assert embedder.call_count == before_calls, (
             f"Expected full cache hit but embedder was called "

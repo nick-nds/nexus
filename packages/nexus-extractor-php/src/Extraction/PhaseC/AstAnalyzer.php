@@ -32,7 +32,7 @@ final class AstAnalyzer
      * Pass 1: resolves names in-place. Must run on its own traverser before
      * the visitor pass, because nikic's traversal is depth-first and our
      * visitors process parent expressions (FuncCall, New_, StaticCall) in
-     * enterNode — *before* the inner Name child is visited and replaced by
+     * enterNode - *before* the inner Name child is visited and replaced by
      * NameResolver. Running the resolver in a separate prior pass guarantees
      * every Name is fully qualified when our visitors see it.
      */

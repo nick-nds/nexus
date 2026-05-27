@@ -63,7 +63,7 @@ def test_generate_composer_json_shape(tmp_path: Path) -> None:
     extractor_path = tmp_path / "extractor"
     extractor_path.mkdir()
     (extractor_path / "composer.json").write_text(
-        '{"name":"nexus/extractor-php"}', encoding="utf-8"
+        '{"name":"nick-nds/nexus-extractor"}', encoding="utf-8"
     )
 
     builder = ScratchBuilder(sd)
@@ -73,7 +73,7 @@ def test_generate_composer_json_shape(tmp_path: Path) -> None:
     assert "repositories" in written
     assert any("type" in r and r["type"] == "path" for r in written["repositories"])
     assert "foo/bar" in written["require"]
-    assert "nexus/extractor-php" in written["require"]
+    assert "nick-nds/nexus-extractor" in written["require"]
     assert "orchestra/testbench" in written["require"]
 
 

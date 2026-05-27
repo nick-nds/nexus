@@ -151,7 +151,7 @@ final class BindingExtractor implements Extractor
                 return ['kind' => 'class', 'class' => $static['concrete']];
             }
 
-            // A bound class — try to inspect what the closure returns by
+            // A bound class - try to inspect what the closure returns by
             // looking at its source range.
             return [
                 'kind' => 'closure',

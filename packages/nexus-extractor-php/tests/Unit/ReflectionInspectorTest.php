@@ -95,7 +95,7 @@ final class ReflectionInspectorTest extends TestCase
     public function test_readonly_false_for_non_readonly_class(): void
     {
         // Most classes are NOT readonly. The field must be present
-        // and ``false`` for them — never absent — so the Python side
+        // and ``false`` for them - never absent - so the Python side
         // can distinguish "we know it isn't" from "we don't know".
         $data = $this->inspector->inspect(new ReflectionClass(User::class));
 
@@ -154,7 +154,7 @@ final class ReflectionInspectorTest extends TestCase
 
         // User extends Model and doesn't declare any ``implements``.
         $this->assertSame([], $data['interfaces']);
-        // Model brings in several interfaces transitively — check at
+        // Model brings in several interfaces transitively - check at
         // least one to confirm the field is populated.
         $this->assertNotEmpty($data['interfaces_inherited']);
         $this->assertContains('ArrayAccess', $data['interfaces_inherited']);

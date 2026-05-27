@@ -11,7 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 
 final class SampleJob implements ShouldQueue
 {
-    use Dispatchable, Queueable, InteractsWithQueue;
+    use Dispatchable, InteractsWithQueue, Queueable;
 
     public function __construct(public readonly string $payload) {}
 

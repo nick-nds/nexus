@@ -1,7 +1,7 @@
 """The in-memory ``Graph`` container.
 
 A graph is a tuple of nodes plus edges, plus the warnings the builder
-emitted while constructing it. The container itself is plain — there is
+emitted while constructing it. The container itself is plain - there is
 no traversal API here, because traversal is the storage layer's job
 (SQLite recursive CTEs in Phase 4 are dramatically faster than anything
 we could write in Python over a multi-thousand-node graph).

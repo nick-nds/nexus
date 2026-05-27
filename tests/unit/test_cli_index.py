@@ -156,7 +156,7 @@ class TestRichProgressReporter:
     def test_emit_outside_context_does_not_raise(self) -> None:
         console = _null_console()
         reporter = RichProgressReporter(console=console)
-        # No context manager — must not raise
+        # No context manager - must not raise
         reporter.emit(PassStarted("test"))
 
     def test_pass_started_creates_task(self) -> None:
@@ -181,7 +181,7 @@ class TestRichProgressReporter:
         console = _null_console()
         reporter = RichProgressReporter(console=console)
         with reporter:
-            # No PassStarted — should not raise
+            # No PassStarted - should not raise
             reporter.emit(PassProgress("ghost", message="?"))
 
     def test_pass_finished_completes_task(self) -> None:

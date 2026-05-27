@@ -27,7 +27,7 @@ final class FileScanner
     /**
      * Directory basenames that are pruned wherever they appear in the tree.
      *
-     * `vendor` and `node_modules` are dependency directories — a Laravel
+     * `vendor` and `node_modules` are dependency directories - a Laravel
      * monorepo may have nested ones inside `packages/<pkg>/vendor`. Pruning
      * at any depth is the only way to keep scans bounded on real projects.
      * VCS / editor directories follow the same rule.
@@ -108,7 +108,7 @@ final class FileScanner
             $filtered = new RecursiveCallbackFilterIterator(
                 $directory,
                 function (SplFileInfo $current) use ($excludedTopAbsolute): bool {
-                    // Reject anything that resolves through a symlink — both
+                    // Reject anything that resolves through a symlink - both
                     // regular files and directories. Prevents cycles and
                     // keeps the scan deterministic across machines.
                     if ($current->isLink()) {

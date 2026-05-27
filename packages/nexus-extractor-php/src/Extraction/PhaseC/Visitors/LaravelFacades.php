@@ -11,7 +11,7 @@ namespace Nexus\Extractor\Extraction\PhaseC\Visitors;
  * Without this list, a call like `Bus::dispatch(new Job)` would be captured
  * by the Dispatchable-trait fallback in EventDispatchVisitor, and
  * `Event::dispatch(Foo::class)` would be captured by the fallback in
- * JobDispatchVisitor — both are wrong. The correct interpretation of
+ * JobDispatchVisitor - both are wrong. The correct interpretation of
  * facade calls is handled explicitly earlier in each visitor; the fallback
  * branch must skip them.
  *

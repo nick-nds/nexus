@@ -20,12 +20,12 @@ Design rules from ``internal_docs/PHASE-4-query-engine.md``:
 * **Tools are read-only.** They never mutate the graph or vector
   store. Concurrency is free.
 * **Errors are structured results, not exceptions.** "Unknown
-  route" is an output shape, not a thrown error — agents handle
+  route" is an output shape, not a thrown error - agents handle
   structured "not found" cleanly.
 
 This package is pure domain code (with the exception of the query
 engine's direct use of ``SqliteGraphStore`` and ``LanceDbVectorStore``
-for efficient traversal — those are passed in via constructor so the
+for efficient traversal - those are passed in via constructor so the
 layering test remains happy).
 """
 

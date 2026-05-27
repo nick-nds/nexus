@@ -1,8 +1,9 @@
 # =============================================================================
-# Internal-only — never published (per CLAUDE.md non-goals)
+# Internal-only - never published (per CLAUDE.md non-goals)
 # =============================================================================
 
 internal_docs/
+docs/superpowers/
 data/
 .nexus/
 
@@ -39,7 +40,7 @@ dist/
 htmlcov/
 coverage.xml
 
-# uv —— note: uv.lock IS committed (we're an application, not a library)
+# uv -- note: uv.lock IS committed (we're an application, not a library)
 .uv/
 
 # Environment files (don't leak secrets); allow the example template

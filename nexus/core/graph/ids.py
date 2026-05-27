@@ -1,8 +1,8 @@
 """Stable, deterministic node-id generators.
 
 Every node in the graph has a string id derived from the underlying
-entity. The ids are deterministic — the same reflection document
-produces the same ids on every build — which is the foundation of:
+entity. The ids are deterministic - the same reflection document
+produces the same ids on every build - which is the foundation of:
 
 * The golden-diff testing strategy (Phase 3 onward).
 * Incremental sync (Phase 3): change detection compares old and new

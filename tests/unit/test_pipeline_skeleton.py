@@ -73,7 +73,7 @@ class StubPass:
             ctx.add_error(Error(code="stub_error", message=self._message))
         elif self._behaviour == "crash":
             raise RuntimeError(self._message)
-        # "ok" falls through — no side effect
+        # "ok" falls through - no side effect
 
 
 # ---------------------------------------------------------------------------

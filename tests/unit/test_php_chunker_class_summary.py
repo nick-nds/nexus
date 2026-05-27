@@ -1,7 +1,7 @@
 """Tests for the class-summary text on class-like chunks (audit P0-10).
 
 Before this change, class header chunks held only the declaration
-line — so embedding had almost nothing to match against and adversarial
+line - so embedding had almost nothing to match against and adversarial
 audits showed real classes losing semantic-search rank to method
 bodies. The synthesized summary now packs property names, method
 signatures, enum cases, trait usage, constants, and the leading
@@ -69,7 +69,7 @@ def test_class_summary_includes_method_signatures_but_not_bodies() -> None:
     # Signatures present.
     assert "sync(string $key, mixed $value)" in header.text
     assert "reload(): bool" in header.text
-    # Method bodies absent — they get their own dedicated chunks.
+    # Method bodies absent - they get their own dedicated chunks.
     assert "secret_implementation_detail" not in header.text
 
 
@@ -98,7 +98,7 @@ def test_class_summary_includes_preceding_docblock() -> None:
     source = _source(
         "<?php",
         "/**",
-        " * Customer aggregate root — owns identity, contact, and lifecycle state.",
+        " * Customer aggregate root - owns identity, contact, and lifecycle state.",
         " */",
         "final class Customer {",
         "    public string $name;",
@@ -114,7 +114,7 @@ def test_class_summary_includes_preceding_docblock() -> None:
 
 
 def test_class_summary_ignores_line_comments() -> None:
-    """Only ``/** */`` docblocks are surfaced — ``//`` comments are
+    """Only ``/** */`` docblocks are surfaced - ``//`` comments are
     presumed to be local annotations, not class-level prose."""
     source = _source(
         "<?php",
@@ -153,7 +153,7 @@ def test_class_summary_includes_trait_use() -> None:
 
 def test_class_summary_caps_very_large_classes() -> None:
     """A class with hundreds of methods produces a useful but bounded
-    summary — the cap guards against runaway embedding cost."""
+    summary - the cap guards against runaway embedding cost."""
     method_lines = []
     for i in range(150):
         method_lines.append(f"    public function method{i:03d}(): void {{}}")
@@ -171,7 +171,7 @@ def test_class_summary_caps_very_large_classes() -> None:
 
 
 def test_class_byte_range_still_points_at_declaration_only() -> None:
-    """The header chunk's byte range covers only the declaration —
+    """The header chunk's byte range covers only the declaration -
     so body-retrieval tools (get_full_block) display the right
     source even though the embedded text is synthesised."""
     source = _source(
@@ -186,7 +186,7 @@ def test_class_byte_range_still_points_at_declaration_only() -> None:
     chunks = chunker.chunk_source(file_path=Path("/Customer.php"), source=source)
     header = _class_header(chunks)
 
-    # start_line is the class declaration (line 2 — the <?php is line 1).
+    # start_line is the class declaration (line 2 - the <?php is line 1).
     assert header.start_line == 2
     # end_line is the opening-brace line, not the closing brace at line 5.
     assert header.end_line == 2

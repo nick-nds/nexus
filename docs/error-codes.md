@@ -3,7 +3,7 @@
 Every Nexus query tool returns a structured response. When something
 goes wrong, the response carries `error_code` (a stable short string)
 and `error` (a human-readable message). Agents should branch on
-`error_code`, not on the message text — the message can change with
+`error_code`, not on the message text - the message can change with
 each Nexus release; the code is part of the v1.0 contract.
 
 This page is the authoritative list. The CI script
@@ -16,7 +16,7 @@ Each error code is grouped by **what an agent should do next**:
 
 | Group | Meaning | Recovery |
 |---|---|---|
-| **Input invalid** | The call would never succeed regardless of indexed state — the args are wrong. | Fix the args and retry. |
+| **Input invalid** | The call would never succeed regardless of indexed state - the args are wrong. | Fix the args and retry. |
 | **Target not found** | The arg shape is fine, but no node/edge in this graph matches. | Try `explore_entity` / `list_routes` / `list_modules` to discover the right name, then retry. |
 | **Feature not indexed** | This question requires data the index doesn't have (e.g. embeddings). | Re-index with the missing capability, or use a structural alternative. |
 | **Ambiguous / no confident match** | A discovery tool found nothing or found too little to act on. | Broaden or narrow the query. |
@@ -40,11 +40,11 @@ Each error code is grouped by **what an agent should do next**:
 | `route_not_found` | `trace_route`, `get_request_flow` | No route matches the supplied `route_id` / `(method, uri)` pair. | Use `list_routes` or `describe_flow` to find the right URI. |
 | `class_not_found` | `describe_class`, `find_implementations`, `get_model_context` | No class node has the supplied FQN. | Use `explore_entity` for short-name discovery; verify the FQN's slashes are escaped (`App\\Models\\User`). |
 | `model_not_found` | `get_policy_for` | The supplied class FQN exists but isn't a `MODEL`-kind node. | Pass a model FQN (or use `describe_class` to confirm the node's kind). |
-| `policy_not_found` | `get_policy_for` | The model exists but no `Policy` is registered for it. | Confirm with `list_by_kind kind=policy` — sometimes the policy is registered under a different model. |
+| `policy_not_found` | `get_policy_for` | The model exists but no `Policy` is registered for it. | Confirm with `list_by_kind kind=policy` - sometimes the policy is registered under a different model. |
 | `method_not_found` | `find_callers`, `expand_call_tree` | No method node matches `Class::method`. | Confirm via `describe_class` first that the method exists. |
 | `event_not_found` | `find_listeners`, `find_dispatchers`, `find_event_chains` | No event node matches the supplied class FQN/name. | Use `list_by_kind kind=event` to enumerate. |
 | `job_not_found` | `find_jobs_dispatching` | No job node matches the supplied class. | Use `list_by_kind kind=job`. |
-| `binding_not_found` | `resolve_binding` | The container does not have a binding for the supplied abstract. | Container bindings are extracted from `app/Providers/*ServiceProvider.php` — confirm the binding is declared there, or pass the concrete class FQN directly. |
+| `binding_not_found` | `resolve_binding` | The container does not have a binding for the supplied abstract. | Container bindings are extracted from `app/Providers/*ServiceProvider.php` - confirm the binding is declared there, or pass the concrete class FQN directly. |
 | `key_not_found` | `find_cache_users` | No `cache_key` node matches the literal/glob/substring. | Re-check that the index was built with the static analyser (see `response.coverage.cache_indexed`). |
 | `empty_module` | `describe_module` | No classes exist under the supplied `prefix`. | Use `list_modules` to see the prefixes the index actually contains. |
 | `no_matches` | `explore_entity`, `describe_flow` | The fuzzy matcher found nothing. | Broaden the query (try a shorter fragment, different casing) or use a kind-specific list tool. |
@@ -59,7 +59,7 @@ without the data the tool needs.
 | `no_embedder` | `semantic_search` | The query context has no embedder configured. | Configure an embedder backend (Ollama / Voyage / OpenAI) and re-index, or use a structural alternative tool. |
 | `no_vector_dimensions` | `semantic_search` | The vector store has no recorded dimensionality (likely empty or never written). | Re-index with embedding enabled. |
 
-The richer "feature flags" live on `response.coverage` — when that
+The richer "feature flags" live on `response.coverage` - when that
 block exists, check `coverage.calls_indexed`, `coverage.cache_indexed`,
 etc. before treating an empty result as "no match." The two error
 codes above are emitted only when `semantic_search` fundamentally
@@ -84,11 +84,11 @@ appended to the pipeline `Outcome` and surfaced via
 
 ## When you see a code that's not in this table
 
-That's a bug — file an issue. Run `python scripts/list_error_codes.py
+That's a bug - file an issue. Run `python scripts/list_error_codes.py
 --strict` locally to confirm; the script lists undocumented codes and
 exits non-zero so it can run in CI.
 
 The trace file (`nexus ask --trace <path>` or
 `NEXUS_TRACE_DIR=...`) records the `error_code` of every tool
-dispatch — useful for reproducing a failure and pasting it into the
+dispatch - useful for reproducing a failure and pasting it into the
 issue.

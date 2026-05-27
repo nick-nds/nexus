@@ -55,7 +55,7 @@ def test_php_language_kinds_outrank_laravel_role_kinds() -> None:
     to be principled.
     """
     labels = [label for label, _ in _KIND_PRIORITY]
-    # ``class`` isn't in the priority list — it's the implicit fallback
+    # ``class`` isn't in the priority list - it's the implicit fallback
     # when no entry matches. So we compare against Laravel role kinds
     # that ARE in the list.
     for lang in ("interface", "enum", "trait"):

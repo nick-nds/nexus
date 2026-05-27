@@ -27,7 +27,7 @@ def _install_extractor_into_fixture(fixture_dir: Path) -> None:
             "options": {"symlink": True},
         }
     )
-    payload.setdefault("require-dev", {})["nexus/extractor-php"] = "*"
+    payload.setdefault("require-dev", {})["nick-nds/nexus-extractor"] = "*"
     payload["require-dev"]["orchestra/testbench"] = "^8.0|^9.0|^10.0|^11.0"
     # Force dev stability so path-repo dev-branch packages are resolvable.
     payload["minimum-stability"] = "dev"
@@ -71,7 +71,7 @@ def test_inrepo_mode_writes_meta_attribution(fixture_clone: Path, tmp_path: Path
     package metadata from the Testbench Laravel skeleton's composer.json
     rather than the target package's composer.json, so description shows
     "The Laravel Framework." and authors is empty. This test pins the bug
-    — it should PASS after the fix lands.
+    - it should PASS after the fix lands.
     """
     _install_extractor_into_fixture(fixture_clone)
 

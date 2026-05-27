@@ -22,7 +22,7 @@ Error handling
   ``initialize`` handshake fails.
 * ``references`` swallows timeouts and protocol errors and returns
   ``[]`` per the :class:`Lsp` contract.
-* ``close`` is best-effort — it sends ``shutdown`` / ``exit`` and
+* ``close`` is best-effort - it sends ``shutdown`` / ``exit`` and
   kills the process if it doesn't terminate within a short window.
 """
 
@@ -184,7 +184,7 @@ class LspClient:
         Phpactor (and some other servers) only index a file once it's
         been explicitly opened. We read the file ourselves and push
         its contents to the server. Failures (unreadable file, broken
-        pipe) are swallowed — :meth:`references` will then return an
+        pipe) are swallowed - :meth:`references` will then return an
         empty list, which is the documented contract.
         """
         if file in self._opened_files:

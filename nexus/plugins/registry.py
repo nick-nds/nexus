@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 # Factories take a free-form config dict (loaded from YAML or passed
 # programmatically) and return a constructed instance. We deliberately
-# don't type the config more strictly — each plugin owns its own config
+# don't type the config more strictly - each plugin owns its own config
 # shape and validates internally.
 EmbedderFactory = "Callable[[dict[str, object]], Embedder]"
 VectorStoreFactory = "Callable[[dict[str, object]], VectorStore]"

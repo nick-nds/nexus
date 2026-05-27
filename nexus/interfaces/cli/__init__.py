@@ -1,6 +1,6 @@
 """Click-based command-line interface.
 
-The CLI is a thin adapter — every command parses arguments, builds a
+The CLI is a thin adapter - every command parses arguments, builds a
 :class:`~nexus.interfaces.cli.context.CliContext`, and delegates to
 the pure engine or pipeline. No business logic lives here.
 

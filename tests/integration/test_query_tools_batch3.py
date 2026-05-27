@@ -9,7 +9,7 @@ Some edge kinds (``FIRES``, ``DISPATCHES``, ``CALLS``,
 ``APPLIES_TO``) are populated by Phase 3's static analyser,
 which hadn't run against the momskitchen fixture at the time
 these tests were written. Tests that would require those edges
-assert the structured ``*_not_found`` error shape — still a
+assert the structured ``*_not_found`` error shape - still a
 useful contract test even on a partially-populated fixture.
 """
 
@@ -103,7 +103,7 @@ class TestFindDispatchers:
 
     def test_known_event_without_fires_edges(self, engine: QueryEngine) -> None:
         # momskitchen's fixture predates Phase 3 static analysis, so
-        # no FIRES edges exist — the call should succeed with empty
+        # no FIRES edges exist - the call should succeed with empty
         # results rather than erroring.
         result = engine.query("find_dispatchers", {"event": CUSTOMER_ACTIVATED})
         assert result.error is None

@@ -10,7 +10,7 @@ directed multigraph where:
   a job is `dispatched_by` a controller method, a class `extends`
   another, etc.).
 
-The in-memory representation is intentionally simple — three immutable
+The in-memory representation is intentionally simple - three immutable
 dataclasses (:class:`~nexus.core.graph.types.Node`,
 :class:`~nexus.core.graph.types.Edge`,
 :class:`~nexus.core.graph.graph.Graph`) plus enums for the kinds. The

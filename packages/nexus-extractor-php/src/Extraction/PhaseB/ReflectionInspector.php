@@ -41,7 +41,7 @@ final class ReflectionInspector
             | ReflectionMethod::IS_PRIVATE;
 
         foreach ($reflection->getMethods($visibility) as $method) {
-            // Skip inherited methods from Laravel base classes — they would
+            // Skip inherited methods from Laravel base classes - they would
             // double the document size with framework noise. We keep methods
             // declared on the class itself or its non-vendor parents.
             //
@@ -149,6 +149,7 @@ final class ReflectionInspector
                 'value' => $value,
             ];
         }
+
         return $cases;
     }
 
@@ -164,7 +165,7 @@ final class ReflectionInspector
 
         return [
             'name' => $method->getName(),
-            // Three-way classification — until we started including
+            // Three-way classification - until we started including
             // private methods this was a binary public-or-protected
             // check that mis-labeled private methods. Agents reading
             // ``visibility`` rely on it to decide whether a method is

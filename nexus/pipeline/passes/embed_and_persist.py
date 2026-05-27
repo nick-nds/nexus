@@ -3,7 +3,7 @@
 Takes the graph and chunks the upstream passes produced and writes
 them to the project's :class:`~nexus.adapters.storage.ProjectStorage`:
 
-1. Persists the graph atomically to SQLite (one shot — graph writes
+1. Persists the graph atomically to SQLite (one shot - graph writes
    are cheap and bounded by class count, not chunk count).
 2. Streams chunks through the embedder in fixed-size batches:
 
@@ -26,7 +26,7 @@ fixture and triggers the OOM killer on a 16 GB machine. Streaming
 through fixed-size batches caps memory at O(batch_size) regardless
 of project scale.
 
-The pass is skipped quietly if ``ctx.embedder`` is ``None`` — the
+The pass is skipped quietly if ``ctx.embedder`` is ``None`` - the
 pipeline factory may build a pipeline without an embedder when the
 caller only wants the graph (tests, dry-run mode).
 """
@@ -99,7 +99,7 @@ class EmbedAndPersistPass:
         Args:
             cache: Embedding cache to use. If ``None``, the pass
                 creates a fresh :class:`EmbeddingCache` under a
-                temporary directory on the context's storage root —
+                temporary directory on the context's storage root -
                 useful for tests but wasteful in production, so real
                 pipelines should pass an explicit cache.
             enrichment_builder: Override the enrichment builder.
@@ -235,7 +235,7 @@ class EmbedAndPersistPass:
         self._write_meta(ctx, embedder_id=model_id)
 
         # Release embedder-owned resources (HTTP pools, loaded model
-        # weights) so the pipeline can exit cleanly. Best-effort —
+        # weights) so the pipeline can exit cleanly. Best-effort -
         # an embedder without a close() method is fine.
         close = getattr(ctx.embedder, "close", None)
         if callable(close):

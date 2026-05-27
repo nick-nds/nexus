@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 
 /**
- * A mailable that ALSO uses the Queueable trait — exactly the shape that
+ * A mailable that ALSO uses the Queueable trait - exactly the shape that
  * previously caused the classifier to mis-tag mailables as jobs.
  */
 final class WelcomeMail extends Mailable implements ShouldQueue

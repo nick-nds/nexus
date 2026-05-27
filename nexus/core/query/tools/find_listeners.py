@@ -1,9 +1,9 @@
-r"""``find_listeners`` — list the listeners subscribed to an event.
+r"""``find_listeners`` - list the listeners subscribed to an event.
 
 Given an event FQN (e.g. ``App\Events\UserRegistered``), walk
 the ``LISTENS_TO`` edges backwards to enumerate every listener
-the project has wired up to it. Returns listener metadata —
-class FQN, whether it's queued, and the handler method name —
+the project has wired up to it. Returns listener metadata -
+class FQN, whether it's queued, and the handler method name -
 so agents can decide where to start reading.
 
 The event is identified by its stable graph id
@@ -71,7 +71,7 @@ class FindListenersTool:
     description: ClassVar[str] = (
         "Given an event FQN, return every listener wired up to it via "
         "Laravel's event dispatcher. "
-        "**Argument:** ``event`` (string) — the event FQN, e.g. "
+        "**Argument:** ``event`` (string) - the event FQN, e.g. "
         '``event="App\\\\Events\\\\OrderPlaced"``. '
         "Each row includes the listener's class FQN, the handler method, "
         "whether it implements ``ShouldQueue``, and the source file."
@@ -138,8 +138,8 @@ def _resolve_event_id(graph: Graph, query: str) -> str | None:
 
     Critically, ``LISTENS_TO`` edges always target ``event:<fqn>``
     regardless of which form the event-node was stored as. So we
-    return the ``event:<fqn>`` form unconditionally — even when only
-    the ``class:`` node exists — so the traversal that follows finds
+    return the ``event:<fqn>`` form unconditionally - even when only
+    the ``class:`` node exists - so the traversal that follows finds
     the edges.
     """
     fqn = query

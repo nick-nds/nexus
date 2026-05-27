@@ -172,7 +172,7 @@ def test_calls_not_indexed_returns_structured_error_when_method_exists() -> None
     """Pinning P0-8 from the synthesq-relay audit.
 
     When the index was built without an LSP, CALLS edges aren't
-    populated. The tool must NOT silently return an empty walk — the
+    populated. The tool must NOT silently return an empty walk - the
     agent can't distinguish that from "method genuinely has no
     callers/callees". A structured ``calls_not_indexed`` error code
     tells the caller exactly what's wrong.
@@ -199,7 +199,7 @@ def test_calls_not_indexed_returns_structured_error_when_method_exists() -> None
     assert output.nodes == []
     assert "lsp" in (output.error or "").lower()
     # The method exists, so we should echo back the resolved id rather
-    # than the raw input — distinguishes this case from method_not_found.
+    # than the raw input - distinguishes this case from method_not_found.
     assert output.method_fqn == "method:App\\A::run"
 
 
@@ -280,7 +280,7 @@ def test_call_site_propagated_from_edge_attributes() -> None:
 
 
 def test_no_calls_edges_returns_empty_success() -> None:
-    """When LSP didn't run, the tool returns an empty list — not an error."""
+    """When LSP didn't run, the tool returns an empty list - not an error."""
     g = Graph()
     method_id = _add_method(g, "App\\Solo", "run")
     assert method_id  # method exists; no edges

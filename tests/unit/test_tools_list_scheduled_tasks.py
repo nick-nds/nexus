@@ -129,7 +129,7 @@ def test_command_signature_row_has_no_target_but_keeps_command() -> None:
 def test_target_glob_filters_to_matching_class() -> None:
     ctx = _make_ctx(_make_graph_with_schedules())
 
-    # ``App\Jobs\*`` as a literal — single backslashes in the pattern
+    # ``App\Jobs\*`` as a literal - single backslashes in the pattern
     # since ``fnmatch`` doesn't treat ``\`` as an escape.
     output = ListScheduledTasksTool().execute(
         ListScheduledTasksInput(target_glob=r"App\Jobs\*"),

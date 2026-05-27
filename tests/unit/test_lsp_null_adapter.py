@@ -1,7 +1,7 @@
 """Unit tests for :class:`nexus.adapters.lsp.NullLsp`.
 
-These cover the behavioural contract — every method returns the
-documented empty result and never raises — plus a static type check
+These cover the behavioural contract - every method returns the
+documented empty result and never raises - plus a static type check
 that ``NullLsp`` structurally satisfies the :class:`Lsp` protocol so
 the pipeline can substitute it freely.
 """
@@ -59,7 +59,7 @@ def test_close_is_idempotent() -> None:
 
 
 def test_full_lifecycle_roundtrip(tmp_path: Path) -> None:
-    """A typical usage sequence — prepare, reference, close — works end to end."""
+    """A typical usage sequence - prepare, reference, close - works end to end."""
     lsp = NullLsp()
 
     lsp.prepare(tmp_path)

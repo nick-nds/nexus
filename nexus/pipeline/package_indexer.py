@@ -7,9 +7,9 @@ works because the result is a regular project entry on disk.
 Two modes (decision #7):
 
 IN_REPO
-    Both ``vendor/bin/testbench`` and ``vendor/nexus/extractor-php`` are
+    Both ``vendor/bin/testbench`` and ``vendor/nick-nds/nexus-extractor`` are
     already present in the target package. Call ``vendor/bin/testbench
-    nexus:extract-package`` directly — no network, no scratch directory.
+    nexus:extract-package`` directly - no network, no scratch directory.
 
 NEXUS_DRIVEN
     Either testbench or the extractor (or both) are missing. Build a
@@ -86,7 +86,7 @@ def detect_mode(path: Path) -> IndexMode:
     """Decide which extraction mode to use for the package at ``path``.
 
     Returns ``IN_REPO`` only when *both* ``vendor/bin/testbench`` and
-    ``vendor/nexus/extractor-php`` are already present (the fast path).
+    ``vendor/nick-nds/nexus-extractor`` are already present (the fast path).
     Falls back to ``NEXUS_DRIVEN`` for every other combination so that
     packages without the extractor installed always get a clean, isolated
     scratch build.
@@ -130,7 +130,7 @@ class PackageIndexer:
             (e.g. ``~/.nexus/cache``).
         nexus_root: Root of Nexus project storage
             (e.g. ``~/.nexus``).
-        extractor_root: Root of the ``nexus/extractor-php`` Composer
+        extractor_root: Root of the ``nick-nds/nexus-extractor`` Composer
             package bundled with this Nexus installation.
         timeout_s: Maximum seconds allowed for each subprocess call
             (extraction and composer install). Defaults to 300.
@@ -244,7 +244,7 @@ class PackageIndexer:
         dest = storage.reflection_path
         dest.write_text(normalized.model_dump_json(indent=2), encoding="utf-8")
 
-        # Use a minimal "generic" profile — packages do not need
+        # Use a minimal "generic" profile - packages do not need
         # convention-specific classification hints. Load from built-ins
         # and fall back to the first available profile if "generic" isn't
         # present (future-proof against profile set changes).
@@ -295,7 +295,7 @@ class PackageIndexer:
         # The EmbedAndPersistPass already wrote a meta.json with
         # embedder_id (or None) and timing. We rewrite it here to
         # attach package-specific fields (kind, attribution, build
-        # mode, source path, last commit) — but the pipeline's
+        # mode, source path, last commit) - but the pipeline's
         # embedder_id signal must be preserved so query-time coverage
         # can reflect whether vectors were actually written.
         embedder_id = self._embedder.model_id if self._embedder is not None else None
@@ -323,7 +323,7 @@ class PackageIndexer:
             mode=mode,
             project_dir=storage.project_dir,
             # Return the normalized copy in storage, not the raw scratch
-            # output — downstream consumers expect package-relative paths.
+            # output - downstream consumers expect package-relative paths.
             reflection_path=dest,
         )
 
@@ -420,8 +420,8 @@ class PackageIndexer:
             if not (builder.vendor_path / "nexus" / "extractor-php").is_dir():
                 raise PackageIndexError(
                     "package_extractor_install_missing",
-                    "composer install succeeded but vendor/nexus/extractor-php is absent. "
-                    f"Run `composer why-not nexus/extractor-php` in {scratch_dir}",
+                    "composer install succeeded but vendor/nick-nds/nexus-extractor is absent. "
+                    f"Run `composer why-not nick-nds/nexus-extractor` in {scratch_dir}",
                 )
 
         log.info(

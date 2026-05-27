@@ -1,7 +1,7 @@
 """CLI output includes attribution for package-kind projects.
 
 Tests verify that render() injects a "package" key into JSON output
-and appends a footer to pretty output — only for package-kind projects.
+and appends a footer to pretty output - only for package-kind projects.
 Project-kind output must be bit-for-bit identical to output without meta.
 """
 
@@ -24,7 +24,7 @@ from rich.console import Console
 
 
 class _StubOutput(ToolOutput):
-    """Minimal ToolOutput fixture — no attribution fields."""
+    """Minimal ToolOutput fixture - no attribution fields."""
 
     total: int = 42
     truncated: bool = False
@@ -64,7 +64,7 @@ def _capture_console() -> tuple[Console, io.StringIO]:
 
 
 # ---------------------------------------------------------------------------
-# JSON format — package-kind
+# JSON format - package-kind
 # ---------------------------------------------------------------------------
 
 
@@ -110,7 +110,7 @@ class TestJsonAttributionPackageKind:
 
 
 # ---------------------------------------------------------------------------
-# JSON format — project-kind (no attribution)
+# JSON format - project-kind (no attribution)
 # ---------------------------------------------------------------------------
 
 
@@ -176,7 +176,7 @@ class TestJsonAttributionProjectKind:
 
 
 # ---------------------------------------------------------------------------
-# Pretty format — package-kind
+# Pretty format - package-kind
 # ---------------------------------------------------------------------------
 
 
@@ -203,7 +203,7 @@ class TestPrettyAttributionPackageKind:
 
 
 # ---------------------------------------------------------------------------
-# Pretty format — project-kind (no footer)
+# Pretty format - project-kind (no footer)
 # ---------------------------------------------------------------------------
 
 

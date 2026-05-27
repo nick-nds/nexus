@@ -10,7 +10,7 @@ Design notes
 ============
 
 * We deliberately keep one :class:`rich.progress.Progress` instance
-  for the whole pipeline run rather than a nested progress tree —
+  for the whole pipeline run rather than a nested progress tree -
   each pass is a numbered task with a short description and
   optional numeric progress. A nested tree looks fancier but is
   hard to tail on a small terminal.
@@ -107,7 +107,7 @@ class RichProgressReporter:
         """Route one pipeline event into a task row update.
 
         Rendering errors are swallowed (per the
-        :class:`ProgressReporter` contract — a broken progress bar
+        :class:`ProgressReporter` contract - a broken progress bar
         must not crash the pipeline) but logged at warning level so
         a misbehaving terminal renderer leaves a structured-log
         breadcrumb instead of vanishing without trace.
@@ -167,7 +167,7 @@ class JsonLinesProgressReporter:
     """Non-TTY fallback that prints one JSON line per event.
 
     Used when ``nexus index rebuild`` is piped to a file or run under
-    CI — no curses, no carriage returns, one line per event so the
+    CI - no curses, no carriage returns, one line per event so the
     output is trivially parseable. Writes to stderr so stdout stays
     reserved for the final result payload.
     """

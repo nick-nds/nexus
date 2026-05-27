@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for the suggestion. We're more likely to act on requests
-        that describe the **problem** before the solution — what blocked
+        that describe the **problem** before the solution - what blocked
         you, what you tried, why current tools didn't fit.
 
         Note: requests for *new query tools* belong in the dedicated
@@ -58,11 +58,11 @@ body:
         you know which phase this fits, mark it here; if not, leave on
         "Not sure".
       options:
-        - "Phase 1 — extraction"
-        - "Phase 2 — core engine"
-        - "Phase 3 — indexing pipeline"
-        - "Phase 4 — query engine"
-        - "Phase 5 — interface layer"
+        - "Phase 1 - extraction"
+        - "Phase 2 - core engine"
+        - "Phase 3 - indexing pipeline"
+        - "Phase 4 - query engine"
+        - "Phase 5 - interface layer"
         - "Post-v1 / federation"
         - Not sure
 

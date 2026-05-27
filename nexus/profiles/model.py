@@ -7,7 +7,7 @@ process.
 
 Why a separate model from :class:`nexus.config.project_profile.ProjectProfile`:
 
-* Built-in profiles carry **detection signals** — the rules the
+* Built-in profiles carry **detection signals** - the rules the
   auto-detector uses to score the profile against a project tree.
   User ``nexus.yml`` files do not (the user picks a profile
   explicitly, or lets auto-detection work from the built-ins).

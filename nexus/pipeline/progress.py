@@ -5,7 +5,7 @@ reporter is an abstract protocol; concrete implementations in Phase 5
 render them to a TTY with :mod:`rich` progress bars or emit them as
 JSON lines for CI tails. Keeping the event types structured means the
 pipeline never has to know whether it is talking to a human or a log
-collector — it just calls ``reporter.emit(event)``.
+collector - it just calls ``reporter.emit(event)``.
 
 Design notes
 ============
@@ -85,7 +85,7 @@ class ProgressReporter(Protocol):
     """Pluggable sink for :class:`ProgressEvent` instances.
 
     Implementations must be robust to being called from any pass
-    implementation — a thrown exception in a reporter would cascade
+    implementation - a thrown exception in a reporter would cascade
     into the orchestrator, so reporters should swallow their own
     problems.
     """
@@ -98,7 +98,7 @@ class ProgressReporter(Protocol):
 class NullProgressReporter:
     """A reporter that discards every event.
 
-    Useful as the default when no caller has subscribed — the pipeline
+    Useful as the default when no caller has subscribed - the pipeline
     should never fail because no one is listening.
     """
 

@@ -1,4 +1,4 @@
-"""``find_jobs_dispatching`` — find places that dispatch a given job.
+"""``find_jobs_dispatching`` - find places that dispatch a given job.
 
 Mirror of :mod:`find_dispatchers` but for jobs. Walks ``DISPATCHES``
 edges backwards from the job node. Useful for questions like
@@ -65,7 +65,7 @@ class FindJobsDispatchingTool:
     description: ClassVar[str] = (
         "Given a job FQN, return every method that dispatches it via "
         "Laravel's queue. "
-        "**Argument:** ``job`` (string) — the job's FQN, e.g. "
+        "**Argument:** ``job`` (string) - the job's FQN, e.g. "
         '``job="App\\\\Jobs\\\\SendInvoiceEmail"``. '
         "Each site points at the caller's class, method, file, and line."
     )

@@ -7,14 +7,14 @@ retrieval quality.
 
 Two concerns live here:
 
-* :mod:`nexus.core.chunking.chunk` — the :class:`Chunk` dataclass
+* :mod:`nexus.core.chunking.chunk` - the :class:`Chunk` dataclass
   carrying the text, byte range, graph-node linkage, and source
   file. Pure data; no behaviour.
-* :mod:`nexus.core.chunking.php_chunker` — the tree-sitter driver
+* :mod:`nexus.core.chunking.php_chunker` - the tree-sitter driver
   that walks a parsed file and emits one chunk per semantic unit.
 
 The enrichment pass (turning a chunk into the actual embedding
-input string) is a separate concern — see
+input string) is a separate concern - see
 :mod:`nexus.core.chunking.enrichment`.
 """
 

@@ -1,4 +1,4 @@
-"""``list_routes`` — enumerate HTTP routes with optional filters.
+"""``list_routes`` - enumerate HTTP routes with optional filters.
 
 The simplest structural tool. Exists for two reasons:
 

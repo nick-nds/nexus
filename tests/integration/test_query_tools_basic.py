@@ -272,7 +272,7 @@ class TestTraceRoute:
         assert result.handler.method_name == "index"
         assert result.handler.action_kind == "controller"
         assert "api" in result.middleware
-        # Handler has no FIRES/DISPATCHES edges in this fixture yet —
+        # Handler has no FIRES/DISPATCHES edges in this fixture yet -
         # but the lists should exist and be empty, not missing.
         assert result.fires_events == []
         assert result.dispatches_jobs == []
@@ -324,7 +324,7 @@ class TestGetRequestFlow:
         assert result.handler.class_fqn == "App\\Http\\Controllers\\CustomersController"
         assert len(result.middleware) > 0
         # event_chain is empty on this fixture because the handler has
-        # no FIRES edges yet — but the field must exist and be a list.
+        # no FIRES edges yet - but the field must exist and be a list.
         assert result.event_chain == []
 
 

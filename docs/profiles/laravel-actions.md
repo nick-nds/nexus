@@ -18,7 +18,7 @@ Action-based Laravel projects where most business logic lives in single-responsi
 
 - Business logic lives in `app/Actions/` as single-method classes.
 - Each action has a primary public method (often `handle`, `execute`, or `__invoke`).
-- Controllers are thin — they accept a request, call one action, and return a response.
+- Controllers are thin - they accept a request, call one action, and return a response.
 - Actions can be dispatched as jobs, queued, or run synchronously.
 
 ## When to use

@@ -10,8 +10,8 @@ Error handling convention
 
 A pass signals problems in two ways:
 
-* **Non-fatal problems** — add to ``ctx.warnings`` and continue.
-* **Fatal problems** — add to ``ctx.errors``. The orchestrator checks
+* **Non-fatal problems** - add to ``ctx.warnings`` and continue.
+* **Fatal problems** - add to ``ctx.errors``. The orchestrator checks
   ``ctx.ok()`` between passes and stops the run at the first
   failure.
 

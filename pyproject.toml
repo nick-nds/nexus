@@ -3,18 +3,18 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "nexus"
+name = "nexus-php"
 version = "1.0.0"
 description = "Laravel-specific code intelligence: graph + vector RAG over a typed semantic graph of a Laravel codebase, exposed via MCP and CLI."
 readme = "README.md"
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 requires-python = ">=3.11"
-authors = [{ name = "Nexus Maintainers" }]
+authors = [{ name = "Niku Nitin", email = "nitin.niku97@gmail.com" }]
 keywords = ["laravel", "code-intelligence", "rag", "mcp", "graph", "embedding"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: Other/Proprietary License",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3 :: Only",
@@ -41,7 +41,7 @@ dependencies = [
     "tree-sitter>=0.22,<0.26",
     "tree-sitter-php>=0.23,<0.25",
     # FastMCP provides the MCP server adapter (nexus mcp serve).
-    # Pinned to major version 3 — major bumps in FastMCP are likely
+    # Pinned to major version 3 - major bumps in FastMCP are likely
     # to change the Tool API we depend on.
     "fastmcp>=3.2,<4",
 ]
@@ -53,7 +53,7 @@ dependencies = [
 local-embeddings = [
     # fastembed is a lightweight ONNX-based embedder (no PyTorch).
     # Around 100 MB for the runtime plus a small model download on
-    # first use — a far better fit for the "works out of the box, no
+    # first use - a far better fit for the "works out of the box, no
     # API key, no GPU" promise than sentence-transformers' full
     # torch+CUDA stack.
     "fastembed>=0.4,<2",
@@ -83,9 +83,9 @@ dev = [
 nexus = "nexus.interfaces.cli.main:main"
 
 [project.urls]
-Homepage = "https://github.com/nexus-tools/nexus"
-"Bug Tracker" = "https://github.com/nexus-tools/nexus/issues"
-Changelog = "https://github.com/nexus-tools/nexus/releases"
+Homepage = "https://github.com/nick-nds/nexus"
+"Bug Tracker" = "https://github.com/nick-nds/nexus/issues"
+Changelog = "https://github.com/nick-nds/nexus/releases"
 
 [tool.hatch.build.targets.wheel]
 packages = ["nexus"]
@@ -118,13 +118,13 @@ select = [
     "D",     # pydocstyle
 ]
 ignore = [
-    "PLR0913", # too many arguments — fine for builders/protocols
-    "D203",    # one-blank-line-before-class — conflicts with D211
-    "D213",    # multi-line-summary-second-line — conflicts with D212
-    "D107",    # __init__ docstrings — usually documented at class level
-    "D104",    # missing docstring in public package — too noisy for __init__.py
-    "D100",    # missing docstring in public module — handled by D101/D103
-    "ANN401",  # any-typed disallowed — sometimes legitimate
+    "PLR0913", # too many arguments - fine for builders/protocols
+    "D203",    # one-blank-line-before-class - conflicts with D211
+    "D213",    # multi-line-summary-second-line - conflicts with D212
+    "D107",    # __init__ docstrings - usually documented at class level
+    "D104",    # missing docstring in public package - too noisy for __init__.py
+    "D100",    # missing docstring in public module - handled by D101/D103
+    "ANN401",  # any-typed disallowed - sometimes legitimate
 ]
 
 [tool.ruff.lint.per-file-ignores]

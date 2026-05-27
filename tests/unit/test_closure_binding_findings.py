@@ -117,7 +117,7 @@ def test_upgrades_phase_a_closure_binding_with_bound_to_edge() -> None:
 
 
 def test_does_not_duplicate_bound_to_edge() -> None:
-    """If Phase A already emitted the BOUND_TO edge (rare — usually
+    """If Phase A already emitted the BOUND_TO edge (rare - usually
     means the closure resolved during runtime), don't add a second."""
     graph = Graph()
     bid = binding_id("App\\Contracts\\Mailer")
@@ -175,7 +175,7 @@ def test_bind_flavour_is_not_shared() -> None:
 
 
 def test_finding_without_abstract_is_skipped() -> None:
-    """A defensive check — if the meta is missing the abstract, the
+    """A defensive check - if the meta is missing the abstract, the
     handler returns silently rather than crashing."""
     graph = Graph()
     finding = StaticAnalysisFinding(

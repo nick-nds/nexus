@@ -15,9 +15,9 @@ use PhpParser\Node\Stmt\Return_;
 /**
  * Detects validation rules in two places:
  *
- *   1. FormRequest::rules() — captured by walking a `rules` method that
+ *   1. FormRequest::rules() - captured by walking a `rules` method that
  *      returns an array literal of string-to-rule mappings.
- *   2. Inline `$request->validate([...])` — captured by inspecting the
+ *   2. Inline `$request->validate([...])` - captured by inspecting the
  *      first argument of any `validate` method call.
  *
  * Only literal array shapes are captured. Dynamic rules are recorded as

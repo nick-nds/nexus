@@ -1,7 +1,7 @@
 """Integration tests for the fastembed backend.
 
 These tests download a small ONNX model on first run (~150 MB). In
-CI they are skipped by default — set ``NEXUS_RUN_FASTEMBED=1`` to
+CI they are skipped by default - set ``NEXUS_RUN_FASTEMBED=1`` to
 opt in. The tests verify that the adapter actually produces vectors
 of the right shape for the embedding cache and vector store to use.
 """

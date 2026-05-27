@@ -68,10 +68,10 @@ class _StubStorage:
 
     slug = "stub"
 
-    def graph(self) -> object:  # pragma: no cover — unused
+    def graph(self) -> object:  # pragma: no cover - unused
         raise NotImplementedError
 
-    def vectors(self, *, dimensions: int) -> object:  # pragma: no cover — unused
+    def vectors(self, *, dimensions: int) -> object:  # pragma: no cover - unused
         raise NotImplementedError
 
 

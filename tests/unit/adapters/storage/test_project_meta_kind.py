@@ -70,7 +70,7 @@ def test_schema_version_default_is_1_1() -> None:
 
 
 def test_old_1_0_metas_load_with_defaults() -> None:
-    """Existing 1.0 meta files load fine — defaults fill missing keys."""
+    """Existing 1.0 meta files load fine - defaults fill missing keys."""
     raw = {
         "schema_version": "1.0",
         "project_slug": "foo",

@@ -208,7 +208,7 @@ def test_engine_records_error_code_on_structured_failure(tmp_path: Path) -> None
 def test_engine_with_null_trace_does_not_write(tmp_path: Path) -> None:
     """Default trace is null; no file should ever get created."""
     engine, _ = _make_engine_with_graph()
-    # No set_trace() — defaults to NullQueryTrace.
+    # No set_trace() - defaults to NullQueryTrace.
     engine.query("describe_class", {"fqn": "App\\Models\\User"})
     # No file written; nothing to assert besides "no exception."
 

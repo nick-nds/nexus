@@ -1,4 +1,4 @@
-"""``nexus trace`` — inspect query trace files.
+"""``nexus trace`` - inspect query trace files.
 
 Trace files are written by ``nexus ask --trace <path>`` and by the
 MCP server when ``NEXUS_TRACE_DIR`` is set. They're append-only
@@ -7,7 +7,7 @@ JSONL with a stable schema (see ``nexus.core.query.trace``).
 The ``inspect`` subcommand reads one trace and emits a compact
 summary: the classifier decision, every tool call with duration and
 outcome, and the final envelope/refusal. The output is the same
-shape under either ``--format json`` or ``--format pretty`` — for
+shape under either ``--format json`` or ``--format pretty`` - for
 raw records, pipe the trace file through ``jq`` directly.
 """
 

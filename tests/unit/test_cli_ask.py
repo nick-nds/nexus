@@ -196,7 +196,7 @@ class TestRunPlan:
         assert wrapped is not None
         assert wrapped["result"] is usable_output
         assert wrapped["tool"] == "semantic_search"
-        # The first plan failed with a ToolInputError — that should
+        # The first plan failed with a ToolInputError - that should
         # show up in the routing log so the agent sees what was tried.
         assert any("describe_class" in t for t in wrapped["alternatives_tried"])
         assert mock_engine.query.call_count == 2
@@ -229,7 +229,7 @@ class TestRunPlan:
 
 
 # ---------------------------------------------------------------------------
-# Confidence floor / refusal — subtask 2.3
+# Confidence floor / refusal - subtask 2.3
 # ---------------------------------------------------------------------------
 
 
@@ -337,7 +337,7 @@ class TestConfidenceFloor:
         assert "list_routes" in refusal["suggested_tools"]
 
     def test_low_confidence_with_no_hits_returns_refusal(self, tmp_path: Path) -> None:
-        """Empty semantic output is also a refusal — distinguishes 'broken' from 'no answer'."""
+        """Empty semantic output is also a refusal - distinguishes 'broken' from 'no answer'."""
         plan = _semantic_fallback_plan()
         output = _semantic_output()  # zero hits
 

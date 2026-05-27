@@ -250,7 +250,7 @@ class TestEdgeCases:
         chunks = chunker.chunk_source(file_path=Path("/script.php"), source=source)
 
         # Top-level statements are not emitted as chunks in Phase 3's
-        # initial implementation — nothing to assert beyond "no crash".
+        # initial implementation - nothing to assert beyond "no crash".
         assert isinstance(chunks, list)
 
     def test_chunk_file_reads_disk(self, chunker: PhpChunker, tmp_path: Path) -> None:

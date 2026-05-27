@@ -63,7 +63,7 @@ def test_interfaces_inherited_surfaces_in_describe_class() -> None:
 
 
 def test_interfaces_inherited_empty_when_no_attr() -> None:
-    """Old indexes (schema ≤ 2.3.0) don't carry the field — empty list, no error."""
+    """Old indexes (schema ≤ 2.3.0) don't carry the field - empty list, no error."""
     g = Graph()
     g.add_node(
         Node(

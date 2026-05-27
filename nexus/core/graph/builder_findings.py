@@ -8,7 +8,7 @@ emitted by the PHP extractor's PhaseC visitors and adds the
 corresponding edge (and any required target node) to the graph.
 
 The dispatcher :func:`apply_static_findings` is the only public
-entry point — :class:`GraphBuilder.build` calls it once per
+entry point - :class:`GraphBuilder.build` calls it once per
 document.
 """
 
@@ -49,7 +49,7 @@ def apply_static_findings(graph: Graph, findings: list[StaticAnalysisFinding]) -
       node if Phase A's runtime extractor didn't see it)
 
     Findings without a resolvable source class or target are silently
-    skipped — they represent dynamic dispatch the AST visitor
+    skipped - they represent dynamic dispatch the AST visitor
     couldn't statically resolve, which is expected and not an error.
     """
     for finding in findings:
@@ -371,7 +371,7 @@ def _add_closure_binding_edge(
 
     existing = graph.node_by_id(bid)
     if existing is None:
-        # No Phase A binding for this abstract — synthesise one so
+        # No Phase A binding for this abstract - synthesise one so
         # ``resolve_binding`` can return a useful answer. ``shared``
         # comes from the binding flavour (singleton/scoped are
         # shared; bind is transient).

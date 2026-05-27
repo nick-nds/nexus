@@ -1,8 +1,8 @@
-"""``nexus mcp`` — start the MCP server.
+"""``nexus mcp`` - start the MCP server.
 
 One subcommand:
 
-* ``serve`` — start the FastMCP server using stdio (default) or HTTP/SSE.
+* ``serve`` - start the FastMCP server using stdio (default) or HTTP/SSE.
 
 Design reference: ``internal_docs/PHASE-5-interface-layer.md`` §D5.8.
 

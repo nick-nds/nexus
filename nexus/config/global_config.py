@@ -6,7 +6,7 @@ install can run with zero configuration; the defaults are chosen to be
 safe and local (no paid API calls, no surprising bills).
 
 See ``internal_docs/11-profile-system.md`` §"What lives in ~/.nexus/"
-for the design rationale — the global config is for *user preferences*,
+for the design rationale - the global config is for *user preferences*,
 not *project conventions*. Project conventions go in ``nexus.yml``.
 """
 
@@ -48,7 +48,7 @@ class EmbedderConfig(BaseModel):
         default=None,
         description=(
             "Name of the environment variable holding the API key for paid "
-            "providers. Never the key itself — we don't want keys in YAML."
+            "providers. Never the key itself - we don't want keys in YAML."
         ),
     )
     dimensions: int | None = Field(
@@ -77,9 +77,9 @@ class AskConfig(BaseModel):
 
     The defaults are tuned for ``nomic-embed-text`` (the recommended
     free embedder). Different embedders produce different
-    ``vector_score`` distributions — for example, voyage-code-3 hits
+    ``vector_score`` distributions - for example, voyage-code-3 hits
     higher absolute scores on relevant code, OpenAI text-embedding-3
-    sits a bit lower — so the floor is configurable rather than
+    sits a bit lower - so the floor is configurable rather than
     hardcoded.
     """
 

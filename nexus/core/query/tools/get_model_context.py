@@ -1,4 +1,4 @@
-"""``get_model_context`` — model-specific view for Eloquent models.
+"""``get_model_context`` - model-specific view for Eloquent models.
 
 A specialised variant of ``describe_class`` tuned for the Eloquent
 question shape. Agents asking "what's on the User model" want to
@@ -99,7 +99,7 @@ class GetModelContextTool:
         "Return a model-specific view of an Eloquent model: its traits, "
         "interfaces, the policy applied to it, observers, and methods "
         "categorised as relations / scopes / accessors. "
-        "**Argument:** ``fqn`` (string) — the model's FQN, e.g. "
+        "**Argument:** ``fqn`` (string) - the model's FQN, e.g. "
         '``fqn="App\\\\Models\\\\User"``. '
         "Prefer this over ``describe_class`` when the class is a model."
     )
@@ -154,7 +154,7 @@ class GetModelContextTool:
                 policy = policy_node.name
                 break
 
-        # Observers — precise reverse-traversal of OBSERVES edges
+        # Observers - precise reverse-traversal of OBSERVES edges
         # populated by ``ObserverRegistrationVisitor`` in PhaseC. Each
         # ``Model::observe(SomeObserver::class)`` call site produces
         # one inbound edge here. Falls back to the original heuristic

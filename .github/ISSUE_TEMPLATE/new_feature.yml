@@ -1,12 +1,12 @@
 name: 🚀 New feature (implementation spec)
-description: Open this when you're starting work on a new feature — the spec/plan that the PR closes.
+description: Open this when you're starting work on a new feature - the spec/plan that the PR closes.
 title: "[feature]: "
 labels: ["feature", "in-progress"]
 body:
   - type: markdown
     attributes:
       value: |
-        Use this for features you (or a teammate) are about to build —
+        Use this for features you (or a teammate) are about to build -
         the issue is the **spec** that the eventual PR closes.
 
         For "we should consider X someday" with no implementation
@@ -16,7 +16,7 @@ body:
     id: goal
     attributes:
       label: Goal
-      description: One paragraph — the user-facing outcome, not the implementation.
+      description: One paragraph - the user-facing outcome, not the implementation.
       placeholder: |
         Agents asking "what migrations does this model use" should get a
         list of migration files that touch the model's table, in
@@ -28,7 +28,7 @@ body:
     id: scope-in
     attributes:
       label: In scope
-      description: Bullet list — what this feature WILL do.
+      description: Bullet list - what this feature WILL do.
       placeholder: |
         - New `find_migrations` query tool
         - PhaseB extractor pass that reads `database/migrations/`
@@ -57,11 +57,11 @@ body:
       label: Phase scope
       description: Per `internal_docs/MASTER-PLAN.md`. Out-of-band work needs explicit justification below.
       options:
-        - "Phase 1 — extraction"
-        - "Phase 2 — core engine"
-        - "Phase 3 — indexing pipeline"
-        - "Phase 4 — query engine"
-        - "Phase 5 — interface layer"
+        - "Phase 1 - extraction"
+        - "Phase 2 - core engine"
+        - "Phase 3 - indexing pipeline"
+        - "Phase 4 - query engine"
+        - "Phase 5 - interface layer"
         - "Post-v1 / federation"
         - "Out-of-band (justify in 'Notes')"
     validations:
@@ -74,7 +74,7 @@ body:
       description: |
         How will this be built? File paths, the protocol/class touched,
         new schemas, edge kinds, classifier patterns. Focus on the parts
-        that are non-obvious or contentious — boilerplate doesn't need
+        that are non-obvious or contentious - boilerplate doesn't need
         re-stating.
       placeholder: |
         - New `EdgeKind.MIGRATES_TABLE` linking migration nodes to model nodes.
@@ -172,9 +172,9 @@ body:
       label: Backwards-compatibility
       description: |
         Public-API impact. Renames break the freeze test
-        (`tests/unit/test_interface_freeze.py`) — call that out.
+        (`tests/unit/test_interface_freeze.py`) - call that out.
       placeholder: |
-        Additive — new tool name, no existing tool changed.
+        Additive - new tool name, no existing tool changed.
         Freeze test gains one entry.
 
   - type: textarea

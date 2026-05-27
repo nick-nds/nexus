@@ -1,10 +1,10 @@
-"""``nexus ask`` — classifier-routed free-text query.
+"""``nexus ask`` - classifier-routed free-text query.
 
 The ``ask`` command is the single entry point an agent or human
 reaches for when they have a question but no specific tool in
 mind. It runs the question through the :class:`QueryClassifier`,
-executes the primary plan, and — if the primary plan returns a
-structured error or an empty-looking result — walks the classifier's
+executes the primary plan, and - if the primary plan returns a
+structured error or an empty-looking result - walks the classifier's
 ordered fallbacks until something answers or the list is exhausted.
 
 When the only thing that answered was the semantic-search fallback
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 SEMANTIC_CONFIDENCE_FLOOR = 0.65
 
 #: A classifier plan with confidence below this is treated as
-#: speculative — the only acceptable result is one that clears the
+#: speculative - the only acceptable result is one that clears the
 #: semantic-confidence floor above.
 RULE_CONFIDENCE_FLOOR = 0.6
 
@@ -142,7 +142,7 @@ def _resolve_semantic_floor(cli_ctx: CliContext) -> float:
     Loads the global config lazily so commands that don't go through
     the classifier don't pay the YAML-parse cost. Falls back to the
     module-level :data:`SEMANTIC_CONFIDENCE_FLOOR` constant when the
-    config file is absent — keeping the out-of-the-box experience
+    config file is absent - keeping the out-of-the-box experience
     unchanged.
     """
     from nexus.config.global_config import load_global_config  # noqa: PLC0415
@@ -270,8 +270,8 @@ def _is_confident(
 ) -> bool:
     """Decide whether a tool result clears the confidence bar.
 
-    A non-``semantic_search`` tool — or a ``semantic_search`` plan
-    that came from a high-confidence rule — is trusted unconditionally.
+    A non-``semantic_search`` tool - or a ``semantic_search`` plan
+    that came from a high-confidence rule - is trusted unconditionally.
     The only case we second-guess is the bare semantic fallback that
     the classifier emits when no rule matched. The ``semantic_floor``
     is configurable via ``ask.semantic_confidence_floor`` in the

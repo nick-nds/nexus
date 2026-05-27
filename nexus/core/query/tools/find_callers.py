@@ -1,10 +1,10 @@
-"""``find_callers`` — reverse call graph lookup.
+"""``find_callers`` - reverse call graph lookup.
 
 Given a method FQN (``Class::method``), walk ``CALLS`` edges
 backwards to find every method that calls it. The ``CALLS``
 edges are populated by Phase 3's LSP-driven static analyser;
 until the analyser lands, this tool returns empty results on
-fixtures that predate it — tests should be written against the
+fixtures that predate it - tests should be written against the
 contract (shape + ordering), not the specific caller counts.
 
 Each row identifies the calling method's class, method name,
@@ -76,7 +76,7 @@ class FindCallersTool:
         "also accepted. Call-site file and line come from the edge "
         "attributes populated by the LSP-driven static analyser. "
         "**Returns an empty list unless the index was built with an "
-        "LSP server** — check ``response.coverage.calls_indexed`` "
+        "LSP server** - check ``response.coverage.calls_indexed`` "
         "before treating an empty result as 'no callers'."
     )
     input_model: ClassVar[type[ToolInput]] = FindCallersInput

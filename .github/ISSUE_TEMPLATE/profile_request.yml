@@ -28,7 +28,7 @@ body:
     id: description
     attributes:
       label: Pattern description
-      description: One paragraph — what convention does this pattern represent?
+      description: One paragraph - what convention does this pattern represent?
       placeholder: |
         Event-sourced applications using EventSauce or hirethunk/verbs.
         Aggregates live in `App\Domain\<BoundedContext>\Aggregate`,

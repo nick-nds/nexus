@@ -1,4 +1,4 @@
-"""``get_policy_for`` — resolve the policy applied to a model.
+"""``get_policy_for`` - resolve the policy applied to a model.
 
 Laravel authorisation uses policy classes mapped to models (via
 ``AuthServiceProvider::$policies`` or convention). This tool
@@ -74,9 +74,9 @@ class GetPolicyForTool:
     name: ClassVar[str] = "get_policy_for"
     description: ClassVar[str] = (
         "Given a model FQN, return the policy class registered against "
-        "it — its FQN, source file, and ability methods (view, update, "
+        "it - its FQN, source file, and ability methods (view, update, "
         "delete, etc.). "
-        "**Argument:** ``model_fqn`` (string) — e.g. "
+        "**Argument:** ``model_fqn`` (string) - e.g. "
         '``model_fqn="App\\\\Models\\\\User"``. '
         "Returns a structured error if no policy is registered."
     )

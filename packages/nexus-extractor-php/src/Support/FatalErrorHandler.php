@@ -114,7 +114,7 @@ final class FatalErrorHandler
             $this->writer->write($this->document, $this->outputPath);
         } catch (Throwable) {
             // Last resort. If we can't even persist the partial document,
-            // PHP is about to exit anyway — there's nothing more we can do.
+            // PHP is about to exit anyway - there's nothing more we can do.
         }
 
         return true;

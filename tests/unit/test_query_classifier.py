@@ -3,7 +3,7 @@
 The classifier is deterministic and stateless; these tests use
 natural-language phrasings harvested from the design doc and from
 my own first-pass agent prompts. The assertion shape is
-"classified phrasings go to the right tool" — exact confidence
+"classified phrasings go to the right tool" - exact confidence
 scores are implementation detail and not asserted, only lower
 bounds.
 """

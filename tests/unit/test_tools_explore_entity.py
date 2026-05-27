@@ -156,7 +156,7 @@ def test_groups_with_exact_matches_sort_first() -> None:
 
 
 def test_output_carries_coverage_when_engine_attaches_one() -> None:
-    """The tool itself doesn't set ``coverage`` — that's the engine's job."""
+    """The tool itself doesn't set ``coverage`` - that's the engine's job."""
     ctx = _make_ctx(_make_graph())
     output = ExploreEntityTool().execute(ExploreEntityInput(name="User"), ctx)
 

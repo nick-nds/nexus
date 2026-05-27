@@ -228,7 +228,7 @@ class TestMultiWordPhpBinary:
 
         # We simulate "docker compose exec -T app php" with a wrapper script.
         # The wrapper writes its own name (argv[0]) to a file so we can assert
-        # that it was invoked — not that the whole string was treated as one token.
+        # that it was invoked - not that the whole string was treated as one token.
         wrapper = tmp_path / "bin" / "fake-docker"
         wrapper.parent.mkdir(parents=True, exist_ok=True)
         wrapper.write_text(

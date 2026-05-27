@@ -79,7 +79,7 @@ final class CacheCallVisitorTest extends TestCase
     {
         $code = <<<'PHP'
         <?php
-        Cache::get($key);   // bare variable — nothing static to capture
+        Cache::get($key);   // bare variable - nothing static to capture
         PHP;
 
         $findings = $this->analyse($code);

@@ -53,7 +53,7 @@ def build_mcp_server(engine: QueryEngine) -> FastMCP:
     """Construct a :class:`FastMCP` instance wired to *engine*.
 
     Every OSS tool in ``engine.registry`` becomes an MCP tool. Pro-tier
-    tools are not registered here — they are injected by the pro plugin.
+    tools are not registered here - they are injected by the pro plugin.
 
     Args:
         engine: A fully-constructed :class:`QueryEngine`.
@@ -64,7 +64,7 @@ def build_mcp_server(engine: QueryEngine) -> FastMCP:
     mcp = FastMCP(
         name="nexus",
         instructions=(
-            "Nexus — Laravel code intelligence. "
+            "Nexus - Laravel code intelligence. "
             "Use these tools to answer questions about the structure and "
             "behaviour of a Laravel codebase without reading every file."
         ),
@@ -97,7 +97,7 @@ def build_mcp_server(engine: QueryEngine) -> FastMCP:
 def _warm_graph_cache(engine: QueryEngine) -> None:
     """Trigger a single ``graph().load()`` to amortise cold-cache cost.
 
-    Failures here are non-fatal — if the index is missing or the
+    Failures here are non-fatal - if the index is missing or the
     storage handle is unhealthy, the agent will see the real error
     on its first tool call. We just log a warning and continue.
     """
@@ -136,7 +136,7 @@ def _build_handler(
     client sees the correct schema.
 
     The body of the generated function delegates to a ``_dispatch``
-    closure bound in the exec namespace — this avoids having any
+    closure bound in the exec namespace - this avoids having any
     tool-specific Python in the exec'd source.
     """
     fields = input_model.model_fields
@@ -168,7 +168,7 @@ def _build_handler(
             raise ToolError(str(exc)) from exc
         result: dict[str, Any] = dict(output.model_dump(mode="json"))
         # Attach the attribution block for package-kind projects (decision #10).
-        # The tool's output_model is never mutated — we work on the plain dict
+        # The tool's output_model is never mutated - we work on the plain dict
         # that model_dump already produced.  Project-kind output is unchanged.
         try:
             meta = engine.context.storage.read_meta()  # type: ignore[attr-defined]
@@ -178,7 +178,7 @@ def _build_handler(
                     result["package"] = attribution
         except AttributeError:
             # The storage protocol doesn't expose read_meta() in tests that
-            # use a stub/protocol-only storage. Skip silently — attribution
+            # use a stub/protocol-only storage. Skip silently - attribution
             # is a best-effort enrichment, not a hard requirement.
             pass
         return result

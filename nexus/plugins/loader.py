@@ -82,7 +82,7 @@ def load_plugins(
             registration causes :func:`load_plugins` to re-raise it
             wrapped in :class:`PluginLoadError`. If ``False`` (default),
             the exception is recorded in the result's ``failed`` dict
-            and loading continues — the CLI's ``nexus doctor`` flow
+            and loading continues - the CLI's ``nexus doctor`` flow
             wants to see all plugin failures at once.
         entry_point_group: Override for tests. Defaults to the public
             ``nexus.plugins`` group.

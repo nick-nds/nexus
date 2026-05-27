@@ -65,7 +65,7 @@ def test_abstract_class_target_returns_subclasses_by_default() -> None:
     _extends(g, leads_id, module_id)
     ctx = _make_ctx(g)
 
-    # No ``include_subclasses=True`` — relies on the new default.
+    # No ``include_subclasses=True`` - relies on the new default.
     output = FindImplementationsTool().execute(
         FindImplementationsInput(interface_fqn="App\\Modules\\Module"),
         ctx,

@@ -34,7 +34,7 @@ pip install --upgrade nexus
 
 ```bash
 # in your Laravel project
-composer require --dev nexus/extractor-php:^1.0
+composer require --dev nick-nds/nexus-extractor:^1.0
 ```
 
 4. Rebuild the index from scratch:

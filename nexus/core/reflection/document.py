@@ -259,7 +259,7 @@ class MiddlewareSection(_StrictModel):
 # The PHP side captures a curated allowlist of structural config keys with
 # secrets redacted to "«redacted»". The values can be of any JSON-typed
 # shape (scalar, list, nested dict). We model it as ``dict[str, Any]``
-# because the structure is intentionally loose — the Python side just
+# because the structure is intentionally loose - the Python side just
 # passes it through to the graph builder for downstream consumers.
 ConfigSection = Annotated[
     dict[str, Any],
@@ -338,12 +338,12 @@ class ClassReflection(_StrictModel):
     abstract: bool
     final: bool
     # PHP 8.2+ ``final readonly class Foo``. Schema 2.2.0 (audit P0-5).
-    # Default ``False`` so reflection.json files emitted by 2.1.x — and
+    # Default ``False`` so reflection.json files emitted by 2.1.x - and
     # by extractors built against older PHP that lack
-    # ``ReflectionClass::isReadOnly`` — still load cleanly.
+    # ``ReflectionClass::isReadOnly`` - still load cleanly.
     readonly: bool = False
     parent: str | None = None
-    # Audit P0-4: semantic change at schema 2.4.0 — ``interfaces`` is
+    # Audit P0-4: semantic change at schema 2.4.0 - ``interfaces`` is
     # now the declared (``implements``) set only, NOT transitive. The
     # transitive parent-inherited interfaces moved to
     # ``interfaces_inherited``. Pre-2.4.0 indexes had the union here;
@@ -354,7 +354,7 @@ class ClassReflection(_StrictModel):
     traits: list[str] = Field(default_factory=list)
     attributes: list[MethodAttribute] = Field(default_factory=list)
     methods: list[MethodInfo]
-    # Audit P0-2: cases of an ``enum`` declaration. Always a list — empty
+    # Audit P0-2: cases of an ``enum`` declaration. Always a list - empty
     # for non-enums and for indexes built with schema ≤ 2.2.0. Schema
     # 2.3.0 bump.
     cases: list[EnumCase] = Field(default_factory=list)
@@ -532,7 +532,7 @@ class ReflectionDocument(_StrictModel):
         }
         declared = set(self.summary.sections)
         if populated and declared and populated != declared:
-            # Don't fail validation — extractors may legitimately under-
+            # Don't fail validation - extractors may legitimately under-
             # report or over-report by one section in edge cases. We just
             # want this to be observable from a debug log.
             pass

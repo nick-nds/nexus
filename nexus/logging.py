@@ -18,7 +18,7 @@ treat the result as a structlog-bound logger:
     log = get_logger(__name__)
     log.info("graph_built", node_count=120, edge_count=384)
 
-Library code MUST NOT call :func:`configure_logging` itself — that is
+Library code MUST NOT call :func:`configure_logging` itself - that is
 the application's job (the CLI/MCP entry point in Phase 5, or a test
 fixture). The default behaviour for an unconfigured Nexus is "do
 nothing"; structlog will silently swallow log calls until configured.

@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to file a bug. The fields below help us
-        reproduce the issue without a follow-up round trip — please fill
+        reproduce the issue without a follow-up round trip - please fill
         in everything you can, even if it feels redundant.
 
   - type: textarea
@@ -25,7 +25,7 @@ body:
       label: Steps to reproduce
       description: |
         The exact commands you ran and the question you asked.  Use the
-        ``--trace`` flag if relevant — pasting the trace file's path or
+        ``--trace`` flag if relevant - pasting the trace file's path or
         contents is the single best thing you can include.
       placeholder: |
         1. `nexus index rebuild --project-path /path/to/laravel-app`
@@ -125,7 +125,7 @@ body:
     id: laravel-version
     attributes:
       label: Target Laravel version
-      placeholder: "12.x — see meta.json"
+      placeholder: "12.x - see meta.json"
 
   - type: input
     id: profile
@@ -138,4 +138,4 @@ body:
     id: extra
     attributes:
       label: Anything else
-      description: Other context — fixture project URL, screenshots, hypotheses.
+      description: Other context - fixture project URL, screenshots, hypotheses.

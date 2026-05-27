@@ -55,7 +55,7 @@ def test_from_meta_with_none_returns_all_defaults() -> None:
 
 
 def test_coverage_is_frozen() -> None:
-    """Coverage is a frozen Pydantic model — agents get an immutable snapshot."""
+    """Coverage is a frozen Pydantic model - agents get an immutable snapshot."""
     coverage = Coverage(calls_indexed=True, lsp_server="x")
 
     import pytest
@@ -174,7 +174,7 @@ def test_probe_runs_exactly_once_per_coverage_construction() -> None:
 def test_probe_skipped_when_no_vectors_indexed() -> None:
     """When ``meta.embedder_id is None`` the probe is short-circuited.
 
-    The live-embedder call costs an HTTP round-trip / model load — wasteful
+    The live-embedder call costs an HTTP round-trip / model load - wasteful
     when we already know the answer is False (no vectors to search).
     """
     call_count = 0

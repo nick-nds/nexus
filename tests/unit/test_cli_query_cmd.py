@@ -62,7 +62,7 @@ class TestUnwrapOptional:
         assert optional is True
 
     def test_non_optional_union_is_not_unwrapped(self) -> None:
-        # str | int is a union but not Optional — should pass through unchanged
+        # str | int is a union but not Optional - should pass through unchanged
 
         union = str | int  # type: ignore[operator]
         _typ, optional = _unwrap_optional(union)

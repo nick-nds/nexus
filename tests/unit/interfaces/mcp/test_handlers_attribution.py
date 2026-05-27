@@ -116,7 +116,7 @@ class TestMcpAttributionProjectKind:
         assert "package" not in data
 
     def test_no_package_field_when_no_meta_file(self, tmp_path: Path) -> None:
-        # No meta written — storage.read_meta() returns None
+        # No meta written - storage.read_meta() returns None
         engine = _build_engine(tmp_path, meta=None)
         mcp = build_mcp_server(engine)
 

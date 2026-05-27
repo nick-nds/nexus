@@ -125,7 +125,7 @@ final class StaticAnalysisExtractor implements Extractor
      *
      * When a PackageScope is provided, only the PSR-4 source directories
      * declared by the package (vendor_path/<rel_path> for each entry in
-     * scope.namespaces) are returned — restricting the AST scan to the
+     * scope.namespaces) are returned - restricting the AST scan to the
      * package's own source tree and nothing else.
      *
      * When scope is null (project-mode), an empty array is returned and the

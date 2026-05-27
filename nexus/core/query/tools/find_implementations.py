@@ -1,8 +1,8 @@
-"""``find_implementations`` — list every class deriving from a target.
+"""``find_implementations`` - list every class deriving from a target.
 
 Walks both ``IMPLEMENTS`` and ``EXTENDS`` edges backwards. Useful
 for both "who implements ``RepositoryInterface``?" and "what
-extends ``SynthesQEvent``?" — agents don't need to know in advance
+extends ``SynthesQEvent``?" - agents don't need to know in advance
 whether the target is an interface or an abstract class.
 
 Audit P0-7: prior versions defaulted to ``IMPLEMENTS``-only, which
@@ -32,7 +32,7 @@ class FindImplementationsInput(ToolInput):
 
     interface_fqn: str = Field(
         description=(
-            "Fully-qualified name of an interface OR a class — for "
+            "Fully-qualified name of an interface OR a class - for "
             "interfaces the tool walks ``IMPLEMENTS``, for classes "
             "(abstract or concrete) it walks ``EXTENDS`` to enumerate "
             "subclasses."
@@ -89,13 +89,13 @@ class FindImplementationsTool:
     description: ClassVar[str] = (
         "Given an interface OR class FQN, return every class that "
         "derives from it. "
-        "**Argument:** ``interface_fqn`` (string) — e.g. "
+        "**Argument:** ``interface_fqn`` (string) - e.g. "
         '``interface_fqn="App\\\\Contracts\\\\PaymentGateway"`` for an '
         "interface, or "
         '``interface_fqn="App\\\\Modules\\\\Module"`` for an abstract '
         "base class. "
         "**Optional:** ``include_subclasses`` (bool, default **true** "
-        "since audit P0-7) — walks ``EXTENDS`` edges in addition to "
+        "since audit P0-7) - walks ``EXTENDS`` edges in addition to "
         "``IMPLEMENTS``. Set ``false`` for interface-only behaviour. "
         'Each row carries ``via: "implements" | "extends"`` so the '
         "agent can tell which relationship was traversed."

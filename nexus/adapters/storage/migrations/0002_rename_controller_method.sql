@@ -1,4 +1,4 @@
--- 0002 — rename node kind "controller_method" → "method".
+-- 0002 - rename node kind "controller_method" → "method".
 --
 -- Audit P0-3: ``controller_method`` was hardcoded on every method node
 -- regardless of container class. For packages with zero controllers

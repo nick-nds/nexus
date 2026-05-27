@@ -45,7 +45,7 @@ class TestSlugify:
 
 
 # ---------------------------------------------------------------------------
-# nexus init — non-interactive
+# nexus init - non-interactive
 # ---------------------------------------------------------------------------
 
 
@@ -111,7 +111,7 @@ class TestInitNonInteractive:
         assert "profile: laravel-api" in content
 
     def test_default_embedder_not_written_to_yml(self, runner: CliRunner, tmp_path: Path) -> None:
-        """fastembed is the default — the embedder block should be omitted."""
+        """fastembed is the default - the embedder block should be omitted."""
         runner.invoke(
             main,
             [
@@ -215,7 +215,7 @@ class TestInitNonInteractive:
 
 
 # ---------------------------------------------------------------------------
-# nexus init — interactive (scripted input)
+# nexus init - interactive (scripted input)
 # ---------------------------------------------------------------------------
 
 
@@ -256,7 +256,7 @@ class TestInitInteractive:
 
 
 # ---------------------------------------------------------------------------
-# nexus init — help text
+# nexus init - help text
 # ---------------------------------------------------------------------------
 
 

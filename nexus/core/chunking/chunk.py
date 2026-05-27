@@ -1,7 +1,7 @@
 """The :class:`Chunk` value type.
 
-A chunk is one retrievable unit of code — typically a method body or
-a small class — tagged with enough metadata that the embedding and
+A chunk is one retrievable unit of code - typically a method body or
+a small class - tagged with enough metadata that the embedding and
 retrieval layers can map it back to a graph node.
 
 Design notes
@@ -24,7 +24,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass, field
 from enum import StrEnum
-from pathlib import Path  # noqa: TC003 — dataclass field runtime type
+from pathlib import Path  # noqa: TC003 - dataclass field runtime type
 
 
 class ChunkKind(StrEnum):

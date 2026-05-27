@@ -119,7 +119,7 @@ def test_snippet_is_capped_at_requested_line_budget(tmp_path: Path) -> None:
     [annotated] = _attach_snippets([hit], snippet_lines=15)
 
     assert annotated.snippet is not None
-    # 15 lines max — the budget wins over the natural range size.
+    # 15 lines max - the budget wins over the natural range size.
     assert annotated.snippet.count("\n") + 1 == 15
 
 

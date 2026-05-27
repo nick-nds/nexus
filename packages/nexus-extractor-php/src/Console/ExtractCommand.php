@@ -36,9 +36,9 @@ use Nexus\Extractor\Support\ProgressReporter;
  * it, writes the resulting reflection.json, and maps internal state to a
  * meaningful exit code:
  *
- *   0 — success (warnings allowed)
- *   1 — fatal error (boot failure, write failure, structured ExtractionError)
- *   2 — usage error (invalid options)
+ *   0 - success (warnings allowed)
+ *   1 - fatal error (boot failure, write failure, structured ExtractionError)
+ *   2 - usage error (invalid options)
  */
 final class ExtractCommand extends Command
 {
@@ -109,7 +109,7 @@ final class ExtractCommand extends Command
     private function buildExtractors(): array
     {
         return [
-            // Phase A — Runtime registries
+            // Phase A - Runtime registries
             new RouteExtractor,
             new BindingExtractor,
             new EventListenerExtractor,
@@ -117,9 +117,9 @@ final class ExtractCommand extends Command
             new MiddlewareExtractor,
             new ConfigExtractor,
             new ScheduleExtractor,
-            // Phase B — Class autoload sweep
+            // Phase B - Class autoload sweep
             new ProjectClassExtractor(new ClassMapWalker),
-            // Phase C — AST static analysis
+            // Phase C - AST static analysis
             new StaticAnalysisExtractor,
         ];
     }

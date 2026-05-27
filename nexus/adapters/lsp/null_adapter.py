@@ -6,7 +6,7 @@ treats LSP enrichment as best-effort: with :class:`NullLsp` the
 ``enrich_with_lsp`` pass becomes a no-op and CALLS edges are simply
 not produced.
 
-The adapter is deliberately stateless — every method either returns an
+The adapter is deliberately stateless - every method either returns an
 empty result or returns ``None``. That makes it cheap to construct on
 every pipeline run and trivial to reason about in tests.
 """
@@ -42,7 +42,7 @@ class NullLsp:
         """Return an empty list of references.
 
         The return type matches :class:`~nexus.core.protocols.Lsp`
-        exactly so the call site cannot tell — at the type level —
+        exactly so the call site cannot tell - at the type level -
         whether it has a real LSP or the null fallback.
         """
         _ = (file, line, character)

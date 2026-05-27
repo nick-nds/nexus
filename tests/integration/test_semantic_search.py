@@ -158,7 +158,7 @@ class TestSemanticSearch:
 
     def test_returns_annotated_hits(self, engine: QueryEngine) -> None:
         # ``min_vector_score=0.0`` disables the P0-11 relevance filter
-        # for this test — the synthetic LanceDB rows here use
+        # for this test - the synthetic LanceDB rows here use
         # hand-picked 4-D vectors that don't correspond to realistic
         # cosine scores. Production queries against real embeddings
         # rely on the threshold; this test just exercises the

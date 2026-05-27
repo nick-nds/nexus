@@ -2,10 +2,10 @@
 
 v1 ships two local backends:
 
-* **fastembed** — ONNX-based, bundled with the ``[local-embeddings]``
+* **fastembed** - ONNX-based, bundled with the ``[local-embeddings]``
   extra, no external daemon. Slow on CPU (~5 chunks/sec on real
   code) but zero setup.
-* **Ollama** — HTTP client to a local Ollama daemon, bundled with
+* **Ollama** - HTTP client to a local Ollama daemon, bundled with
   the ``[ollama]`` extra. about 15x faster than fastembed on CPU and
   transparently uses a GPU if one is available. Recommended for
   any project larger than a few hundred classes.

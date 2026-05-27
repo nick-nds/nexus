@@ -1,8 +1,8 @@
-"""``find_event_chains`` — multi-hop event fan-out traversal.
+"""``find_event_chains`` - multi-hop event fan-out traversal.
 
 Starting from an event, walk listeners → any events they fire →
 their listeners, up to a depth cap. Returns a flat list of
-(depth, event, listener, next_event) rows — simpler for agents
+(depth, event, listener, next_event) rows - simpler for agents
 to consume than a nested tree, and easy to re-assemble if a
 caller wants the tree shape.
 
@@ -84,11 +84,11 @@ class FindEventChainsTool:
     description: ClassVar[str] = (
         "Starting from one event, walk its listeners, then any events "
         "those listeners fire, up to ``max_depth`` hops. "
-        "**Argument:** ``event`` (string) — the starting event FQN, "
+        "**Argument:** ``event`` (string) - the starting event FQN, "
         'e.g. ``event="App\\\\Events\\\\OrderPlaced"``. '
-        "**Optional:** ``max_depth`` (int, default 3, max 6) — hop budget. "
+        "**Optional:** ``max_depth`` (int, default 3, max 6) - hop budget. "
         "Returns a flat list of (depth, parent_event, listener, "
-        "child_event) rows — rebuild the tree client-side if needed."
+        "child_event) rows - rebuild the tree client-side if needed."
     )
     input_model: ClassVar[type[ToolInput]] = FindEventChainsInput
     output_model: ClassVar[type[ToolOutput]] = FindEventChainsOutput

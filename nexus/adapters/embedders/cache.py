@@ -11,7 +11,7 @@ Key design
 The cache key is ``sha256(model_id + ":" + text)``, with the model
 id coming from the embedder so swapping models silently invalidates
 the relevant entries (a new ``model_id`` produces a cold cache for
-that model's entries — without wiping cached entries for other
+that model's entries - without wiping cached entries for other
 models).
 
 Layout
@@ -21,10 +21,10 @@ Cache files live under ``~/.nexus/cache/embeddings/<sanitised-model>/``.
 Each vector is its own JSON file named by the hash hex digest. This
 layout is:
 
-* Simple — one file per entry means partial corruption is contained.
-* Inspectable — users can ``cat`` an entry to see a vector.
-* Easy to prune — ``nexus cache clear`` (Phase 5) is a ``rm -rf``.
-* Cheap to write — no lock contention for concurrent processes.
+* Simple - one file per entry means partial corruption is contained.
+* Inspectable - users can ``cat`` an entry to see a vector.
+* Easy to prune - ``nexus cache clear`` (Phase 5) is a ``rm -rf``.
+* Cheap to write - no lock contention for concurrent processes.
 
 At scale (the helm-v7 project has ~6000 chunks) this produces 6000
 small files, which is fine for any modern filesystem. If that ever
@@ -32,7 +32,7 @@ becomes a problem we can shard by the first two hex characters of
 the hash, but v1 keeps it flat.
 
 The cache treats JSON parse errors as "miss" rather than propagating
-the exception — a corrupted entry is not worth crashing the pipeline,
+the exception - a corrupted entry is not worth crashing the pipeline,
 we just re-embed.
 """
 
@@ -42,7 +42,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
-from pathlib import Path  # noqa: TC003 — runtime dataclass field type
+from pathlib import Path  # noqa: TC003 - runtime dataclass field type
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

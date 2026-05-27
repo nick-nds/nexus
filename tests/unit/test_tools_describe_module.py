@@ -73,7 +73,7 @@ def _make_graph() -> Graph:
     _add_class(g, "App\\Modules\\CRM\\Customers\\CustomerController", NodeKind.CONTROLLER)
     _add_class(g, "App\\Modules\\CRM\\Leads\\Lead", NodeKind.MODEL)
     _add_class(g, "App\\Modules\\CRM\\Events\\LeadCreated", NodeKind.EVENT)
-    # Operations module (different prefix — should be excluded)
+    # Operations module (different prefix - should be excluded)
     _add_class(g, "App\\Modules\\Operations\\Products\\Product", NodeKind.MODEL)
 
     _add_route(

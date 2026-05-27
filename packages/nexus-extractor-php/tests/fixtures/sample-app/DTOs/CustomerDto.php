@@ -15,6 +15,5 @@ final readonly class CustomerDto
     public function __construct(
         public string $name,
         public string $email,
-    ) {
-    }
+    ) {}
 }

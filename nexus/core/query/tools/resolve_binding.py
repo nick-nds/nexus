@@ -1,4 +1,4 @@
-"""``resolve_binding`` — look up the concrete class bound to an abstract.
+"""``resolve_binding`` - look up the concrete class bound to an abstract.
 
 Laravel's service container maps abstract names (interface FQNs,
 strings, class names) to concrete implementations. Agents often
@@ -33,7 +33,7 @@ class ResolveBindingInput(ToolInput):
 
     abstract: str = Field(
         description=(
-            "Abstract identifier — interface FQN, class FQN, or any string the container was given."
+            "Abstract identifier - interface FQN, class FQN, or any string the container was given."
         ),
     )
 
@@ -62,7 +62,7 @@ class ResolveBindingTool:
         "Given an abstract identifier, return the concrete class the "
         "container resolves it to, plus the service provider file and "
         "line where the binding was registered. "
-        "**Argument:** ``abstract`` (string) — interface FQN, class "
+        "**Argument:** ``abstract`` (string) - interface FQN, class "
         "FQN, or any string the container was given, e.g. "
         '``abstract="App\\\\Contracts\\\\PaymentGateway"`` or '
         '``abstract="cache"``. '
@@ -93,7 +93,7 @@ class ResolveBindingTool:
         attrs = binding_node.attributes
         concrete_class = str_attr(attrs, "concrete_class")
 
-        # If the binding has an explicit ``BOUND_TO`` edge, prefer it —
+        # If the binding has an explicit ``BOUND_TO`` edge, prefer it -
         # it's the resolved class node which may be more canonical than
         # the raw attribute string.
         for edge in outgoing(graph, binding_node.id, EdgeKind.BOUND_TO):

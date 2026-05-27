@@ -141,7 +141,7 @@ def test_middleware_classes_count_toward_module_membership() -> None:
     Before the fix, MODULE_CLASS_KINDS excluded MIDDLEWARE so the
     three middleware classes in synthesq-relay (InjectActingUser,
     InjectTenantScopedClient, TenantResolutionMiddleware) weren't
-    counted in ``list_modules`` totals — exactly accounting for the
+    counted in ``list_modules`` totals - exactly accounting for the
     250-vs-253 mismatch between the index total and the filesystem
     PHP file count.
     """
@@ -166,7 +166,7 @@ def test_middleware_classes_count_toward_module_membership() -> None:
 
     relay_prefix = next(m for m in output.modules if m.prefix == "Synthesq\\Relay")
     # 2 middleware classes are under Synthesq\Relay\Http\Middleware (rolls
-    # up to Synthesq\Relay\Http actually — those have their own module).
+    # up to Synthesq\Relay\Http actually - those have their own module).
     # The Tenancy one rolls up to Synthesq\Relay\Tenancy. So Synthesq\Relay
     # itself has nothing directly here; modules below it do.
     # Sanity check the kinds breakdown contains "middleware" somewhere.
@@ -174,7 +174,7 @@ def test_middleware_classes_count_toward_module_membership() -> None:
     for m in output.modules:
         all_kinds.update(m.kinds.keys())
     assert "middleware" in all_kinds
-    # The framework alias must not appear anywhere — count of all
+    # The framework alias must not appear anywhere - count of all
     # middleware in any module equals 3, not 4.
     total_middleware = sum(m.kinds.get("middleware", 0) for m in output.modules)
     assert total_middleware == 3

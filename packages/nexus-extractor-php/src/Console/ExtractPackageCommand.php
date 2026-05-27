@@ -34,9 +34,9 @@ use Nexus\Extractor\Support\ProgressReporter;
  * Composer package, using a Testbench skeleton as the host application.
  *
  * Exit codes:
- *   0 — success (warnings allowed)
- *   1 — fatal pipeline or write error
- *   2 — usage error (missing --output, unresolvable package)
+ *   0 - success (warnings allowed)
+ *   1 - fatal pipeline or write error
+ *   2 - usage error (missing --output, unresolvable package)
  */
 final class ExtractPackageCommand extends Command
 {
@@ -106,7 +106,7 @@ final class ExtractPackageCommand extends Command
         if ($exit === 0) {
             // Apply both filters: scope-include (keep only target
             // package's classes) then namespace-exclude (Workbench /
-            // Orchestra). Order matters — scope-include is the
+            // Orchestra). Order matters - scope-include is the
             // primary signal, exclude handles the residual noise.
             $document->applyScopeFilter($package);
             $this->applyNamespaceFilter($document);
@@ -176,17 +176,17 @@ final class ExtractPackageCommand extends Command
     private function readAttributionFromComposerJson(Application $app, PackageScope $package): array
     {
         // Resolution order:
-        //   1. vendorPath/composer.json — the package as installed in a
+        //   1. vendorPath/composer.json - the package as installed in a
         //      scratch dir's vendor/ (nexus-driven mode).
-        //   2. getcwd()/composer.json — the working dir of the subprocess.
+        //   2. getcwd()/composer.json - the working dir of the subprocess.
         //      For in-repo mode the target package IS the working dir;
         //      $app->basePath() can't be used here because Testbench
         //      bootstraps a Laravel skeleton whose basePath() returns
-        //      vendor/orchestra/testbench-core/laravel/ — i.e. Laravel's
+        //      vendor/orchestra/testbench-core/laravel/ - i.e. Laravel's
         //      own composer.json, which would replace the target's
         //      attribution with "The Laravel Framework." and an empty
         //      authors array.
-        //   3. $app->basePath()/composer.json — last-resort fallback
+        //   3. $app->basePath()/composer.json - last-resort fallback
         //      that only resolves correctly when the host happens to be
         //      the target (rare; documented for completeness).
         $candidates = [
@@ -267,7 +267,7 @@ final class ExtractPackageCommand extends Command
     private function buildExtractors(): array
     {
         return [
-            // Phase A — Runtime registries
+            // Phase A - Runtime registries
             new RouteExtractor,
             new BindingExtractor,
             new EventListenerExtractor,
@@ -275,9 +275,9 @@ final class ExtractPackageCommand extends Command
             new MiddlewareExtractor,
             new ConfigExtractor,
             new ScheduleExtractor,
-            // Phase B — Class autoload sweep
+            // Phase B - Class autoload sweep
             new ProjectClassExtractor(new ClassMapWalker),
-            // Phase C — AST static analysis
+            // Phase C - AST static analysis
             new StaticAnalysisExtractor,
         ];
     }

@@ -5,7 +5,7 @@ Why SQLite instead of NetworkX / GraphML / Neo4j:
 * It's already installed everywhere (stdlib).
 * Incremental updates are single-row writes, not full-graph serialisation.
 * Recursive CTEs are fast enough for the traversal patterns Phase 4
-  needs, and the cost of a traversal is a join — not a Python loop.
+  needs, and the cost of a traversal is a join - not a Python loop.
 * Each project gets its own ``graph.sqlite`` file, so multi-project is
   naturally handled by opening different files.
 
@@ -15,7 +15,7 @@ blob as JSON, and reads them back on load.
 
 Migrations live in ``migrations/`` as plain ``.sql`` files addressed
 via :mod:`importlib.resources`. On first open the store creates the
-schema if needed; on reopen it does nothing — creation is idempotent.
+schema if needed; on reopen it does nothing - creation is idempotent.
 
 Transactions wrap the ``persist`` write so a partial failure leaves the
 store in its prior state. ``load`` uses a single SELECT per table.
@@ -51,7 +51,7 @@ class SqliteGraphStore:
 
         Args:
             path: Filesystem path to the SQLite database file. The
-                parent directory must already exist — the
+                parent directory must already exist - the
                 :class:`~nexus.adapters.storage.project_storage.ProjectStorage`
                 repository creates the project directory up front.
         """
@@ -165,8 +165,8 @@ class SqliteGraphStore:
 
         The store is a destination of record: each call clears the
         existing nodes and edges and writes the new set in one
-        transaction. Incremental updates — edit this node, add that
-        edge — are handled by the pipeline layer which will call
+        transaction. Incremental updates - edit this node, add that
+        edge - are handled by the pipeline layer which will call
         finer-grained methods once Phase 3 lands.
 
         Returns:

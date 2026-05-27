@@ -1,7 +1,7 @@
-"""``describe_class`` — comprehensive view of one class.
+"""``describe_class`` - comprehensive view of one class.
 
 The most commonly-useful tool for agents: given a fully-qualified
-class name, return everything the graph knows about it —
+class name, return everything the graph knows about it -
 inheritance, traits, interfaces, methods, direct neighbours,
 related routes, fired events, dispatched jobs, and policies
 targeting the class.
@@ -11,7 +11,7 @@ Design notes
 
 * Input is the FQN, not the class short name. Short names are
   ambiguous in DDD projects with multiple ``UserController``s.
-* Output is structured not prose — agents slice the fields they
+* Output is structured not prose - agents slice the fields they
   need. Prose rendering is Phase 5's job.
 * Missing classes return an ``error`` field rather than raising.
   Agents handle structured "not found" better than exceptions.
@@ -51,7 +51,7 @@ class MethodSummary(ToolOutput):
     node_id: str = Field(
         description=(
             "Graph node id (e.g. ``method:App\\Models\\User::scopeActive``). "
-            "Pass directly to ``get_node_body`` without reconstructing — the "
+            "Pass directly to ``get_node_body`` without reconstructing - the "
             "kind prefix and the ``::`` separator are already in the right "
             "shape."
         ),
@@ -137,7 +137,7 @@ class DescribeClassOutput(ToolOutput):
         description=(
             "Interfaces this class declares via ``implements``. Schema "
             "2.4.0+ excludes interfaces inherited transitively from "
-            "parent classes — those are in ``interfaces_inherited``. "
+            "parent classes - those are in ``interfaces_inherited``. "
             "Audit P0-4."
         ),
     )
@@ -147,7 +147,7 @@ class DescribeClassOutput(ToolOutput):
             "Interfaces this class gets transitively from its parent "
             "class hierarchy. For an Eloquent model that extends "
             "``Model``, this includes ``ArrayAccess``, "
-            "``HasBroadcastChannel``, etc. — useful to know the full "
+            "``HasBroadcastChannel``, etc. - useful to know the full "
             "contract surface but noise if you only want what THIS "
             "class promises. Audit P0-4."
         ),
@@ -209,7 +209,7 @@ class DescribeClassTool:
         "Return a comprehensive structured view of a class: kind, inheritance, "
         "methods, related routes, events fired by its methods, jobs dispatched, "
         "and any policy that targets it. "
-        "**Argument:** ``fqn`` (string) — fully-qualified class name, e.g. "
+        "**Argument:** ``fqn`` (string) - fully-qualified class name, e.g. "
         '``fqn="App\\\\Models\\\\User"``. '
         "Use this as the primary way to learn about a specific class. For "
         "Eloquent models, prefer ``get_model_context`` for a richer model-"
@@ -219,7 +219,7 @@ class DescribeClassTool:
     output_model: ClassVar[type[ToolOutput]] = DescribeClassOutput
     latency_budget_ms: ClassVar[int] = 200
 
-    def execute(  # noqa: PLR0912, PLR0915 — linear walk over several edge kinds; splitting hurts readability
+    def execute(  # noqa: PLR0912, PLR0915 - linear walk over several edge kinds; splitting hurts readability
         self,
         payload: DescribeClassInput,
         ctx: QueryContext,
@@ -362,7 +362,7 @@ def _build_enum_cases(attrs: dict[str, Any]) -> list[EnumCase]:
     """Read enum cases off a class node's attributes.
 
     Audit P0-2. Returns an empty list when the class isn't an enum or
-    was indexed by an extractor that predates the field — agents get a
+    was indexed by an extractor that predates the field - agents get a
     stable shape either way.
     """
     raw_cases = attrs.get("cases")

@@ -4,7 +4,7 @@ RUFF           := $(VENV)/bin/ruff
 MYPY           := $(VENV)/bin/mypy
 PYTEST         := $(VENV)/bin/pytest
 
-# Prefer uv when available — it's significantly faster than plain pip
+# Prefer uv when available - it's significantly faster than plain pip
 # and it manages Python interpreter installation transparently. Fall back
 # to a plain venv + pip otherwise.
 HAS_UV := $(shell command -v uv 2>/dev/null)
@@ -75,7 +75,7 @@ coverage: venv
 #
 # Run this before every push.  Coverage figures may differ slightly
 # from CI (LSP integration tests skip without intelephense; doctor.py
-# composer-check skips without composer) — see ci.yml for the
+# composer-check skips without composer) - see ci.yml for the
 # environment shape CI provides.
 ci:
 	uv run ruff format --check nexus/ tests/

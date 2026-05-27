@@ -16,8 +16,8 @@ Why protocols and not abstract base classes:
 * Tests use plain in-memory implementations (handwritten classes that
   match the shape) rather than Mock objects.
 
-Where an :class:`typing.Protocol` is insufficient — typically because we
-need ``isinstance`` checks at runtime — we use :func:`typing.runtime_checkable`
+Where an :class:`typing.Protocol` is insufficient - typically because we
+need ``isinstance`` checks at runtime - we use :func:`typing.runtime_checkable`
 sparingly. None of the protocols in this module require it today.
 
 Each protocol carries a contract test in ``tests/contract/`` that every
@@ -53,7 +53,7 @@ class Embedder(Protocol):
     free to batch internally; callers should not assume any particular
     batch size.
 
-    Implementations MUST be deterministic for a given ``model_id`` —
+    Implementations MUST be deterministic for a given ``model_id`` -
     embedding the same text twice with the same model returns the same
     vector. The embedding cache (Phase 3) keys on the SHA-256 of the
     enriched text plus the model id, so non-determinism would cause
@@ -163,7 +163,7 @@ class VectorStore(Protocol):
 class VectorRecord(Protocol):
     """One row in a :class:`VectorStore`.
 
-    The ``payload`` field is intentionally loose — different backends
+    The ``payload`` field is intentionally loose - different backends
     may flatten it into typed columns or store it as JSON. Implementers
     should treat keys with reserved meaning (``chunk_id``, ``node_id``,
     ``model_id``) consistently.
@@ -274,14 +274,14 @@ class Lsp(Protocol):
     ``intelephense --stdio``, planned in subtask 1.2).
 
     Line and column positions exchanged through this protocol are
-    **1-indexed** — adapters wrapping LSP servers convert from the
+    **1-indexed** - adapters wrapping LSP servers convert from the
     spec's 0-indexed positions at the boundary. See :mod:`nexus.core.lsp`.
     """
 
     def prepare(self, workspace_root: Path) -> None:
         """Initialise the language server for ``workspace_root``.
 
-        Must be idempotent — calling it twice for the same root is a
+        Must be idempotent - calling it twice for the same root is a
         no-op. Concrete adapters use this to send the LSP ``initialize``
         and ``initialized`` notifications and to open the project's
         files.

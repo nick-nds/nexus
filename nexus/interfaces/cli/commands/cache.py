@@ -1,9 +1,9 @@
-"""``nexus cache`` — manage the embedding cache.
+"""``nexus cache`` - manage the embedding cache.
 
 Two subcommands:
 
-* ``size``  — report the disk usage of the embedding cache directory.
-* ``clear`` — delete all cached embeddings (with confirmation or --force).
+* ``size``  - report the disk usage of the embedding cache directory.
+* ``clear`` - delete all cached embeddings (with confirmation or --force).
 
 The cache lives at ``<storage-root>/cache/embeddings/``. Each model gets
 a sub-directory; each cached entry is a ``.json`` file keyed by a hash

@@ -9,14 +9,14 @@ migration.
 
 Why LanceDB over ChromaDB:
 
-* Columnar on-disk format — faster cold reads than Chroma's SQLite
+* Columnar on-disk format - faster cold reads than Chroma's SQLite
   backend once the store gets large (the helm-v7 scale).
 * No background daemon; the library opens and reads files directly.
 * Cleaner per-project isolation: each project's store is a directory
   under ``~/.nexus/projects/<slug>/vectors/``.
 
 The :class:`~nexus.core.protocols.VectorStore` contract is satisfied
-structurally — this class doesn't inherit from the protocol, it just
+structurally - this class doesn't inherit from the protocol, it just
 matches the shape.
 """
 
@@ -94,7 +94,7 @@ class LanceDbVectorStore:
     def _connection(self) -> lancedb.DBConnection:
         if self._db is None:
             # LanceDB creates the directory on connect if it doesn't
-            # already exist — no explicit initialisation step needed.
+            # already exist - no explicit initialisation step needed.
             self._path.mkdir(parents=True, exist_ok=True)
             self._db = lancedb.connect(self._path)
         return self._db
@@ -138,7 +138,7 @@ class LanceDbVectorStore:
         tables = getattr(response, "tables", None)
         if isinstance(tables, list):
             return [str(t) for t in tables]
-        # Fall back to iterating — earlier LanceDB versions returned a
+        # Fall back to iterating - earlier LanceDB versions returned a
         # plain list from list_tables(). Support both transparently.
         try:
             return [str(t) for t in response]

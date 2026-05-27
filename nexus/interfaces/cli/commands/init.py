@@ -1,4 +1,4 @@
-"""``nexus init`` — create or update ``nexus.yml`` in a project directory.
+"""``nexus init`` - create or update ``nexus.yml`` in a project directory.
 
 Interactive flow (default)
 ==========================
@@ -14,7 +14,7 @@ Interactive flow (default)
 Non-interactive mode (``--non-interactive`` or ``--yes``)
 ==========================================================
 
-Uses auto-detected values throughout — no prompts — and writes the
+Uses auto-detected values throughout - no prompts - and writes the
 file unconditionally unless ``--no-overwrite`` is passed.  Suitable
 for ``git hooks``, CI bootstrapping, and ``cookiecutter``-style
 project generators.

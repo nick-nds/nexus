@@ -106,12 +106,12 @@ class ScratchBuilder:
 
         Args:
             meta: Composer metadata for the target package.
-            extractor_root: Root of the ``nexus/extractor-php`` Composer package.
+            extractor_root: Root of the ``nick-nds/nexus-extractor`` Composer package.
         """
         # A top-level ``name`` is required: when Laravel boots in this
         # scratch dir, its ``PackageManifest`` reads the host
         # composer.json and crashes with "Undefined array key 'name'"
-        # if the field is missing. The value is cosmetic — it just has
+        # if the field is missing. The value is cosmetic - it just has
         # to exist and be a valid Composer name.
         #
         # The ``autoload.psr-4`` ``Workbench\\App\\`` entry makes the
@@ -119,7 +119,7 @@ class ScratchBuilder:
         # skeleton can load any Workbench service providers listed in
         # the target's testbench.yaml. These classes are intentionally
         # filtered back out post-extraction by NamespaceExclusionFilter
-        # (decision #7) — but they must load cleanly during boot.
+        # (decision #7) - but they must load cleanly during boot.
         composer: dict[str, object] = {
             "name": f"nexus-scratch/{meta.slug}",
             "description": (
@@ -140,7 +140,7 @@ class ScratchBuilder:
             ],
             "require": {
                 meta.full_name: "*",
-                "nexus/extractor-php": "*",
+                "nick-nds/nexus-extractor": "*",
                 "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
             },
             "autoload": {
@@ -194,7 +194,7 @@ class ScratchBuilder:
 
         Returns:
             The completed process (caller inspects ``returncode``).
-            Does not raise on non-zero exit — callers check the result.
+            Does not raise on non-zero exit - callers check the result.
         """
         return subprocess.run(
             ["composer", "install", "--no-interaction", "--optimize-autoloader"],

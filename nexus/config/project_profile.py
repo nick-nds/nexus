@@ -147,7 +147,7 @@ class ProjectProfile(BaseModel):
     conventions: ProjectProfileConventions = Field(default_factory=ProjectProfileConventions)
     indexing: IndexingSettings = Field(default_factory=IndexingSettings)
     # Embedder override is the one place where a project preference
-    # legitimately supersedes user global config — teams standardising
+    # legitimately supersedes user global config - teams standardising
     # on a specific embedder for reproducibility across contributors.
     embedder: dict[str, str] | None = None
 

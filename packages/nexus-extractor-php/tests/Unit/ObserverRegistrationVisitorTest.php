@@ -37,7 +37,7 @@ final class ObserverRegistrationVisitorTest extends TestCase
         $f = $findings[0];
         $this->assertSame('observer_registration', $f->kind);
         // Visitor uses ``ContextTrackingVisitor`` so ``use`` statements
-        // resolve to fully-qualified class names — exactly what the
+        // resolve to fully-qualified class names - exactly what the
         // Python graph builder needs to point at ``class:<fqn>`` nodes.
         $this->assertSame('App\\Observers\\UserObserver', $f->target);
         $this->assertSame(['model' => 'App\\Models\\User'], $f->meta);
@@ -111,7 +111,7 @@ final class ObserverRegistrationVisitorTest extends TestCase
         // The visitor doesn't (and can't statically) tell models from
         // non-models, so it'll still emit a finding here. The Python
         // builder filters by whether the target is actually a graph
-        // node — the visitor's job is just to surface every static
+        // node - the visitor's job is just to surface every static
         // ``X::observe(Y::class)`` call in the codebase.
         $findings = $this->analyse($code);
 

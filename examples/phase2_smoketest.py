@@ -19,7 +19,7 @@ Run from the repo root with the venv activated:
 
     .venv/bin/python examples/phase2_smoketest.py
 
-This is not a replacement for the test suite — it's the "does the
+This is not a replacement for the test suite - it's the "does the
 whole package hang together" check that the Phase 2 acceptance
 criteria in ``internal_docs/PHASE-2-core-engine.md`` asks for.
 """

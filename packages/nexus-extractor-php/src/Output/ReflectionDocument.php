@@ -95,7 +95,7 @@ final class ReflectionDocument
      *   - gates_policies→ gates[*].callback.class, policies[*].policy
      *   - bindings      → bindings[*].concrete.class   (kind=class concretes)
      *   - static_analysis → findings[*].in_class
-     *   - schedule      → events[*] — no class names (command string / closure)
+     *   - schedule      → events[*] - no class names (command string / closure)
      */
     public function applyNamespaceFilter(NamespaceExclusionFilter $filter): void
     {
@@ -108,7 +108,7 @@ final class ReflectionDocument
             $this->sections['classes']['count'] = count($this->sections['classes']['items']);
         }
 
-        // routes section — drop routes registered by excluded code:
+        // routes section - drop routes registered by excluded code:
         //   - controller routes: filter by controller class name
         //   - closure routes:    filter by the closure's source file path
         if (isset($this->sections['routes']['items']) && is_array($this->sections['routes']['items'])) {
@@ -132,7 +132,7 @@ final class ReflectionDocument
             $this->sections['routes']['count'] = count($this->sections['routes']['items']);
         }
 
-        // events section — filter individual listeners
+        // events section - filter individual listeners
         if (isset($this->sections['events']['listeners']) && is_array($this->sections['events']['listeners'])) {
             $filtered = [];
             foreach ($this->sections['events']['listeners'] as $entry) {
@@ -187,7 +187,7 @@ final class ReflectionDocument
             }
         }
 
-        // bindings section — filter kind=class concretes
+        // bindings section - filter kind=class concretes
         if (isset($this->sections['bindings']['bindings']) && is_array($this->sections['bindings']['bindings'])) {
             $this->sections['bindings']['bindings'] = array_values(array_filter(
                 $this->sections['bindings']['bindings'],
@@ -218,7 +218,7 @@ final class ReflectionDocument
      *
      * The Phase A extractors (RouteExtractor, BindingExtractor,
      * EventListenerExtractor, GatePolicyExtractor, MiddlewareExtractor)
-     * read Laravel's runtime state — they see every binding, route,
+     * read Laravel's runtime state - they see every binding, route,
      * listener and gate the booted skeleton has registered, which
      * includes Laravel core (``Illuminate\…``), the framework's own
      * commands and middlewares, and any provider registered by
@@ -228,17 +228,17 @@ final class ReflectionDocument
      * :meth:`applyNamespaceFilter`. When a ``PackageScope`` is active,
      * the extractor calls both:
      *
-     *   1. ``applyScopeFilter($scope)`` — keep only entries whose
+     *   1. ``applyScopeFilter($scope)`` - keep only entries whose
      *      class lives under one of the scope's PSR-4 prefixes, and
      *      whose source file (for closure routes / static analysis)
      *      lives under the scope's ``vendorPath``.
-     *   2. ``applyNamespaceFilter()`` — drop Workbench/Orchestra
+     *   2. ``applyNamespaceFilter()`` - drop Workbench/Orchestra
      *      noise that survived (1) (e.g. when the user package
      *      legitimately references such a class).
      *
      * Closure routes without a file reference, and bindings whose
      * concrete is a closure or eager-resolved instance, pass through
-     * — there is no class to match against. They are uncommon in
+     * - there is no class to match against. They are uncommon in
      * package-shaped code and treated as low-noise.
      */
     public function applyScopeFilter(PackageScope $scope): void
@@ -253,13 +253,13 @@ final class ReflectionDocument
             $this->sections['classes']['items'] = array_values(array_filter(
                 $this->sections['classes']['items'],
                 fn (array $item): bool => $scope->matchesNamespace(
-                    (string) ($item['reflection']['name'] ?? '')
+                    (string) ($item['reflection']['name'] ?? ''),
                 ),
             ));
             $this->sections['classes']['count'] = count($this->sections['classes']['items']);
         }
 
-        // routes section — keep controller routes whose controller is
+        // routes section - keep controller routes whose controller is
         // in scope; keep closure routes whose source file is in scope.
         if (isset($this->sections['routes']['items']) && is_array($this->sections['routes']['items'])) {
             $this->sections['routes']['items'] = array_values(array_filter(
@@ -276,13 +276,13 @@ final class ReflectionDocument
                         return $matchesFile($action['file'] ?? null);
                     }
 
-                    return false;  // unknown kinds — drop conservatively
+                    return false;  // unknown kinds - drop conservatively
                 },
             ));
             $this->sections['routes']['count'] = count($this->sections['routes']['items']);
         }
 
-        // events section — keep events whose class is in scope; within
+        // events section - keep events whose class is in scope; within
         // each, keep listeners whose handler class is in scope.
         if (isset($this->sections['events']['listeners']) && is_array($this->sections['events']['listeners'])) {
             $filtered = [];
@@ -300,6 +300,7 @@ final class ReflectionDocument
                         if (($l['kind'] ?? '') === 'class') {
                             return $scope->matchesNamespace((string) ($l['class'] ?? ''));
                         }
+
                         return false;
                     },
                 ));
@@ -318,6 +319,7 @@ final class ReflectionDocument
                         if (($cb['kind'] ?? '') === 'class') {
                             return $scope->matchesNamespace((string) ($cb['class'] ?? ''));
                         }
+
                         return false;
                     },
                 ));
@@ -326,13 +328,13 @@ final class ReflectionDocument
                 $this->sections['gates_policies']['policies'] = array_values(array_filter(
                     $this->sections['gates_policies']['policies'],
                     fn (array $p): bool => $scope->matchesNamespace(
-                        (string) ($p['policy'] ?? '')
+                        (string) ($p['policy'] ?? ''),
                     ),
                 ));
             }
         }
 
-        // bindings section — keep entries whose concrete class is in
+        // bindings section - keep entries whose concrete class is in
         // scope. Non-class concretes (closures, eager instances) have
         // no class to check; drop them so Laravel-core eager
         // instances (``Illuminate\\…``) don't leak in.
@@ -344,6 +346,7 @@ final class ReflectionDocument
                     if (($concrete['kind'] ?? '') === 'class') {
                         return $scope->matchesNamespace((string) ($concrete['class'] ?? ''));
                     }
+
                     return false;
                 },
             ));
@@ -352,7 +355,7 @@ final class ReflectionDocument
             }
         }
 
-        // middleware section — drop everything not in scope. Middleware
+        // middleware section - drop everything not in scope. Middleware
         // entries reference a class. Closure middleware passes through
         // when bindings did because there's nothing to check; the
         // scope filter would over-prune in that case, but Laravel-core
@@ -366,13 +369,13 @@ final class ReflectionDocument
             $this->sections['middleware']['count'] = count($this->sections['middleware']['items']);
         }
 
-        // static_analysis findings — keep only findings whose
+        // static_analysis findings - keep only findings whose
         // containing class is in scope.
         if (isset($this->sections['static_analysis']['findings']) && is_array($this->sections['static_analysis']['findings'])) {
             $this->sections['static_analysis']['findings'] = array_values(array_filter(
                 $this->sections['static_analysis']['findings'],
                 fn (array $f): bool => $scope->matchesNamespace(
-                    (string) ($f['in_class'] ?? '')
+                    (string) ($f['in_class'] ?? ''),
                 ),
             ));
             $this->sections['static_analysis']['finding_count'] = count($this->sections['static_analysis']['findings']);

@@ -1,4 +1,4 @@
-"""``trace_route`` — single-hop trace of an HTTP route's handling.
+"""``trace_route`` - single-hop trace of an HTTP route's handling.
 
 Given a route (by id, or by ``(method, uri)``), return the full
 request-handling trace: the ordered middleware stack, the
@@ -64,7 +64,7 @@ class TraceRouteOutput(ToolOutput):
     """Structured trace of one route.
 
     Every list is deduplicated and sorted so repeated queries
-    return stable output — important for golden-file tests.
+    return stable output - important for golden-file tests.
     """
 
     route_id: str | None = None
@@ -224,7 +224,7 @@ def _collect_middleware(graph: Graph, route_id: str) -> list[str]:
     Some projects reference middleware by alias (``web``, ``api``) that
     never becomes a first-class node because no class backs it. In that
     case the edge exists but the target node is missing, so we fall back
-    to the edge target's id tail — it's the alias the dev actually wrote.
+    to the edge target's id tail - it's the alias the dev actually wrote.
     """
     names: list[str] = []
     for edge in outgoing(graph, route_id, EdgeKind.HAS_MIDDLEWARE):
@@ -232,7 +232,7 @@ def _collect_middleware(graph: Graph, route_id: str) -> list[str]:
         if target is not None:
             names.append(target.name)
             continue
-        # Dangling target — use the id suffix (e.g. ``middleware:api`` → ``api``).
+        # Dangling target - use the id suffix (e.g. ``middleware:api`` → ``api``).
         _, _, suffix = edge.target.partition(":")
         names.append(suffix or edge.target)
     return names
@@ -261,7 +261,7 @@ def _resolve_handler(
         class_fqn=str_attr(attrs, "class_fqn"),
         method_name=method_node.name,
         action_kind="controller",
-        # Method nodes don't carry ``file`` themselves — that's on the
+        # Method nodes don't carry ``file`` themselves - that's on the
         # parent class node. Resolve via class_fqn so the agent can
         # navigate without a follow-up ``describe_class`` call.
         file=file_for_method_node(graph, method_node),

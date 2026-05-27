@@ -2,8 +2,8 @@
 
 Inserted between :class:`BuildGraphPass` and :class:`ChunkPass`. The
 graph builder produces structural edges (routes, models, listeners…);
-this pass adds the application-logic spine — who actually calls whom
-— that an opinionated reflection extractor can't see.
+this pass adds the application-logic spine - who actually calls whom
+- that an opinionated reflection extractor can't see.
 
 The pass is a **no-op** when ``ctx.lsp`` is ``None``. The pipeline
 factory should pass ``None`` whenever the host has no LSP server
@@ -445,7 +445,7 @@ def _find_symbol_column(file: Path, line: int, symbol: str) -> int | None:
     """Return the 1-indexed column of ``symbol`` on ``line`` in ``file``.
 
     Returns ``None`` when the file can't be opened or the symbol isn't
-    on the named line. Uses a simple substring search — false positives
+    on the named line. Uses a simple substring search - false positives
     are rare for method names because the line is the declaration
     (e.g. ``    public function bar(...)``).
     """

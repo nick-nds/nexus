@@ -56,7 +56,7 @@ final class ClassMapWalker
             // to ``vendor/composer/`` (e.g.
             // ``/var/www/vendor/composer/../../app/Foo.php``), so the
             // original ``$file`` value almost always lives under
-            // ``vendor/`` — using it for vendor detection would flag
+            // ``vendor/`` - using it for vendor detection would flag
             // every class in the project as vendor and exclude it.
             //
             // ``realpath()`` collapses the ``..`` segments and reveals
@@ -73,7 +73,7 @@ final class ClassMapWalker
             // When a PackageScope is active, only entries under
             // ``$scope->vendorPath`` belong in the index. Compute the
             // in-scope flag once and use it as the authoritative
-            // include signal — it overrides every project-mode noise
+            // include signal - it overrides every project-mode noise
             // filter below so a target package whose realpath happens
             // to live under ``/tests/fixtures/`` (e.g. the synthetic
             // sample-package fixture, or any third-party clone the

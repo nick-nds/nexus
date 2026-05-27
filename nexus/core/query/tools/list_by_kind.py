@@ -1,4 +1,4 @@
-r"""``list_by_kind`` — enumerate every class node of a given kind.
+r"""``list_by_kind`` - enumerate every class node of a given kind.
 
 A generic counterpart to :class:`ListRoutesTool` and
 :class:`ListScheduledTasksTool` for the kinds that don't have (and
@@ -21,13 +21,13 @@ with the same primitive.
 Filter shape
 ============
 
-* ``kind`` — required, validated against the closed set the graph
+* ``kind`` - required, validated against the closed set the graph
   builder produces. Misspellings get rejected with a clear error
   message listing the valid values.
-* ``name_glob`` — optional shell-style glob applied to the class
+* ``name_glob`` - optional shell-style glob applied to the class
   short name (case-sensitive, matching Laravel's class-naming
   conventions).
-* ``namespace_prefix`` — optional FQN prefix (``"App\\Modules\\CRM"``)
+* ``namespace_prefix`` - optional FQN prefix (``"App\\Modules\\CRM"``)
   that scopes the response to one module of a DDD-style codebase.
 """
 
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
 
 # Kinds the generic ``list_by_kind`` will enumerate. Routes and
-# scheduled tasks are excluded — they have dedicated tools whose
+# scheduled tasks are excluded - they have dedicated tools whose
 # responses carry richer per-kind metadata (route URI + middleware
 # list, cron expression + target, etc.) that this generic tool can't
 # reasonably surface.
@@ -191,12 +191,12 @@ class ListByKindTool:
 
     name: ClassVar[str] = "list_by_kind"
     description: ClassVar[str] = (
-        "List every class of a given kind in the project — events, "
+        "List every class of a given kind in the project - events, "
         "jobs, notifications, models, controllers, form requests, "
         "policies, observers, listeners, mailables, resources, "
         "commands, casts, service providers, middleware, or generic "
         "classes. "
-        "**Argument:** ``kind`` (string) — one of the kinds listed "
+        "**Argument:** ``kind`` (string) - one of the kinds listed "
         'above, e.g. ``kind="event"``, ``kind="middleware"``. '
         "**Optional filters:** ``name_glob`` (shell glob, e.g. "
         '``name_glob="*Webhook*"``) and ``namespace_prefix`` '
@@ -205,7 +205,7 @@ class ListByKindTool:
         "**Pagination:** ``offset`` (int, default 0) and ``limit`` "
         "(int, default 100, max 500). Check ``has_more`` on the "
         "response and pass ``offset=next_offset`` to fetch subsequent "
-        "pages — ``total`` always reports the full filtered count. "
+        "pages - ``total`` always reports the full filtered count. "
         "Use as a generic discovery primitive when the agent wants "
         "'all events' or 'all controllers under App\\\\Modules\\\\CRM'. "
         "Routes have ``list_routes``; scheduled tasks have "
@@ -239,7 +239,7 @@ class ListByKindTool:
             return ListByKindOutput(
                 kind=payload.kind,
                 error=(
-                    f"Kind {payload.kind!r} has a dedicated tool — try "
+                    f"Kind {payload.kind!r} has a dedicated tool - try "
                     f"``list_routes``, ``list_scheduled_tasks``, or "
                     f"``explore_entity`` instead."
                 ),

@@ -6,7 +6,7 @@ Built-in profiles ship as YAML files under :mod:`nexus.profiles.builtin`.
 converts to :class:`LoadedProfile`, and returns a
 :class:`BuiltInProfiles` mapping.
 
-The loader caches nothing implicitly — callers that want a per-process
+The loader caches nothing implicitly - callers that want a per-process
 singleton should memoise at their own boundary. Keeping the loader
 stateless means tests can rebuild the set cleanly between runs.
 """
@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 class BuiltInProfileError(Exception):
     """Raised when a built-in profile YAML is malformed.
 
-    This is a developer error — built-in profiles are shipped with the
-    package — so a non-Nexus-typed exception would be acceptable, but
+    This is a developer error - built-in profiles are shipped with the
+    package - so a non-Nexus-typed exception would be acceptable, but
     using a typed one lets tests assert on it cleanly.
     """
 

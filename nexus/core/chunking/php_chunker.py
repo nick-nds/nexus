@@ -6,14 +6,14 @@ unit. The walking strategy is deliberately simple: class / interface
 declaration line plus any use-statements but not the method bodies);
 each method declaration becomes its own chunk. Free functions become
 function chunks. Anything that doesn't fit one of those kinds is
-ignored for now — Phase 3's chunker targets the bodies the query
+ignored for now - Phase 3's chunker targets the bodies the query
 engine most cares about.
 
 Why tree-sitter and not nikic/php-parser:
 
 * Tree-sitter is incremental, which matters for the sync path
   (Phase 3 incremental indexing).
-* It's language-agnostic — we get Blade chunking for free via the
+* It's language-agnostic - we get Blade chunking for free via the
   same engine.
 * It's fast and has a stable Python binding.
 
@@ -69,7 +69,7 @@ class PhpChunker:
 
         Convenience wrapper around :meth:`chunk_source` that handles
         the filesystem read. Files that fail to open are returned as
-        empty chunk lists — the caller treats absence as "nothing to
+        empty chunk lists - the caller treats absence as "nothing to
         index" rather than as an error.
         """
         try:
@@ -116,7 +116,7 @@ class PhpChunker:
     ) -> None:
         """Walk a sequence of sibling nodes, threading namespace state.
 
-        Namespace advances forward within a sibling list — a flat
+        Namespace advances forward within a sibling list - a flat
         ``namespace App;`` declaration updates ``current_namespace``
         for every later sibling in the same scope.
         """
@@ -133,7 +133,7 @@ class PhpChunker:
             if next_namespace is not None:
                 current_namespace = next_namespace
 
-    def _walk(  # noqa: PLR0911 — explicit per-type dispatch is the clearest shape
+    def _walk(  # noqa: PLR0911 - explicit per-type dispatch is the clearest shape
         self,
         *,
         node: Node,
@@ -269,8 +269,8 @@ class PhpChunker:
         """Emit a header chunk for a class-like declaration and recurse.
 
         Audit P0-10: the header chunk's ``text`` is a synthesized
-        SUMMARY of the class — its docblock + declaration + property
-        names + method signatures + enum cases — not just the
+        SUMMARY of the class - its docblock + declaration + property
+        names + method signatures + enum cases - not just the
         declaration line. Before this change, the chunk was 1-2 lines
         of ``<?php`` + ``final class Foo`` so embedding had nothing to
         match against; multiple DTOs shared identical vector_scores
@@ -424,8 +424,8 @@ class PhpChunker:
            prose that explains intent).
         2. The class declaration itself (``final readonly class Foo
            extends Bar implements …``).
-        3. A digest of the body — property declarations, method
-           signatures, enum cases — one per line, capped at
+        3. A digest of the body - property declarations, method
+           signatures, enum cases - one per line, capped at
            ``_MAX_BODY_SUMMARY_LINES``.
 
         The byte offsets on the resulting chunk still point at the
@@ -466,7 +466,7 @@ class PhpChunker:
 
         Tree-sitter exposes comments as siblings; we walk backwards
         from ``node`` looking at its previous sibling. A leading
-        line-comment (``// …``) is ignored — only structured
+        line-comment (``// …``) is ignored - only structured
         docblocks are surfaced into the summary, since those are
         what authors use to explain intent.
         """
@@ -488,13 +488,13 @@ class PhpChunker:
         node_type = child.type
 
         if node_type == "property_declaration":
-            # ``private readonly string $name;`` — keep the line as
+            # ``private readonly string $name;`` - keep the line as
             # written, stripping any trailing comment/newline noise.
             text = source[child.start_byte : child.end_byte].decode("utf-8", errors="replace")
             return "    " + text.strip().splitlines()[0]
 
         if node_type == "method_declaration":
-            # Render the SIGNATURE only — up to the opening brace —
+            # Render the SIGNATURE only - up to the opening brace -
             # not the body, because method bodies get their own
             # dedicated chunks.
             body = child.child_by_field_name("body")
@@ -511,7 +511,7 @@ class PhpChunker:
             return "    " + text.strip().splitlines()[0]
 
         if node_type == "use_declaration":
-            # Trait usage inside a class body — important enough to
+            # Trait usage inside a class body - important enough to
             # surface for retrieval ("which classes use HasTimestamps?").
             text = source[child.start_byte : child.end_byte].decode("utf-8", errors="replace")
             return "    " + text.strip().splitlines()[0]

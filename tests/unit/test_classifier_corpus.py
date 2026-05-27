@@ -2,7 +2,7 @@
 
 The classifier is the public-facing API of ``nexus ask``. When it
 mis-routes a question, an agent gets noisy semantic-search results
-instead of the structural answer that already lives in the graph —
+instead of the structural answer that already lives in the graph -
 the textbook hallucination shape we're trying to prevent.
 
 Strategy: lock in the routing decisions for ~60 representative
@@ -29,7 +29,7 @@ from nexus.core.query.classifier import QueryClassifier
 class CorpusCase:
     """One expected classification.
 
-    ``expected_args_subset`` is partial — only the keys listed must
+    ``expected_args_subset`` is partial - only the keys listed must
     match. The classifier may set additional args without failing
     the case.
     """
@@ -58,7 +58,7 @@ ROUTE_HANDLER_CASES: tuple[CorpusCase, ...] = (
     CorpusCase("who handles GET /api/users", "find_handlers"),
 )
 
-#: Route-tracing questions — verb + path or "trace" verb.
+#: Route-tracing questions - verb + path or "trace" verb.
 ROUTE_TRACE_CASES: tuple[CorpusCase, ...] = (
     CorpusCase("GET /api/users", "trace_route", {"method": "GET", "uri": "/api/users"}),
     CorpusCase("POST /login", "trace_route", {"method": "POST", "uri": "/login"}),
@@ -106,7 +106,7 @@ DISPATCHER_CASES: tuple[CorpusCase, ...] = (
     CorpusCase("where is OrderPlaced fired", "find_dispatchers"),
 )
 
-#: Job dispatchers (separate tool — the "Job" suffix is the trigger).
+#: Job dispatchers (separate tool - the "Job" suffix is the trigger).
 JOB_DISPATCHER_CASES: tuple[CorpusCase, ...] = (
     CorpusCase("who dispatches SendEmailJob", "find_jobs_dispatching"),
     CorpusCase("who queues ProcessOrderJob", "find_jobs_dispatching"),
@@ -130,7 +130,7 @@ DESCRIBE_CLASS_CASES: tuple[CorpusCase, ...] = (
     CorpusCase("show class App\\Auth\\LandlordAuthenticator", "describe_class"),
 )
 
-#: Model context — model FQN should preferred over generic describe.
+#: Model context - model FQN should preferred over generic describe.
 MODEL_CONTEXT_CASES: tuple[CorpusCase, ...] = (
     CorpusCase(
         "App\\Models\\User",
@@ -155,7 +155,7 @@ BINDING_CASES: tuple[CorpusCase, ...] = (
     CorpusCase("bound to App\\Contracts\\Repository", "resolve_binding"),
 )
 
-#: Off-topic / nonsense — must not be confidently routed to a
+#: Off-topic / nonsense - must not be confidently routed to a
 #: structural tool.  Either ``semantic_search`` (acceptable today)
 #: or, after subtask 2.3 lands, an explicit ``no_confident_match``.
 OFF_TOPIC_CASES: tuple[CorpusCase, ...] = (
@@ -164,7 +164,7 @@ OFF_TOPIC_CASES: tuple[CorpusCase, ...] = (
     CorpusCase("what is the meaning of life", "semantic_search", min_confidence=0.0),
 )
 
-#: Discovery questions — single short name with a verb. Routes to
+#: Discovery questions - single short name with a verb. Routes to
 #: ``explore_entity`` so the agent can find a candidate FQN before
 #: drilling in with ``describe_class`` / ``get_model_context``.
 EXPLORE_ENTITY_CASES: tuple[CorpusCase, ...] = (
@@ -176,7 +176,7 @@ EXPLORE_ENTITY_CASES: tuple[CorpusCase, ...] = (
     CorpusCase("show me the Invoice model", "explore_entity", {"name": "Invoice"}),
 )
 
-#: Fuzzy flow discovery — natural-language phrasings without a URI.
+#: Fuzzy flow discovery - natural-language phrasings without a URI.
 #: Routes to ``describe_flow`` so the tool itself does the URI/name/
 #: handler resolution.
 DESCRIBE_FLOW_CASES: tuple[CorpusCase, ...] = (
@@ -259,7 +259,7 @@ def test_classifier_routes_to_expected_tool(
 ) -> None:
     """The classifier picks the expected tool for this question.
 
-    Per-case test so failures show up grouped in the test report — a
+    Per-case test so failures show up grouped in the test report - a
     single parametrised id like ``find_handlers::what handles login``
     points directly at the gap.
     """

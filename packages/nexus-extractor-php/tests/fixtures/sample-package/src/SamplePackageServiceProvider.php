@@ -6,7 +6,6 @@ namespace NexusFixtures\Sample;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use NexusFixtures\Sample\Console\Commands\SampleCommand;
 use NexusFixtures\Sample\Contracts\SampleService;

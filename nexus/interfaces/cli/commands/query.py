@@ -2,7 +2,7 @@
 
 The Phase 4 :class:`ToolRegistry` is the single source of truth for
 every question-answering tool. Rather than hand-write a Click
-subcommand per tool — and keep the two in sync forever — the CLI
+subcommand per tool - and keep the two in sync forever - the CLI
 iterates the registry at import time and generates one subcommand
 per tool. Each tool's Pydantic ``input_model`` drives the subcommand's
 options: field names become option flags, annotations become Click
@@ -14,13 +14,13 @@ Design notes
 * The registry walk happens **once at module import time**. That's
   the same lifecycle as Click's own decorators, so adding a tool
   means editing one file in ``nexus.core.query.tools`` and rerunning
-  the CLI — no rebuild, no plugin dance.
+  the CLI - no rebuild, no plugin dance.
 * The subcommand is generated even if the tool input model is empty
   (e.g. ``list_routes``); Click is happy with zero-option commands.
 * The generator handles the shapes our tools actually use today
   (``str``, ``str | None``, ``int``, ``bool``). More exotic field
   types (lists, dicts, enums) are rejected loudly so we never
-  silently produce a broken command — a new tool needs an opinion
+  silently produce a broken command - a new tool needs an opinion
   about how its fancy input surfaces in the CLI.
 """
 
@@ -66,7 +66,7 @@ def _iter_options(
 
     Resolves ``str | None`` / ``int | None`` unions into the underlying
     primitive so Click users can pass plain values. Raises
-    :class:`RuntimeError` if a field uses an unsupported shape — that
+    :class:`RuntimeError` if a field uses an unsupported shape - that
     way a broken tool surfaces at import time rather than at runtime.
     """
     out: list[tuple[str, FieldInfo, Any, bool]] = []
@@ -129,13 +129,13 @@ def _make_callback(tool_name: str) -> Any:
             raise click.exceptions.Exit(2) from e
         except ToolNotFoundError as e:
             # Should be impossible at runtime because we generate from
-            # the registry — but belt-and-braces.
+            # the registry - but belt-and-braces.
             print_error(cli_ctx, str(e))
             raise click.exceptions.Exit(2) from e
         # Read project metadata so the renderer can attach the
         # attribution block/footer for package-kind projects (decision #10).
         # read_meta() returns None when no meta.json exists yet; render()
-        # handles that gracefully — project-kind output is unchanged.
+        # handles that gracefully - project-kind output is unchanged.
         meta = cli_ctx.storage().read_meta()
         render(cli_ctx, result, meta=meta)
 

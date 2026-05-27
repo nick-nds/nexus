@@ -1,6 +1,6 @@
 # Issue chooser configuration.
 #
-# - blank_issues_enabled: false — every report comes through one of the
+# - blank_issues_enabled: false - every report comes through one of the
 #   structured templates so we capture the right context up front.
 # - contact_links: surfaced above the template list, useful for
 #   redirecting questions and discussions away from the issue tracker.
@@ -17,5 +17,5 @@ contact_links:
   - name: 📖 Documentation
     url: https://github.com/nexus-laravel/nexus/blob/main/docs/getting-started.md
     about: |
-      Check the docs first — installation, configuration, profiles, and the
+      Check the docs first - installation, configuration, profiles, and the
       error-code taxonomy are all there.

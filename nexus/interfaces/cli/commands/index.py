@@ -1,15 +1,15 @@
-"""``nexus index`` — drive the Phase 3 indexing pipeline from the CLI.
+"""``nexus index`` - drive the Phase 3 indexing pipeline from the CLI.
 
 Four subcommands:
 
-* ``rebuild`` — clear any existing storage and run the full pipeline.
-* ``sync`` — re-run the pipeline, relying on Phase 3's content-hash
+* ``rebuild`` - clear any existing storage and run the full pipeline.
+* ``sync`` - re-run the pipeline, relying on Phase 3's content-hash
   embedding cache to skip unchanged chunks. (True incremental graph
   updates are a Phase 3.5 follow-up; ``sync`` today is "rebuild with
   cache", which matches the warm-run measurements in STATUS.md.)
-* ``status`` — print the persisted ``meta.json``: last-indexed time,
+* ``status`` - print the persisted ``meta.json``: last-indexed time,
   node/edge counts, embedder id.
-* ``clear`` — wipe the project's storage directory after confirmation.
+* ``clear`` - wipe the project's storage directory after confirmation.
 
 Pipeline assembly, LSP resolution, cost estimation, profile detection,
 progress-reporter selection, and vectors-directory reset live in
@@ -41,7 +41,7 @@ def index_group() -> None:
 
 
 # ---------------------------------------------------------------------------
-# rebuild / sync — the two pipeline-driving commands
+# rebuild / sync - the two pipeline-driving commands
 # ---------------------------------------------------------------------------
 
 
@@ -88,7 +88,7 @@ def index_group() -> None:
     default="auto",
     metavar="CHOICE",
     help=(
-        "LSP server selection: 'auto' (default — detect intelephense or "
+        "LSP server selection: 'auto' (default - detect intelephense or "
         "phpactor on PATH or in Mason), 'none' (skip CALLS enrichment), or "
         "an explicit binary name/absolute path. With 'auto', the pipeline "
         "still succeeds when no LSP is found, but the graph will not "
@@ -160,7 +160,7 @@ def rebuild_command(
     default="auto",
     metavar="CHOICE",
     help=(
-        "LSP server selection: 'auto' (default — detect intelephense or "
+        "LSP server selection: 'auto' (default - detect intelephense or "
         "phpactor on PATH or in Mason), 'none' (skip CALLS enrichment), or "
         "an explicit binary name/absolute path. With 'auto', the pipeline "
         "still succeeds when no LSP is found, but the graph will not "
@@ -213,7 +213,7 @@ def sync_command(
 
 
 # ---------------------------------------------------------------------------
-# status / clear — read-side + destructive
+# status / clear - read-side + destructive
 # ---------------------------------------------------------------------------
 
 

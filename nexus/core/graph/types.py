@@ -48,7 +48,7 @@ class NodeKind(StrEnum):
     # Every method on every class (controllers, models, services, jobs,
     # listeners, …). The audit (P0-3) showed that hard-coding
     # ``method`` on every method was misleading for non-HTTP
-    # packages — most Laravel-extras libraries have zero controllers.
+    # packages - most Laravel-extras libraries have zero controllers.
     METHOD = "method"
 
     # Models and persistence
@@ -71,7 +71,7 @@ class NodeKind(StrEnum):
     BINDING = "binding"
     SERVICE_PROVIDER = "service_provider"
 
-    # Package bootstrap / facade entry point — e.g.
+    # Package bootstrap / facade entry point - e.g.
     # ``Synthesq\Relay\Relay::boot()``. Detected by ClassClassifier
     # when a class has a public static ``boot()`` declared on itself
     # and is neither a Model nor a ServiceProvider. Audit P2-20.
@@ -156,7 +156,7 @@ class Node:
         id: Globally unique within the graph. The graph builder uses
             stable, deterministic ids derived from the underlying entity
             (e.g. ``class:App\Models\User``, ``route:GET:/api/users``)
-            so the same input produces the same ids on every build —
+            so the same input produces the same ids on every build -
             the foundation of the golden-diff testing strategy.
         kind: One of :class:`NodeKind`.
         name: A short human-readable label (the class short name, the

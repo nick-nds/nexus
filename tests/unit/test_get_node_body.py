@@ -54,13 +54,13 @@ class _FakeVectorStore:
     def __init__(self, records: list[_FakeRecord]) -> None:
         self._records = records
 
-    def upsert(self, items) -> None:  # pragma: no cover — unused
+    def upsert(self, items) -> None:  # pragma: no cover - unused
         raise NotImplementedError
 
-    def delete(self, ids) -> None:  # pragma: no cover — unused
+    def delete(self, ids) -> None:  # pragma: no cover - unused
         raise NotImplementedError
 
-    def search(self, query, *, top_k):  # pragma: no cover — unused
+    def search(self, query, *, top_k):  # pragma: no cover - unused
         raise NotImplementedError
 
     def count(self) -> int:
@@ -86,7 +86,7 @@ class _FakeGraphStore:
         return self._graph
 
     # Not used by get_node_body but required by structural typing in
-    # some call sites — kept as no-ops so the duck typing holds.
+    # some call sites - kept as no-ops so the duck typing holds.
     def initialise(self) -> None:  # pragma: no cover
         pass
 
@@ -210,7 +210,7 @@ def graph(php_file: Path) -> Graph:
     g.add_edge(Edge(source=rules_id, target=class_id, kind=EdgeKind.PART_OF))
     g.add_edge(Edge(source=messages_id, target=class_id, kind=EdgeKind.PART_OF))
 
-    # A route node — has no source location at all, used to verify
+    # A route node - has no source location at all, used to verify
     # the "node has no source" error path.
     g.add_node(
         Node(

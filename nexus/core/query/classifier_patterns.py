@@ -36,7 +36,7 @@ FQN = re.compile(
 MODEL_NAMESPACE_HINT = re.compile(r"\\Models?\\", re.IGNORECASE)
 
 # ---------------------------------------------------------------------------
-# Phrase patterns — ordered to match the classifier's rule cascade
+# Phrase patterns - ordered to match the classifier's rule cascade
 # ---------------------------------------------------------------------------
 
 # A listener-of style phrase. Captures the noun after "listens to",
@@ -101,14 +101,14 @@ LIST_ROUTES = re.compile(
     re.IGNORECASE,
 )
 
-# "list events" / "show all jobs" / "what notifications exist" — the
+# "list events" / "show all jobs" / "what notifications exist" - the
 # kind-scoped enumeration for any singular/plural class kind. Kept
 # separate from ``LIST_ROUTES`` so the more-specific routes rule
 # stays a clean shortcut. ``LIST_BY_KIND_NOUNS`` maps the captured
 # noun (singular OR plural) back to the canonical NodeKind value.
 #
 # The filler between verb and noun is restricted to articles /
-# quantifiers (``all``, ``the``, ``me all``, ``me the`` …) — NOT
+# quantifiers (``all``, ``the``, ``me all``, ``me the`` …) - NOT
 # arbitrary words. Otherwise ``"show me the Invoice model"`` would
 # slurp ``"Invoice"`` as filler and route to ``list_by_kind(model)``
 # instead of ``explore_entity(Invoice)``. The trailing ``\s*\??$``
@@ -128,7 +128,7 @@ LIST_BY_KIND = re.compile(
 
 #: Maps a captured noun (lower-cased, after collapsing whitespace) to
 #: the corresponding ``NodeKind`` value. We keep the table alongside
-#: the regex because it's a UX surface — the kind names users type
+#: the regex because it's a UX surface - the kind names users type
 #: don't always match the enum names exactly (``form requests`` vs
 #: ``form_request``, ``policies`` vs ``policy``).
 LIST_BY_KIND_NOUNS: dict[str, str] = {
@@ -191,7 +191,7 @@ REQUEST_FLOW = re.compile(
     re.IGNORECASE,
 )
 
-# Fuzzy flow discovery — natural-language phrasings where the user
+# Fuzzy flow discovery - natural-language phrasings where the user
 # doesn't have a precise URI. ``_match_request_flow`` runs first, so
 # anything containing ``flow for /...`` already routed there; this
 # rule catches the verb-phrase forms:
@@ -210,7 +210,7 @@ DESCRIBE_FLOW = re.compile(
     re.IGNORECASE,
 )
 
-# Trailing filler words on a captured fuzzy-flow target — stripped
+# Trailing filler words on a captured fuzzy-flow target - stripped
 # so ``"the lead creation flow"`` and ``"order placement"`` both
 # resolve cleanly to their underlying nouns.
 FLOW_NOISE_SUFFIX = re.compile(
@@ -236,7 +236,7 @@ EXPLORE_ENTITY = re.compile(
     re.IGNORECASE,
 )
 
-# Words that — when they appear at the end of the captured target —
+# Words that - when they appear at the end of the captured target -
 # don't change the lookup but tell us the user is talking about a
 # class. We strip them so ``"Product entity"`` and ``"Product model"``
 # both resolve to ``"Product"``.

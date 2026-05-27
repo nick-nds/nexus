@@ -215,7 +215,7 @@ class TestResponseBudget:
 
 class TestToolProtocol:
     def test_registered_tool_satisfies_protocol_structurally(self) -> None:
-        # Not an isinstance check — the protocol is just a shape.
+        # Not an isinstance check - the protocol is just a shape.
         # We assert that _EchoTool has every attribute the engine
         # and the registry need.
         assert _EchoTool.name == "echo"

@@ -2,7 +2,7 @@
 
 Called once from the pipeline bootstrap before user plugins loaded
 via entry points. A user plugin that wants to replace a built-in
-backend can register the same name — the registry rejects
+backend can register the same name - the registry rejects
 duplicates, so the pipeline's registration order is the one place
 to tweak if that needs to change.
 """

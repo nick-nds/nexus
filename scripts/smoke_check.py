@@ -145,7 +145,7 @@ def check_reflection_sample_loads() -> None:
         raise SystemExit(f"Missing fixture: {sample}")
 
     # Run the load via ``uv run python -c`` so the smoke check itself
-    # doesn't import nexus — keeps the script self-contained and
+    # doesn't import nexus - keeps the script self-contained and
     # mirrors how a downstream user would invoke the package.
     code = (
         "from pathlib import Path; "

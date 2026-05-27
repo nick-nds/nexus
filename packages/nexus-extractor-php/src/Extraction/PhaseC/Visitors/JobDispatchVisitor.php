@@ -111,7 +111,7 @@ final class JobDispatchVisitor extends ContextTrackingVisitor
         }
 
         // SomeJob::dispatch(...) and ::dispatchSync, ::dispatchAfterResponse
-        // Skip Laravel facades — a call like `Event::dispatch(Foo::class)`
+        // Skip Laravel facades - a call like `Event::dispatch(Foo::class)`
         // is handled by EventDispatchVisitor, not this one.
         if (in_array($method, ['dispatch', 'dispatchsync', 'dispatchafterresponse', 'dispatchnow'], true)
             && ! LaravelFacades::isDispatchFacade($className)) {

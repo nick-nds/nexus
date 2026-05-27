@@ -2,7 +2,7 @@
 
 Drives the full indexing pipeline against a real Laravel project
 fixture: runs the PHP extractor (via docker exec into an already-
-running container — see ``internal_docs/STATUS.md`` for the setup),
+running container - see ``internal_docs/STATUS.md`` for the setup),
 builds the graph, chunks the source, and (optionally) embeds with
 fastembed. Writes everything to a fresh ``~/.nexus/projects/<slug>/``
 under a temp directory so it doesn't collide with anything the

@@ -4,7 +4,7 @@ Uses the :class:`~nexus.core.chunking.PhpChunker` against every
 project-scope file recorded in the reflection document's ``classes``
 section. We trust the reflection for file discovery because Phase 1's
 ``ClassMapWalker`` already handled vendor exclusion, the ``tests/``
-skip default, and autoload resolution — duplicating that walking
+skip default, and autoload resolution - duplicating that walking
 here would risk diverging behaviour.
 
 Files that fail to open or parse are recorded as warnings and the
@@ -54,7 +54,7 @@ class ChunkPass:
         # (``src/Foo.php``), so we resolve them against
         # ``ctx.project_path`` here rather than trusting the CLI's CWD
         # to match the project root. Package-mode indexing exposed this
-        # — the user typically runs ``nexus package index`` from outside
+        # - the user typically runs ``nexus package index`` from outside
         # the target package, and bare relative paths would silently
         # produce zero chunks.
         project_root = ctx.project_path

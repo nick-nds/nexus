@@ -4,20 +4,20 @@ Given a project directory and a set of built-in profiles, the detector
 walks each profile's detection signals, evaluates them against the
 project tree, and returns a ranked :class:`ProfileMatch` list.
 
-The detector is intentionally cheap — it only touches the filesystem
+The detector is intentionally cheap - it only touches the filesystem
 and ``composer.json``. No PHP invocation, no class loading, no
 container boot. The user can be shown a ranked profile list in a few
 hundred milliseconds even on the helm-v7-scale projects.
 
 Signal kinds supported in v1:
 
-* ``path_exists`` — the project contains a directory matching a glob.
+* ``path_exists`` - the project contains a directory matching a glob.
   Used to detect DDD module layouts, action-based Laravel projects, etc.
-* ``composer_requires`` — the project's ``composer.json`` pulls in a
+* ``composer_requires`` - the project's ``composer.json`` pulls in a
   specific package (e.g. ``filament/filament``).
-* ``class_suffix_frequency`` — at least N files in the ``app/`` tree
+* ``class_suffix_frequency`` - at least N files in the ``app/`` tree
   end with a given suffix (e.g. ``Handler``).
-* ``interface_usage`` — at least one PHP file contains an
+* ``interface_usage`` - at least one PHP file contains an
   ``implements <Interface>`` reference. Cheap grep-style check,
   deliberately not AST-based.
 """
@@ -27,7 +27,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from pathlib import Path  # noqa: TC003 — runtime dataclass field type
+from pathlib import Path  # noqa: TC003 - runtime dataclass field type
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -63,7 +63,7 @@ class SignalEvaluator:
     """
 
     project_path: Path
-    # Cached inputs — computed lazily on first access.
+    # Cached inputs - computed lazily on first access.
     _composer: dict[str, object] | None = None
     _app_files: list[Path] | None = None
 

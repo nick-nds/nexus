@@ -40,7 +40,7 @@ def bool_attr(attrs: dict[str, Any], key: str, *, default: bool = False) -> bool
 def int_attr(attrs: dict[str, Any], key: str) -> int | None:
     """Return ``attrs[key]`` if it's an int-ish value, else ``None``.
 
-    Excludes booleans even though they're a subclass of ``int`` —
+    Excludes booleans even though they're a subclass of ``int`` -
     we don't want ``True`` / ``False`` showing up as line numbers.
     """
     value = attrs.get(key)
@@ -165,7 +165,7 @@ def fqn_from_class_id(graph: Graph, class_node_id: str) -> str:
     id rather than using ``node.name`` so project classes and vendor
     classes alike surface as full FQNs.
 
-    Falls back to ``node.name`` for non-``class:`` ids (defensive —
+    Falls back to ``node.name`` for non-``class:`` ids (defensive -
     no edge consumer should pass one in today, but keeps the call
     resilient to id-scheme changes).
     """

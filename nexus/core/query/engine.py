@@ -1,4 +1,4 @@
-"""QueryEngine façade — the public entry point for Phase 4.
+"""QueryEngine façade - the public entry point for Phase 4.
 
 ``QueryEngine.query(name, payload)`` is what the CLI and MCP
 server call. It does four things in sequence:
@@ -12,8 +12,8 @@ server call. It does four things in sequence:
 4. Pass the output through the :class:`ResponseBudget` and
    return the trimmed result.
 
-Everything else — the classifier, the auto-generated CLI/MCP
-surface — wraps this single entry point.
+Everything else - the classifier, the auto-generated CLI/MCP
+surface - wraps this single entry point.
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ class QueryEngine:
 
         ``trace`` is optional. When supplied, every ``query()`` call
         emits a ``tool_executed`` record. Pass :class:`NullQueryTrace`
-        (or omit) to disable tracing — the engine still records its
+        (or omit) to disable tracing - the engine still records its
         structlog event either way.
         """
         self._registry = registry
@@ -159,7 +159,7 @@ def _estimate_result_size(output: ToolOutput) -> int | None:
     For most tools, the meaningful number is the length of the
     primary list field (``routes``, ``hits``, ``rows``, etc.). We
     pick the first list-shaped attribute on the output and report
-    its length. ``None`` when the output exposes no list — the
+    its length. ``None`` when the output exposes no list - the
     record reader treats that as "not applicable".
     """
     for field in output.__class__.model_fields:

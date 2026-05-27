@@ -1,6 +1,6 @@
 """Click root group for the ``nexus`` command-line interface.
 
-The root group is deliberately thin — it does exactly three things:
+The root group is deliberately thin - it does exactly three things:
 
 1. Define the global flags (``--storage-root``, ``--slug``,
    ``--format``, ``--color``/``--no-color``, ``--verbose``,
@@ -13,7 +13,7 @@ The root group is deliberately thin — it does exactly three things:
 
 Every subcommand lives in its own module under
 ``nexus.interfaces.cli.commands`` and is registered here rather than
-via plugin discovery — the CLI tree is part of the v1.0 contract and
+via plugin discovery - the CLI tree is part of the v1.0 contract and
 the registration list is the single source of truth.
 """
 
@@ -84,7 +84,7 @@ def main(
     verbose: bool,
     yes: bool,
 ) -> None:
-    """Nexus — Laravel code intelligence for AI agents."""
+    """Nexus - Laravel code intelligence for AI agents."""
     # Route structured logs to stderr so stdout stays a clean data
     # channel callers can pipe into jq and friends. ``--verbose``
     # raises the level from WARNING (default) to DEBUG.

@@ -4,7 +4,7 @@
 
 ## What it detects
 
-Vanilla Laravel MVC projects with no DDD, CQRS, or action-based conventions — the majority of Laravel applications in the wild. This is also the **fallback profile** used when no more-specific profile scores above zero.
+Vanilla Laravel MVC projects with no DDD, CQRS, or action-based conventions - the majority of Laravel applications in the wild. This is also the **fallback profile** used when no more-specific profile scores above zero.
 
 ## Detection signals
 

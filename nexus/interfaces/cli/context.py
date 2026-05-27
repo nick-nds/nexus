@@ -7,7 +7,7 @@ resolved display settings (TTY / JSON / pretty).
 
 Commands receive the context through Click's ``pass_obj`` mechanism,
 never through module globals. That keeps the tests trivially
-parameterisable — they just build a context with a stub storage and
+parameterisable - they just build a context with a stub storage and
 call ``runner.invoke(..., obj=ctx)``.
 """
 

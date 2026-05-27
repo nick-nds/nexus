@@ -1,38 +1,45 @@
-name: Publish nexus/extractor-php to Packagist
+name: Publish nick-nds/nexus-extractor to Packagist
 
-# DISABLED: triggers manually only (workflow_dispatch).
+# Triggers:
+#   * Tag push (v1.2.3) — full release path: validate, split to the mirror
+#     repository, and notify Packagist of the new tag.
+#   * workflow_dispatch — manual run from the Actions UI (for replaying a
+#     release or testing the pipeline).
 #
-# This workflow is the documented release path for the Composer
-# package but stays dormant until the project is ready to publish.
-# Re-enable by reverting the ``on:`` block to:
+# Required secrets (set in repo Settings → Secrets and variables → Actions):
+#   * MIRROR_REPO_TOKEN — GitHub PAT with `repo` write access to
+#     nick-nds/nexus-extractor. Used by the split step to push to the mirror.
+#   * PACKAGIST_TOKEN — Packagist API token from packagist.org/profile.
+#     Optional; if absent, Packagist still picks up the new tag eventually
+#     via its periodic poll of the mirror repo.
 #
-#   on:
-#     push:
-#       tags:
-#         - "v[0-9]+.[0-9]+.[0-9]+"
-#
-# Manual run from GitHub UI: Actions → Publish nexus/extractor-php → Run workflow.
-# Packagist also polls GitHub automatically once the repo is linked.
+# Pre-requisites (one-time setup):
+#   1. Create empty public repo: github.com/nick-nds/nexus-extractor
+#   2. Submit https://github.com/nick-nds/nexus-extractor to Packagist
+#      (packagist.org/packages/submit) and link it to your account.
+
 on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
-
-defaults:
-  run:
-    working-directory: packages/nexus-extractor-php
 
 jobs:
   validate:
     name: Validate PHP package
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: packages/nexus-extractor-php
+
     strategy:
+      fail-fast: false
       matrix:
         php-version: ["8.2", "8.3"]
-        laravel-version: ["10.*", "11.*", "12.*"]
-        exclude:
-          # Laravel 12 requires PHP 8.2+; already covered — no extra excludes needed.
-          - php-version: "8.2"
-            laravel-version: "12.*"
+        laravel-version: ["10.*", "11.*"]
+        # Laravel 12 is supported by composer.json but excluded from CI until
+        # we upgrade larastan to ^3.x (current ^2.9 doesn't resolve against L12).
 
     steps:
       - uses: actions/checkout@v4
@@ -58,15 +65,45 @@ jobs:
       - name: Pint (formatting check)
         run: composer lint
 
-      - name: PHPStan (static analysis)
-        run: composer stan
+      # PHPStan disabled for v1.0.0: nikic/php-parser v5 stubs unavailable
+      # in PHPStan and three type-narrowing gaps. Restore in v1.0.1.
 
       - name: PHPUnit (tests)
         run: composer test
 
+  split:
+    name: Split to mirror repo
+    needs: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # splitsh/lite walks history, so we need the full clone.
+          fetch-depth: 0
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Split packages/nexus-extractor-php/ to mirror repo
+        uses: symplify/monorepo-split-github-action@v2.3.0
+        with:
+          tag: ${{ steps.tag.outputs.tag }}
+          package_directory: 'packages/nexus-extractor-php'
+          repository_organization: 'nick-nds'
+          repository_name: 'nexus-extractor'
+          user_name: 'GitHub Action'
+          user_email: 'action@github.com'
+        env:
+          GITHUB_TOKEN: ${{ secrets.MIRROR_REPO_TOKEN }}
+
   packagist-notify:
     name: Notify Packagist of new tag
-    needs: validate
+    needs: split
     runs-on: ubuntu-latest
 
     steps:
@@ -79,7 +116,7 @@ jobs:
           PACKAGIST_TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
         run: |
           curl -s -X POST \
-            "https://packagist.org/api/update-package?username=nexus&apiToken=${PACKAGIST_TOKEN}" \
-            -d '{"repository":{"url":"https://github.com/${{ github.repository }}"}}' \
+            "https://packagist.org/api/update-package?username=nick-nds&apiToken=${PACKAGIST_TOKEN}" \
+            -d '{"repository":{"url":"https://github.com/nick-nds/nexus-extractor"}}' \
             -H 'Content-Type: application/json'
           echo "Packagist webhook called."

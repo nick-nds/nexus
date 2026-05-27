@@ -80,7 +80,7 @@ class TestStoreAccessors:
 
         storage.close()
 
-        # Internal handles are cleared — next accessor call builds fresh.
+        # Internal handles are cleared - next accessor call builds fresh.
         assert storage._graph is None
         assert storage._vectors is None
 

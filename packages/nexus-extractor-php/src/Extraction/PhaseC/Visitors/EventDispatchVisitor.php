@@ -71,7 +71,7 @@ final class EventDispatchVisitor extends ContextTrackingVisitor
         $methodName = $node->name->toLowerString();
         $className = $node->class->toString();
 
-        // Event::dispatch(...) — Laravel facade
+        // Event::dispatch(...) - Laravel facade
         if ($methodName === 'dispatch' && in_array($className, ['Event', '\\Event', 'Illuminate\\Support\\Facades\\Event'], true)) {
             if ($node->args !== []) {
                 $arg = $node->args[0];
@@ -86,7 +86,7 @@ final class EventDispatchVisitor extends ContextTrackingVisitor
             return;
         }
 
-        // SomeEvent::dispatch(...) — Dispatchable trait
+        // SomeEvent::dispatch(...) - Dispatchable trait
         // Skip Laravel facades so we don't double-count `Bus::dispatch` etc.
         if ($methodName === 'dispatch' && ! LaravelFacades::isDispatchFacade($className)) {
             $this->emit('event_dispatch', $className, $node, ['form' => 'trait']);

@@ -28,7 +28,7 @@ use PhpParser\Node\Scalar\String_;
  * like ``"user.{$id}"`` resolve to the prefix ``"user."`` plus a
  * meta hint that the key is composed; agents looking for "what
  * reads/writes user.* keys" still find them via prefix match. Fully
- * dynamic keys (a bare variable) are skipped — there's no useful
+ * dynamic keys (a bare variable) are skipped - there's no useful
  * static target.
  */
 final class CacheCallVisitor extends ContextTrackingVisitor
@@ -86,7 +86,7 @@ final class CacheCallVisitor extends ContextTrackingVisitor
 
         [$key, $form] = $this->resolveKey($first->value);
         if ($key === null) {
-            // Fully dynamic key — nothing structural to record.
+            // Fully dynamic key - nothing structural to record.
             return;
         }
 
@@ -101,6 +101,7 @@ final class CacheCallVisitor extends ContextTrackingVisitor
         if (in_array($method, self::WRITE_METHODS, true)) {
             return 'cache_write';
         }
+
         return null;
     }
 
@@ -109,8 +110,8 @@ final class CacheCallVisitor extends ContextTrackingVisitor
      *
      * Returns ``[$key, $form]`` where ``$form`` is one of:
      *
-     * * ``"literal"`` — a plain string literal
-     * * ``"prefix"`` — a concatenation whose left operand is literal;
+     * * ``"literal"`` - a plain string literal
+     * * ``"prefix"`` - a concatenation whose left operand is literal;
      *   the captured key is just the literal prefix and the agent
      *   should treat it as a glob ``<prefix>*``.
      *

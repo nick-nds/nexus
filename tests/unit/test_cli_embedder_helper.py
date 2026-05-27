@@ -42,4 +42,4 @@ def test_returns_embedder_when_provider_is_known(tmp_path: Path) -> None:
     embedder = build_embedder_from_config(tmp_path)
 
     assert embedder is not None
-    assert embedder.model_id  # smoke check — every embedder has an id
+    assert embedder.model_id  # smoke check - every embedder has an id

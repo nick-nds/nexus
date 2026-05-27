@@ -62,7 +62,7 @@ jobs:
 
       # The LSP integration tests under ``tests/integration/test_lsp_client.py``
       # skip when no LSP binary is on PATH. Without intelephense we lose
-      # ~25 lines of coverage in nexus/adapters/lsp/lsp_client.py — enough
+      # ~25 lines of coverage in nexus/adapters/lsp/lsp_client.py - enough
       # to drop the project under the 90% gate. Installing it costs ~5s.
       - name: Set up Node.js (for intelephense)
         uses: actions/setup-node@v4
@@ -102,7 +102,7 @@ jobs:
     # Phase 5 test strategy calls for an end-to-end smoke test exercising
     # the full ``pip install`` → ``nexus init`` → query path. The "full"
     # version drives ``nexus index rebuild`` against a sample Laravel app
-    # — but that fixture (``tests/fixtures/sample-laravel-app/``) doesn't
+    # - but that fixture (``tests/fixtures/sample-laravel-app/``) doesn't
     # exist yet, so this is the **lite** variant: it exercises the CLI
     # surface and the Python ingestion path (via a known reflection.json
     # from ``tests/fixtures/reflection-samples/``), skipping the PHP

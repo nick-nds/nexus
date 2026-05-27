@@ -93,7 +93,7 @@ def _add_route(
 
 
 def _make_graph() -> Graph:
-    """Mini app with three different routes — leads, orders, products."""
+    """Mini app with three different routes - leads, orders, products."""
     g = Graph()
     _add_route(
         g,

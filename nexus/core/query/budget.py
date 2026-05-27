@@ -23,7 +23,7 @@ Design: budget is per-run, not per-tool
 The default budget lives on the :class:`QueryContext` so callers
 can temporarily lower it (interactive CLI in a narrow terminal)
 or raise it (batch runs that write to disk). Tools don't read the
-budget directly — they produce the full structured output and the
+budget directly - they produce the full structured output and the
 engine applies the budget as a post-step.
 """
 
@@ -63,7 +63,7 @@ class ResponseBudget:
         """Return a trimmed copy of ``output`` if anything was too big.
 
         Walks only the fields declared on the output model as
-        trimmable (via ``_trimmable_lists`` class attribute — a
+        trimmable (via ``_trimmable_lists`` class attribute - a
         tuple of field names). For each one, if the list exceeds
         :attr:`max_list_items`, build a new instance with the
         capped list and a note added to ``truncated_lists``.

@@ -146,7 +146,7 @@ class TestIterRecords:
 
         records = list(store.iter_records())
 
-        # Order is unspecified by the protocol — sort to compare.
+        # Order is unspecified by the protocol - sort to compare.
         records.sort(key=lambda r: r.id)
         assert [r.id for r in records] == ["a", "b", "c"]
         payloads = {r.id: r.payload for r in records}

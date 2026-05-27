@@ -12,11 +12,11 @@ use Throwable;
 /**
  * Pure-data runner for the extraction pipeline. Both ExtractCommand and
  * ExtractPackageCommand consume it; the runner owns no console I/O of
- * its own — progress reporting is on the ExtractionContext.
+ * its own - progress reporting is on the ExtractionContext.
  *
  * Returns an exit code:
- *   0 — success (warnings allowed)
- *   1 — fatal error (pipeline crash, write failure, structured ExtractionError)
+ *   0 - success (warnings allowed)
+ *   1 - fatal error (pipeline crash, write failure, structured ExtractionError)
  */
 final class ExtractionRunner
 {

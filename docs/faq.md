@@ -6,7 +6,7 @@
 
 ### Is Nexus free?
 
-Yes. The core tool — indexing, all 15 query tools, MCP server, CLI — is MIT-licensed and free forever.
+Yes. The core tool - indexing, all 15 query tools, MCP server, CLI - is MIT-licensed and free forever.
 
 A Pro tier is planned for teams (see [the open-core strategy](https://github.com/nexus-php/nexus)) but is not required to use any of the features described in the v1.0 documentation.
 
@@ -16,10 +16,10 @@ It depends on which embedder you choose:
 
 | Provider | Cost |
 |---|---|
-| `fastembed` (default) | Free — runs locally, no API calls |
-| `ollama` | Free — runs locally via Ollama |
-| `voyage` | Paid — [Voyage AI pricing](https://docs.voyageai.com/docs/pricing) |
-| `openai` | Paid — [OpenAI pricing](https://openai.com/api/pricing/) |
+| `fastembed` (default) | Free - runs locally, no API calls |
+| `ollama` | Free - runs locally via Ollama |
+| `voyage` | Paid - [Voyage AI pricing](https://docs.voyageai.com/docs/pricing) |
+| `openai` | Paid - [OpenAI pricing](https://openai.com/api/pricing/) |
 
 When you configure a paid provider, `nexus index rebuild` shows an estimated cost and asks for confirmation before starting. The `--yes` flag bypasses this.
 
@@ -37,7 +37,7 @@ No. Nexus is a local-first tool by design. It:
 - Never sends your code, queries, or index to any server.
 - Never collects analytics, crash reports, or usage statistics.
 
-This is a non-negotiable design principle, not a configuration option. The source is open — you can verify it yourself.
+This is a non-negotiable design principle, not a configuration option. The source is open - you can verify it yourself.
 
 ### Does the embedder send my code to the internet?
 
@@ -51,7 +51,7 @@ Only if you explicitly configure a paid cloud embedder (Voyage or OpenAI). With 
 
 Laravel 10, 11, and 12 on PHP 8.2+.
 
-Laravel 9 is not supported — it reached end-of-life in February 2024 and would require PHP 8.0/8.1 shims that add maintenance cost with no upside.
+Laravel 9 is not supported - it reached end-of-life in February 2024 and would require PHP 8.0/8.1 shims that add maintenance cost with no upside.
 
 ### Does Nexus work with Lumen?
 
@@ -92,7 +92,7 @@ Yes. All dependencies have ARM64 wheels available on PyPI. No Rosetta required.
 
 Any agent that supports the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). Tested with:
 
-- **Claude Code** (stdio transport — spawn directly)
+- **Claude Code** (stdio transport - spawn directly)
 - **Cursor** (stdio transport)
 - **Continue.dev** (SSE transport with `--transport sse`)
 
@@ -104,7 +104,7 @@ Yes, with `--transport sse` or `--transport http`:
 nexus mcp serve --transport sse --host 0.0.0.0 --port 9000
 ```
 
-With the default stdio transport, each agent spawns its own server process — which is fine for single-user setups.
+With the default stdio transport, each agent spawns its own server process - which is fine for single-user setups.
 
 ### Does Nexus work with Claude.ai (the web app)?
 

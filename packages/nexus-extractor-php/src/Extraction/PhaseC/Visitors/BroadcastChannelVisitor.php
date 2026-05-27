@@ -33,7 +33,7 @@ use PhpParser\Node\Scalar\String_;
  * captures every case without trying to model PHP's expression tree.
  *
  * Dynamic channel names (interpolated variables only, no literal
- * prefix) are skipped — there's nothing static to record.
+ * prefix) are skipped - there's nothing static to record.
  */
 final class BroadcastChannelVisitor extends ContextTrackingVisitor
 {
@@ -54,7 +54,7 @@ final class BroadcastChannelVisitor extends ContextTrackingVisitor
             return;
         }
 
-        // Only inside a method literally named ``broadcastOn`` — keeps
+        // Only inside a method literally named ``broadcastOn`` - keeps
         // the visitor scoped and avoids treating a random
         // ``new Channel('x')`` in unrelated code as a broadcast.
         if (! $this->insideBroadcastOnMethod()) {
@@ -102,12 +102,14 @@ final class BroadcastChannelVisitor extends ContextTrackingVisitor
                 return $this->shortName($candidate);
             }
         }
+
         return null;
     }
 
     private function shortName(string $fqn): string
     {
         $pos = strrpos($fqn, '\\');
+
         return $pos === false ? $fqn : substr($fqn, $pos + 1);
     }
 

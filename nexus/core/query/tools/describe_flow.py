@@ -1,10 +1,10 @@
-r"""``describe_flow`` — fuzzy-resolve a route then return its full request flow.
+r"""``describe_flow`` - fuzzy-resolve a route then return its full request flow.
 
 A natural-language counterpart to :class:`GetRequestFlowTool`. The
 agent supplies a free-text description of *what* it wants the flow
-for — a URI fragment (``"orders"``), a route name (``"leads.store"``),
+for - a URI fragment (``"orders"``), a route name (``"leads.store"``),
 a controller class name (``"OrderController"``), or a verb-noun
-phrase (``"create invoice"``) — and the tool resolves it against
+phrase (``"create invoice"``) - and the tool resolves it against
 every route in the graph.
 
 Two shapes of response:
@@ -91,7 +91,7 @@ _STOPWORDS: frozenset[str] = frozenset(
 
 # Minimum token length to count toward scoring. Filters out single
 # letters and noise like "1" while keeping common 2-letter Laravel
-# words (e.g. ``id``) — at length 2 we're still permissive.
+# words (e.g. ``id``) - at length 2 we're still permissive.
 _MIN_TOKEN_LENGTH = 2
 
 
@@ -101,7 +101,7 @@ class DescribeFlowInput(ToolInput):
     query: str = Field(
         min_length=1,
         description=(
-            "Description of the route whose flow you want — a URI "
+            "Description of the route whose flow you want - a URI "
             "fragment (``orders``), a route name (``leads.store``), "
             "a controller class (``OrderController``), or a verb-noun "
             "phrase (``create invoice``). The matcher is fuzzy and "
@@ -172,7 +172,7 @@ class DescribeFlowTool:
         "request-handling flow: middleware, controller, form request, "
         "events fired, jobs dispatched, notifications, policies, plus "
         "the listeners that respond to each event. "
-        "**Argument:** ``query`` (string) — a route fragment "
+        "**Argument:** ``query`` (string) - a route fragment "
         '(``query="orders"``), a route name (``query="leads.store"``), '
         'a controller class (``query="OrderController"``), or a '
         'verb-noun phrase (``query="create invoice"``). '
@@ -271,7 +271,7 @@ def _score_single_route(
     methods = str_list_attr(attrs, "methods")
     handler_fqn, handler_method = _resolve_handler_info(graph, node.id)
 
-    # Quality cascade — first match wins.
+    # Quality cascade - first match wins.
     uri_lower = uri.lower().lstrip("/") if uri else ""
     name_lower = name.lower() if name else ""
     handler_short = handler_fqn.rsplit("\\", 1)[-1] if handler_fqn else ""

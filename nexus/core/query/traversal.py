@@ -22,7 +22,7 @@ Why not query SQLite directly
 SQLite's recursive CTEs can do multi-hop walks server-side, and
 we'll use them once query latency on big projects bites. For now
 the tools load the whole graph on first access and cache it for
-the lifetime of the query context — this matches how LanceDB
+the lifetime of the query context - this matches how LanceDB
 already materialises vectors into memory-mapped arrays, so the
 working set is the same order of magnitude.
 
@@ -131,7 +131,7 @@ def bfs(
 
     Returns:
         List of ``(depth, node)`` pairs in visit order. The starting
-        node is included at depth 0. Duplicates are filtered — a
+        node is included at depth 0. Duplicates are filtered - a
         node that would be reached by multiple paths appears once
         at the shallowest depth.
     """

@@ -27,7 +27,7 @@ def test_fingerprint_is_deterministic_for_same_inputs(tmp_path: Path) -> None:
     (tmp_path / "src" / "A.php").write_text("<?php class A {}", encoding="utf-8")
 
     extractor_composer = tmp_path / "extractor.json"
-    extractor_composer.write_text('{"name":"nexus/extractor-php"}', encoding="utf-8")
+    extractor_composer.write_text('{"name":"nick-nds/nexus-extractor"}', encoding="utf-8")
 
     fp1 = compute_fingerprint(_meta(tmp_path), extractor_composer)
     fp2 = compute_fingerprint(_meta(tmp_path), extractor_composer)

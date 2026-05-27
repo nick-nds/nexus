@@ -17,7 +17,7 @@ use Throwable;
  * Each event records its cron expression, timezone, command/closure
  * description, and the most-relevant runtime constraints (overlapping,
  * onOneServer, withoutOverlapping). We don't try to capture every fluent
- * builder method — only the ones agents typically need to reason about.
+ * builder method - only the ones agents typically need to reason about.
  */
 final class ScheduleExtractor implements Extractor
 {

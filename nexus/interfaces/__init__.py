@@ -3,8 +3,8 @@
 Phase 5 adapters that wrap the pure-core query engine and pipeline in
 user-facing surfaces:
 
-* :mod:`nexus.interfaces.cli` — Click-based command-line interface.
-* :mod:`nexus.interfaces.mcp` — FastMCP server exposing every tool as
+* :mod:`nexus.interfaces.cli` - Click-based command-line interface.
+* :mod:`nexus.interfaces.mcp` - FastMCP server exposing every tool as
   an MCP endpoint.
 
 Both adapters iterate :class:`nexus.core.query.ToolRegistry` to

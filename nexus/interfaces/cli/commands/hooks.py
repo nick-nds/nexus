@@ -1,4 +1,4 @@
-"""``nexus install-hooks`` — write a Git post-commit hook that keeps the index fresh.
+"""``nexus install-hooks`` - write a Git post-commit hook that keeps the index fresh.
 
 The hook runs ``nexus index sync --quiet`` in the background after every
 commit so the Nexus index never falls more than one commit behind the
@@ -93,7 +93,7 @@ def install_hooks_command(
 
     hook_path.write_text(_HOOK_TEMPLATE, encoding="utf-8")
 
-    # Make the hook executable by owner, group, and world — same
+    # Make the hook executable by owner, group, and world - same
     # permissions Git itself sets on sample hooks.
     hook_path.chmod(hook_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 

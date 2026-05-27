@@ -11,7 +11,7 @@ Go from `pip install` to your first query in under 10 minutes.
 ## 1. Install Nexus
 
 ```bash
-pip install nexus
+pip install nexus-php
 nexus --version   # should print 1.0.0
 ```
 
@@ -21,14 +21,14 @@ Run a quick sanity check:
 nexus doctor
 ```
 
-All checks should be `ok` or `warning`. A `warning` on the LSP check is normal — CALLS-edge enrichment is optional.
+All checks should be `ok` or `warning`. A `warning` on the LSP check is normal - CALLS-edge enrichment is optional.
 
 ## 2. Install the PHP extractor
 
 Inside your Laravel project:
 
 ```bash
-composer require --dev nexus/extractor-php
+composer require --dev nick-nds/nexus-extractor
 ```
 
 This installs the `nexus:extract` Artisan command that Nexus uses to read your codebase.
@@ -60,10 +60,10 @@ nexus index rebuild
 
 This runs the full indexing pipeline:
 
-1. **Extraction** — runs `php artisan nexus:extract` to dump a `reflection.json`
-2. **Graph build** — constructs the semantic graph (routes, models, events, jobs, etc.)
-3. **Chunking** — splits the graph into embedding chunks
-4. **Embed & persist** — embeds chunks and writes them to `~/.nexus/<project>/`
+1. **Extraction** - runs `php artisan nexus:extract` to dump a `reflection.json`
+2. **Graph build** - constructs the semantic graph (routes, models, events, jobs, etc.)
+3. **Chunking** - splits the graph into embedding chunks
+4. **Embed & persist** - embeds chunks and writes them to `~/.nexus/<project>/`
 
 On a mid-range laptop, a fresh 50k-line Laravel project typically finishes in 2–5 minutes.
 
@@ -136,9 +136,9 @@ nexus index sync
 
 ## What's next?
 
-- [CLI Reference](cli-reference.md) — full option reference for every command
-- [MCP Reference](mcp-reference.md) — all 15 query tools with example inputs and outputs
-- [Profiles](profiles/) — what each built-in profile detects and when to use it
-- [Troubleshooting](troubleshooting.md) — common problems and how to fix them
-- [FAQ](faq.md) — privacy, telemetry, monetisation, platform support
-- [Upgrading](upgrading.md) — version policy and migration guide
+- [CLI Reference](cli-reference.md) - full option reference for every command
+- [MCP Reference](mcp-reference.md) - all 15 query tools with example inputs and outputs
+- [Profiles](profiles/) - what each built-in profile detects and when to use it
+- [Troubleshooting](troubleshooting.md) - common problems and how to fix them
+- [FAQ](faq.md) - privacy, telemetry, monetisation, platform support
+- [Upgrading](upgrading.md) - version policy and migration guide

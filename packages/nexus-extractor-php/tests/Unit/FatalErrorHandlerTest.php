@@ -94,7 +94,7 @@ final class FatalErrorHandlerTest extends TestCase
     public function test_produces_generic_message_when_tracker_is_empty(): void
     {
         [$doc, $tracker, $handler] = $this->build();
-        // No tracker->set() — simulate a fatal before Phase B began.
+        // No tracker->set() - simulate a fatal before Phase B began.
 
         $captured = $handler->handleError([
             'type' => E_ERROR,

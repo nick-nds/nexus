@@ -18,7 +18,7 @@ on:
 
 permissions:
   contents: read
-  # Required for PyPI Trusted Publishing (OIDC — no API token needed).
+  # Required for PyPI Trusted Publishing (OIDC - no API token needed).
   id-token: write
 
 jobs:
@@ -95,7 +95,7 @@ jobs:
 
       - name: Publish to PyPI (Trusted Publishing)
         uses: pypa/gh-action-pypi-publish@release/v1
-        # No API token needed — uses PyPI's OIDC Trusted Publisher mechanism.
+        # No API token needed - uses PyPI's OIDC Trusted Publisher mechanism.
         # Configure the Trusted Publisher in PyPI's project settings:
         #   Publisher: GitHub Actions
         #   Owner: <github-org-or-user>

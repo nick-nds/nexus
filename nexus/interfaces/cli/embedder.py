@@ -32,7 +32,7 @@ def build_embedder_from_config(storage_root: Path) -> Embedder | None:
         A constructed :class:`Embedder` when ``config.yml`` is present
         and names a known provider. ``None`` when the config file is
         absent or the configured provider is unknown to the plugin
-        registry — callers degrade to graph-only indexing.
+        registry - callers degrade to graph-only indexing.
     """
     from nexus.adapters.embedders.registration import register_builtin_embedders  # noqa: PLC0415
     from nexus.config.global_config import load_global_config  # noqa: PLC0415

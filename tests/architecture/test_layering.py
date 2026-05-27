@@ -42,7 +42,7 @@ def _imported_modules(source: str) -> set[str]:
     absolute imports via TID252) but we handle them defensively by
     skipping them.
 
-    Imports inside ``if TYPE_CHECKING:`` blocks are excluded — they're
+    Imports inside ``if TYPE_CHECKING:`` blocks are excluded - they're
     erased at runtime and don't constitute a real layering dependency.
     Type annotations crossing layer boundaries are idiomatic and don't
     create import cycles, so the layering rule shouldn't catch them.
@@ -95,7 +95,7 @@ class TestCoreDoesNotImportAdapters:
 
         assert not offending, (
             f"{file_path.relative_to(REPO_ROOT)} imports from nexus.adapters: "
-            f"{offending}. The core layer must be pure — move the usage to an "
+            f"{offending}. The core layer must be pure - move the usage to an "
             f"adapter or invert the dependency via a protocol."
         )
 
@@ -153,7 +153,7 @@ class TestCoreProtocolsDoNotImportConcreteModules:
 
         # Only standard-library or __future__ imports should be at the
         # top level. Nexus modules are allowed too as long as they are
-        # themselves pure — but the simpler rule "stdlib only" is easy
+        # themselves pure - but the simpler rule "stdlib only" is easy
         # to enforce and unambiguous.
         allowed_top_level = {"__future__", "typing", "collections.abc", "pathlib"}
 
@@ -169,7 +169,7 @@ class TestCoreProtocolsDoNotImportConcreteModules:
 
 
 class TestAdaptersCanImportCore:
-    """The reverse direction IS allowed — adapters depend on core.
+    """The reverse direction IS allowed - adapters depend on core.
 
     This test is a sanity check: at least one adapter imports from
     core. If this stops being true, something has gone wrong with the

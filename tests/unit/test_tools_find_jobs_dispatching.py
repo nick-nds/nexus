@@ -214,6 +214,6 @@ class TestFindJobsDispatchingExecute:
         payload = FindJobsDispatchingInput(job="App\\Jobs\\X")
         result = self.tool.execute(payload, ctx)
 
-        # The dangling edge is skipped — no crash, no sites
+        # The dangling edge is skipped - no crash, no sites
         assert result.error is None
         assert result.total == 0

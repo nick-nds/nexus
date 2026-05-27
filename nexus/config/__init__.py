@@ -2,11 +2,11 @@
 
 Two YAML files govern a Nexus run:
 
-* ``~/.nexus/config.yml`` — per-user global defaults (preferred embedder,
+* ``~/.nexus/config.yml`` - per-user global defaults (preferred embedder,
   API keys, response-budget thresholds). Modelled by
   :class:`~nexus.config.global_config.GlobalConfig`. See
   ``internal_docs/11-profile-system.md`` §"What lives in ~/.nexus/".
-* ``./nexus.yml`` — project-level profile overrides, committed to git.
+* ``./nexus.yml`` - project-level profile overrides, committed to git.
   Modelled by :class:`~nexus.config.project_profile.ProjectProfile`.
   See ``internal_docs/11-profile-system.md`` §"Profile file location".
 

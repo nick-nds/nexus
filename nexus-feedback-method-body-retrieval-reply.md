@@ -1,11 +1,11 @@
 # Re: Can't retrieve large method bodies for `CreateProductRequest::rules()`
 
-Thanks for the writeup — the detail (the three rephrased queries, the side-by-side with `validateInventorySettings`, the HTTP-probe workaround) was exactly what we needed to diagnose this without re-running anything ourselves. Posting back what we found, what shipped, and what's still open.
+Thanks for the writeup - the detail (the three rephrased queries, the side-by-side with `validateInventorySettings`, the HTTP-probe workaround) was exactly what we needed to diagnose this without re-running anything ourselves. Posting back what we found, what shipped, and what's still open.
 
 ## TL;DR
 
 - **Your chunk wasn't dropped.** It's in LanceDB with all 11 sibling method chunks. Hypothesis 1 (chunker drops large methods) is refuted.
-- **Your Hypothesis 2 is correct, with a sharper mechanism.** The embedding for the 88-line `rules()` body is *systematically less similar* to every query than its smaller siblings — including queries containing the literal FQN.
+- **Your Hypothesis 2 is correct, with a sharper mechanism.** The embedding for the 88-line `rules()` body is *systematically less similar* to every query than its smaller siblings - including queries containing the literal FQN.
 - **Two new MCP tools shipped today: `get_node_body` and `get_full_block`.** They close your immediate pain. No re-index needed; the existing index from 2026-05-13 works as-is. Just restart the MCP server.
 - **The underlying retrieval bug isn't fully fixed.** Issue [#1](https://github.com/the-messie-company/nexus/issues/1) tracks the benchmarking work. The new tools are the escape hatch, not the cure.
 
@@ -13,7 +13,7 @@ Thanks for the writeup — the detail (the three rephrased queries, the side-by-
 
 We opened your index at `/home/lockhart/.nexus/projects/synthesq-api/` (the on-disk home for `nexus-run`) and tested both hypotheses end-to-end.
 
-### Chunk presence — Hypothesis 1 refuted
+### Chunk presence - Hypothesis 1 refuted
 
 ```
 chunk id: c1b3c06c81396a48
@@ -22,11 +22,11 @@ kind:     method
 lines:    38-125  (88-line body)
 ```
 
-All 12 expected `CreateProductRequest` chunks present, including the target. The chunker has no size cap on method chunks; `_emit_method` writes the full body verbatim (`nexus/core/chunking/php_chunker.py:328-350`). Your line range of 38–131 in `describe_class` was actually 38–125 in the chunk metadata — the closing brace is at 125.
+All 12 expected `CreateProductRequest` chunks present, including the target. The chunker has no size cap on method chunks; `_emit_method` writes the full body verbatim (`nexus/core/chunking/php_chunker.py:328-350`). Your line range of 38–131 in `describe_class` was actually 38–125 in the chunk metadata - the closing brace is at 125.
 
-### Cosine layer — Hypothesis 2 confirmed
+### Cosine layer - Hypothesis 2 confirmed
 
-We re-ran your queries A/B/C/D plus three FQN-heavy probes, recording the target chunk's rank across all 20,238 chunks (cosine, not approximate — exhaustive):
+We re-ran your queries A/B/C/D plus three FQN-heavy probes, recording the target chunk's rank across all 20,238 chunks (cosine, not approximate - exhaustive):
 
 | Query | Target cosine | Top-1 cosine | Target rank / 20238 |
 |---|---|---|---|
@@ -35,9 +35,9 @@ We re-ran your queries A/B/C/D plus three FQN-heavy probes, recording the target
 | **F** (we added): literal FQN `App\Modules\...\CreateProductRequest rules` | 0.6242 | 0.7463 | **264** |
 | **G** (we added): `CreateProductRequest::rules` | 0.5862 | 0.7205 | **1,946** |
 
-Even with the literal FQN in the query, the target ranks at #264 — far below the default `top_k=30` candidate window that `semantic_search` pulls before re-ranking. The kind-weight re-rank (`controller_method` gets 1.20×, the top tier) never gets a chance — the chunk isn't in the pool to begin with.
+Even with the literal FQN in the query, the target ranks at #264 - far below the default `top_k=30` candidate window that `semantic_search` pulls before re-ranking. The kind-weight re-rank (`controller_method` gets 1.20×, the top tier) never gets a chance - the chunk isn't in the pool to begin with.
 
-### Mechanism — embedding dilution by length
+### Mechanism - embedding dilution by length
 
 The enrichment template (`nexus/core/chunking/enrichment.py`) builds the embedding input as:
 
@@ -53,9 +53,9 @@ source:
 
 `nomic-embed-text` averages token representations across the whole input. For an 88-line body that's ~300 repetitions of `'required', 'string', 'max:100', 'sometimes', 'numeric'`, the distinctive tokens at the top (class FQN, namespace, in-class line) get crushed by the repetitive validation array.
 
-`CreateVariantRequest::rules` (the sibling that *did* surface in your Query C, 25-line body) ships the same FQN-bearing header on a much smaller body — proportionally, the FQN signal survives. Same shape, different signal-to-noise ratio.
+`CreateVariantRequest::rules` (the sibling that *did* surface in your Query C, 25-line body) ships the same FQN-bearing header on a much smaller body - proportionally, the FQN signal survives. Same shape, different signal-to-noise ratio.
 
-This isn't `rules`-specific: it's also why your queries on `messages()`, `getAttributes()`, `prepareForValidation()`, etc. came back empty. Methods with small-but-generic content hit the same cliff for a different reason — low content distinctiveness instead of dilution.
+This isn't `rules`-specific: it's also why your queries on `messages()`, `getAttributes()`, `prepareForValidation()`, etc. came back empty. Methods with small-but-generic content hit the same cliff for a different reason - low content distinctiveness instead of dilution.
 
 ## What you can do now
 
@@ -94,10 +94,10 @@ Takes absolute or project-relative paths. Path containment is enforced against t
 
 Replace the HTTP-probe escape hatch with this two-call pattern:
 
-1. `describe_class { fqn: "App\\Modules\\...\\CreateProductRequest" }` — gives you the line range plus the `node_id` for every method.
-2. `get_node_body { node_id: "method:...\\::rules" }` — gives you the body.
+1. `describe_class { fqn: "App\\Modules\\...\\CreateProductRequest" }` - gives you the line range plus the `node_id` for every method.
+2. `get_node_body { node_id: "method:...\\::rules" }` - gives you the body.
 
-For the wizard issue #9 you mentioned (the `sku` validation question), step 1 + 2 gets you the exact `Rule::requiredIf(...)` you'd been guessing about — no backend stack required, no 422-probing.
+For the wizard issue #9 you mentioned (the `sku` validation question), step 1 + 2 gets you the exact `Rule::requiredIf(...)` you'd been guessing about - no backend stack required, no 422-probing.
 
 ## What we did **not** fix
 
@@ -116,14 +116,14 @@ Best honest estimate: 1–2 days of empirical iteration (re-embed, measure, regr
 
 > `find_dispatchers` returns 0 results for `App\Modules\Operations\Domain\Events\ProductCreated` even though Eloquent models clearly fire this via `$dispatchesEvents` arrays.
 
-Correct — the static analyzer only catches literal `event(new X(…))` and `dispatch(new X(…))` call sites. The `$dispatchesEvents` array property is a Laravel-idiomatic auto-fire mechanism we don't currently parse. Worth a separate ticket and a docstring note on `find_dispatchers`; we'll file it.
+Correct - the static analyzer only catches literal `event(new X(…))` and `dispatch(new X(…))` call sites. The `$dispatchesEvents` array property is a Laravel-idiomatic auto-fire mechanism we don't currently parse. Worth a separate ticket and a docstring note on `find_dispatchers`; we'll file it.
 
-> The `indexed_at` timestamp on every response is great — saved me from acting on stale data several times this session.
+> The `indexed_at` timestamp on every response is great - saved me from acting on stale data several times this session.
 
 Noted and appreciated. We'll keep it.
 
 ## Anything else
 
-If you hit another "I can see the metadata but not the body" gap after the upgrade, we want to hear about it — the body-retrieval surface is brand new and there may be node kinds we haven't thought through (e.g., enum cases, traits, anonymous classes). Open a ticket or grab the same level of detail you put in this one.
+If you hit another "I can see the metadata but not the body" gap after the upgrade, we want to hear about it - the body-retrieval surface is brand new and there may be node kinds we haven't thought through (e.g., enum cases, traits, anonymous classes). Open a ticket or grab the same level of detail you put in this one.
 
-Thanks again — this is exactly the kind of feedback that makes the diagnosis cheap.
+Thanks again - this is exactly the kind of feedback that makes the diagnosis cheap.

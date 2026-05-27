@@ -1,4 +1,4 @@
-"""``get_full_block`` — read a line range out of an indexed source file.
+"""``get_full_block`` - read a line range out of an indexed source file.
 
 The canonical "escape hatch" when ``semantic_search`` doesn't surface
 a known chunk. Given a file and a line range, returns the raw text
@@ -22,7 +22,7 @@ Design notes
   ``truncated_to_eof=True`` so an agent knows the underlying file
   was shorter than expected.
 * **Errors are values.** The tool never raises for "file missing"
-  or "range invalid" — those are documented response shapes with
+  or "range invalid" - those are documented response shapes with
   a stable ``error_code``.
 """
 
@@ -112,14 +112,14 @@ class GetFullBlockOutput(ToolOutput):
         default=False,
         description=(
             "``True`` when ``file_mtime_utc`` is strictly later than "
-            "the project's ``indexed_at`` — the file was edited after "
+            "the project's ``indexed_at`` - the file was edited after "
             "the index was built, so the stored ``start_line`` / "
             "``end_line`` (originally taken from ``describe_class`` / "
             "the chunk index) may now point at the wrong region. The "
             "``content`` field still reflects what's currently at "
             "those lines, but the bytes may belong to a different "
             "method now. Re-run ``nexus index sync`` to clear the "
-            "signal. ``False`` does NOT positively mean fresh — it "
+            "signal. ``False`` does NOT positively mean fresh - it "
             "means we have no evidence of staleness (typically "
             "because no ``indexed_at`` is available on the project)."
         ),
@@ -137,10 +137,10 @@ class GetFullBlockTool:
         "**Arguments:** ``file_path`` (string, project-relative path "
         'like ``file_path="src/Models/User.php"``), ``start_line`` and '
         "``end_line`` (1-indexed, inclusive integers). "
-        "**Optional:** ``context_lines`` (int, default 0) — extra lines "
+        "**Optional:** ``context_lines`` (int, default 0) - extra lines "
         "above/below the range. "
         "Use this when ``describe_class`` or another tool tells you "
-        "*where* a method/class lives but you need the *body* — e.g., "
+        "*where* a method/class lives but you need the *body* - e.g., "
         "to read a long ``rules()`` method that ``semantic_search`` "
         "couldn't surface. If you already have a graph node id, prefer "
         "``get_node_body`` which resolves the line range automatically. "
@@ -152,7 +152,7 @@ class GetFullBlockTool:
     # filesystem latency, not Python work.
     latency_budget_ms: ClassVar[int] = 100
 
-    def execute(  # noqa: PLR0911 — each return is a documented structured-error path
+    def execute(  # noqa: PLR0911 - each return is a documented structured-error path
         self,
         payload: GetFullBlockInput,
         ctx: QueryContext,
@@ -281,7 +281,7 @@ def _chunk_is_stale(file_mtime_utc: str | None, ctx: QueryContext) -> bool:
     """``True`` only when both timestamps are present and file > index.
 
     ``False`` is a "no-evidence-of-staleness" signal rather than a
-    positive "is fresh" claim — agents that need stronger guarantees
+    positive "is fresh" claim - agents that need stronger guarantees
     should compare ``file_mtime_utc`` against ``coverage.indexed_at``
     themselves and apply whatever tolerance their workflow demands.
 

@@ -96,7 +96,7 @@ class TestPersistAndLoad:
         store.persist(make_simple_graph())
         assert store.node_count() == 2
 
-        # Persist a smaller graph — the store is destination-of-record.
+        # Persist a smaller graph - the store is destination-of-record.
         smaller = Graph()
         smaller.add_node(Node(id="c", kind=NodeKind.MODEL, name="C"))
         store.persist(smaller)

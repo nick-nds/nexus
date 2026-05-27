@@ -1,4 +1,4 @@
-r"""``list_modules`` — discover module-shaped namespace prefixes.
+r"""``list_modules`` - discover module-shaped namespace prefixes.
 
 DDD codebases tend to organise classes into modules: ``App\Modules\
 CRM``, ``App\Modules\Operations``, etc. Standard Laravel projects
@@ -15,7 +15,7 @@ For each class FQN, we compute its *module prefix* as follows:
    prefix is everything up to and including the segment immediately
    after it. E.g.
    ``App\Modules\CRM\Customers\Customer`` → ``App\Modules\CRM``.
-2. Otherwise the prefix is the first two namespace segments —
+2. Otherwise the prefix is the first two namespace segments -
    e.g. ``App\Models\User`` → ``App\Models``.
 3. Classes with fewer than two segments are skipped (top-level
    classes don't belong to any module).
@@ -43,11 +43,11 @@ if TYPE_CHECKING:
 _MODULE_SEGMENT_NAMES: frozenset[str] = frozenset({"Modules", "Module"})
 
 # Minimum namespace depth (segments) for a class to belong to any
-# module — a top-level class like ``RootClass`` has no module.
+# module - a top-level class like ``RootClass`` has no module.
 _MIN_NAMESPACE_DEPTH = 2
 
 # Class-shaped kinds that count toward module membership. Includes
-# every kind whose nodes have ``class:<fqn>`` ids — middleware,
+# every kind whose nodes have ``class:<fqn>`` ids - middleware,
 # resources, observers, etc. all belong to user-authored modules.
 # Excludes graph-level alias nodes (``middleware:auth``,
 # ``route:GET /…``, ``scheduled_task:…``) which don't carry a class

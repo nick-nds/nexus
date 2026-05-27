@@ -1,4 +1,4 @@
-r"""``describe_module`` — drill into one module discovered by ``list_modules``.
+r"""``describe_module`` - drill into one module discovered by ``list_modules``.
 
 Given a namespace prefix, summarise everything in that module:
 
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 # Default cap on how many sample FQNs we surface per kind.  Enough
 # to give the agent a feel for the module without flooding the
-# response — the agent can call ``list_by_kind`` with a
+# response - the agent can call ``list_by_kind`` with a
 # ``namespace_prefix`` filter to enumerate fully.
 _DEFAULT_SAMPLE_PER_KIND = 5
 
@@ -47,7 +47,7 @@ class DescribeModuleInput(ToolInput):
     prefix: str = Field(
         min_length=1,
         description=(
-            "Namespace prefix of the module — typically a value the "
+            "Namespace prefix of the module - typically a value the "
             "agent saw on a ``list_modules`` response (e.g. "
             "``App\\Modules\\CRM``). FQN matching is exact-prefix; "
             "trailing backslashes are ignored."
@@ -116,11 +116,11 @@ class DescribeModuleTool:
         "Summarise one module: total class count, breakdown by kind, "
         "immediate sub-namespaces, and the routes whose handlers live "
         "inside the module. "
-        "**Argument:** ``prefix`` (string) — the namespace prefix from "
+        "**Argument:** ``prefix`` (string) - the namespace prefix from "
         '``list_modules``, e.g. ``prefix="App\\\\Modules\\\\CRM"``. '
-        "**Optional:** ``sample_per_kind`` (int, default 5, max 50) — "
+        "**Optional:** ``sample_per_kind`` (int, default 5, max 50) - "
         "FQN sample size per kind. Pair with ``list_modules`` for "
-        "discovery — the agent picks a prefix from there and asks "
+        "discovery - the agent picks a prefix from there and asks "
         'what\'s inside. Returns ``error_code: "empty_module"`` when '
         "no classes match the prefix so the agent can broaden."
     )
@@ -188,7 +188,7 @@ class DescribeModuleTool:
 
 
 def _under_prefix(fqn: str, prefix: str) -> bool:
-    """True if ``fqn`` lives under ``prefix`` (strict — same prefix isn't a member)."""
+    """True if ``fqn`` lives under ``prefix`` (strict - same prefix isn't a member)."""
     return fqn.startswith(prefix + "\\")
 
 
@@ -210,7 +210,7 @@ def _build_kind_samples(
 
     Returns ``(samples, truncated_paths)`` where ``truncated_paths`` is
     a list of dotted-path strings identifying which kinds had their
-    ``fqns`` lists capped — surfaced on the response so the agent can
+    ``fqns`` lists capped - surfaced on the response so the agent can
     raise ``sample_per_kind`` or pivot to ``list_by_kind`` with a
     ``namespace_prefix`` filter for full enumeration. Pinning audit
     finding P1-14.

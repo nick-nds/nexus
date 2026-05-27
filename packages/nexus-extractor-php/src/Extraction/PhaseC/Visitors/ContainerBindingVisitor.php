@@ -18,7 +18,7 @@ use PhpParser\Node\Stmt\Return_;
 
 /**
  * Detects container-binding callsites that wrap their concrete in a
- * closure — the idiomatic Laravel ServiceProvider::register() pattern:
+ * closure - the idiomatic Laravel ServiceProvider::register() pattern:
  *
  *   $this->app->singleton(SynthesQClient::class, fn ($app) => new SynthesQClient(...));
  *   $this->app->bind(MailerInterface::class, function () { return new SmtpMailer; });
@@ -32,9 +32,9 @@ use PhpParser\Node\Stmt\Return_;
  * Audit P1-18. The static-analysis pass walks the AST instead,
  * detecting the most common concrete shapes inside the closure:
  *
- *   1. ``return new X(...)`` — the most common pattern.
- *   2. ``return X::class`` — class const fetch (rare but valid).
- *   3. ``static fn () => new X`` / ``fn () => new X`` — arrow form.
+ *   1. ``return new X(...)`` - the most common pattern.
+ *   2. ``return X::class`` - class const fetch (rare but valid).
+ *   3. ``static fn () => new X`` / ``fn () => new X`` - arrow form.
  *   4. Closure return type ``function (): X`` declaration.
  *
  * Each detection emits a ``closure_binding`` finding with the
@@ -69,6 +69,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
         // method name is the same; only the receiver shape differs.
         if ($node instanceof MethodCall) {
             $this->handleMethodCall($node);
+
             return;
         }
 
@@ -112,7 +113,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
 
         // App::bind / App::singleton / etc. The fully-resolved name
         // tells us whether this is the Laravel App facade. We treat
-        // anything ending in ``\App`` as the App facade — the
+        // anything ending in ``\App`` as the App facade - the
         // resolver in the upstream pass already handled the import.
         $className = $node->class->toString();
         if (! preg_match('#(^|\\\\)(App|Container)$#', $className)) {
@@ -129,7 +130,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
     {
         if (count($args) < 2) {
             // ``bind(X::class)`` without a concrete is "alias self to
-            // self" — nothing to surface for resolution.
+            // self" - nothing to surface for resolution.
             return;
         }
 
@@ -193,6 +194,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
         if (! ($expr->class instanceof Name)) {
             return null;
         }
+
         return $expr->class->toString();
     }
 
@@ -200,11 +202,11 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
      * Resolve the binding's concrete argument to a class FQN.
      *
      * Handled shapes:
-     *   - ``X::class`` (no closure — the simple form).
+     *   - ``X::class`` (no closure - the simple form).
      *   - ``fn () => new X(...)``.
      *   - ``fn () => X::class`` (rare).
      *   - ``function () { return new X(...); }``.
-     *   - ``function () { return resolve(X::class); }`` — the
+     *   - ``function () { return resolve(X::class); }`` - the
      *     application asks the container to resolve the concrete;
      *     we surface the inner ``X``.
      *   - Closure return-type declaration: ``function (): X { ... }``.
@@ -223,7 +225,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
 
         if ($expr instanceof Closure) {
             // Walk top-level return statements in the body. We don't
-            // descend into nested closures — those are conditional
+            // descend into nested closures - those are conditional
             // branches the agent has to read the source for.
             foreach ($expr->stmts as $stmt) {
                 if ($stmt instanceof Return_ && $stmt->expr !== null) {
@@ -234,7 +236,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
                 }
             }
 
-            // No return found — fall back to the return-type hint.
+            // No return found - fall back to the return-type hint.
             return $this->resolveReturnType($expr->returnType);
         }
 
@@ -256,7 +258,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
             return $direct;
         }
 
-        // ``return $app->make(X::class)`` / ``resolve(X::class)`` —
+        // ``return $app->make(X::class)`` / ``resolve(X::class)`` -
         // the closure is telling the container to look up X. Surface
         // X as the concrete since that's what the agent wants to see.
         if ($expr instanceof MethodCall
@@ -278,6 +280,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
         if ($returnType instanceof Name) {
             return $returnType->toString();
         }
+
         return null;
     }
 }

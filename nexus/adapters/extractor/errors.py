@@ -36,7 +36,7 @@ class ExtractorError(Exception):
 class ExtractorMissingError(ExtractorError):
     """The ``php`` binary or ``nexus:extract`` Artisan command is missing.
 
-    Phase 5's CLI maps this to a "please install nexus/extractor-php"
+    Phase 5's CLI maps this to a "please install nick-nds/nexus-extractor"
     remediation message.
     """
 

@@ -3,7 +3,7 @@
 
 Greps the codebase for every literal ``error_code="…"`` emission and
 checks each one is mentioned in ``docs/error-codes.md``. Run with
-``--strict`` to exit non-zero when an undocumented code is found —
+``--strict`` to exit non-zero when an undocumented code is found -
 suitable for CI.
 
 Usage::

@@ -1,4 +1,4 @@
-# CLAUDE.md — Nexus v2
+# CLAUDE.md - Nexus v2
 
 Project-level instructions for Claude Code working in this repo. These rules apply to **every** change. Read this file first; then read the relevant document under `internal_docs/` before touching code.
 
@@ -35,7 +35,7 @@ The full design lives in `internal_docs/`. Start with `internal_docs/README.md`.
 | Master implementation plan | `internal_docs/MASTER-PLAN.md` |
 | Per-phase plans | `internal_docs/PHASE-*.md` |
 
-If a design doc and code disagree, the code is wrong unless an entry in `13-decision-log.md` says otherwise. Do not silently change a design — update the doc and reference the change in your commit.
+If a design doc and code disagree, the code is wrong unless an entry in `13-decision-log.md` says otherwise. Do not silently change a design - update the doc and reference the change in your commit.
 
 ## Architectural principles
 
@@ -94,11 +94,11 @@ No micro-optimization without a benchmark. Profile before optimizing. The perfor
 
 ### 9. Single responsibility, narrow modules
 
-A module exports one thing (or a small cluster of cohesive things). Files over ~400 lines are a smell — split them. Functions over ~50 lines are a smell — extract.
+A module exports one thing (or a small cluster of cohesive things). Files over ~400 lines are a smell - split them. Functions over ~50 lines are a smell - extract.
 
 ### 10. No speculative abstraction
 
-Build for the requirements in the current phase. Resist creating "extension points" for hypothetical future needs. The plugin entry-point system exists because pro tier is a *concrete*, planned requirement — not because it might be useful.
+Build for the requirements in the current phase. Resist creating "extension points" for hypothetical future needs. The plugin entry-point system exists because pro tier is a *concrete*, planned requirement - not because it might be useful.
 
 ## Design patterns we use
 
@@ -170,9 +170,9 @@ Coverage is measured by `pytest-cov` and **enforced in CI**. A PR that drops cov
 
 ### TDD where it makes sense
 
-- **Required** for: graph builder, classifiers, query planners, change detection — anything with branchy logic and well-defined inputs/outputs. Write the test, watch it fail, write the code, watch it pass, refactor.
+- **Required** for: graph builder, classifiers, query planners, change detection - anything with branchy logic and well-defined inputs/outputs. Write the test, watch it fail, write the code, watch it pass, refactor.
 - **Encouraged** for: adapters, where you can write the integration test against a fake fixture first.
-- **Pragmatic** for: glue code, CLI plumbing — write tests after, but write them.
+- **Pragmatic** for: glue code, CLI plumbing - write tests after, but write them.
 
 ### Test quality rules
 
@@ -191,12 +191,12 @@ A real, hand-crafted Laravel 11 project lives at `tests/fixtures/sample-laravel-
 
 A PR is mergeable when **all** of the following pass:
 
-1. `ruff format --check` — formatting.
-2. `ruff check` — linting.
-3. `mypy --strict nexus/` — types.
-4. `pytest` — unit + integration + contract + golden tests.
-5. `pytest --cov=nexus --cov-fail-under=90` — coverage threshold.
-6. `pytest tests/e2e/` — end-to-end against the sample Laravel app.
+1. `ruff format --check` - formatting.
+2. `ruff check` - linting.
+3. `mypy --strict nexus/` - types.
+4. `pytest` - unit + integration + contract + golden tests.
+5. `pytest --cov=nexus --cov-fail-under=90` - coverage threshold.
+6. `pytest tests/e2e/` - end-to-end against the sample Laravel app.
 7. PHP package: `pint --test`, `phpstan analyse`, `phpunit`.
 8. Docs: every new public symbol has a docstring; every changed schema bumps `schema_version`.
 

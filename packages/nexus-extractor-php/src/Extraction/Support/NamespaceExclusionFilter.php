@@ -12,7 +12,7 @@ namespace Nexus\Extractor\Extraction\Support;
  * in the index.
  *
  * Filter is namespace-prefix based and only matches at namespace
- * boundaries — `MyOrg\Workbench\X` is NOT filtered because the filter
+ * boundaries - `MyOrg\Workbench\X` is NOT filtered because the filter
  * looks for the exact `Workbench\` root segment.
  */
 final readonly class NamespaceExclusionFilter

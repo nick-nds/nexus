@@ -12,7 +12,7 @@ It's deliberately rule-based per design decision D4.3:
 * The rules encode high-signal surface features of the English
   the agent is most likely to produce (HTTP verbs + paths,
   fully-qualified class names, phrases like "who listens to X").
-* Missed classifications are not a disaster — the semantic
+* Missed classifications are not a disaster - the semantic
   search fallback catches them.
 
 The classifier returns a :class:`QueryPlan` naming the tool to
@@ -53,7 +53,7 @@ class QueryPlan:
         confidence: ``[0, 1]`` estimate of how certain the rule
             was. Exact matches (HTTP verb + path) score near 1.0;
             keyword matches (single noun phrase) score lower.
-        reason: Short English explanation of which rule fired —
+        reason: Short English explanation of which rule fired -
             useful for debugging and for the CLI's ``--explain``
             mode in Phase 5.
         fallbacks: Ordered list of alternate plans to try if the
@@ -157,7 +157,7 @@ class QueryClassifier:
 
         * ``/api/users`` → ``"/api/users"`` (absolute path passes through)
         * ``login``, ``the login route`` → ``"*login*"`` (wildcard match)
-        * ``POST /api/orders`` → ``"*/api/orders*"`` (verb dropped — the
+        * ``POST /api/orders`` → ``"*/api/orders*"`` (verb dropped - the
           tool ignores it; the URI fragment is what we match on)
         """
         match = patterns.HANDLER_OF.search(text)
@@ -369,7 +369,7 @@ class QueryClassifier:
         :data:`patterns.LIST_BY_KIND_NOUNS`, normalising plurals and
         minor spelling variants (``form requests`` vs ``form_request``).
         Returns ``None`` (and lets the classifier fall through) when
-        the captured noun is something we don't have a kind for —
+        the captured noun is something we don't have a kind for -
         that case shouldn't fire because the regex itself enumerates
         the supported nouns, but the explicit None keeps the helper
         safe under future regex churn.
@@ -434,7 +434,7 @@ class QueryClassifier:
         entities"`` so the graph lookup gets a clean short name.
 
         We refuse very short fragments (< ``patterns.MIN_ENTITY_LENGTH``
-        chars) — they tend to produce huge match sets that are more
+        chars) - they tend to produce huge match sets that are more
         noise than signal.
         """
         match = patterns.EXPLORE_ENTITY.search(text)
@@ -446,7 +446,7 @@ class QueryClassifier:
         rest = patterns.ENTITY_NOISE_SUFFIX.sub("", rest).strip()
         rest = _strip_punctuation(rest).strip()
 
-        # Reject anything with whitespace inside — multi-word phrases
+        # Reject anything with whitespace inside - multi-word phrases
         # like "the meaning of life" aren't candidate class names; let
         # the semantic fallback handle them.
         if not rest or " " in rest:

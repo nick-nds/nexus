@@ -10,7 +10,7 @@ A "valid response" means:
 - The return value is not ``None``.
 
 Structured "not found" errors (e.g. ``error_code="route_not_found"``)
-are valid responses — they are part of the tool contract and the MCP
+are valid responses - they are part of the tool contract and the MCP
 client can inspect them.
 """
 
@@ -121,7 +121,7 @@ def _call(mcp: Any, tool: str, args: dict[str, Any]) -> Any:
 
 
 # ---------------------------------------------------------------------------
-# Tests — one per tool
+# Tests - one per tool
 # ---------------------------------------------------------------------------
 
 
@@ -190,7 +190,7 @@ class TestMcpToolsCall:
         assert result is not None
 
     def test_find_jobs_dispatching_unknown_job(self, engine: QueryEngine) -> None:
-        # No job dispatch edges in this fixture — structured "not found" is valid.
+        # No job dispatch edges in this fixture - structured "not found" is valid.
         mcp = build_mcp_server(engine)
         result = _call(mcp, "find_jobs_dispatching", {"job": "App\\Jobs\\SomeJob"})
         assert result is not None
@@ -215,7 +215,7 @@ class TestMcpToolsCall:
         assert result is not None
 
     def test_find_callers_unknown_method(self, engine: QueryEngine) -> None:
-        # No CALLS edges in this fixture — structured "not found" is valid.
+        # No CALLS edges in this fixture - structured "not found" is valid.
         mcp = build_mcp_server(engine)
         result = _call(
             mcp,
@@ -227,7 +227,7 @@ class TestMcpToolsCall:
     def test_semantic_search_returns_valid_response(self, engine: QueryEngine) -> None:
         mcp = build_mcp_server(engine)
         # The vector store is empty (no embeddings persisted) so the result
-        # will have zero items — but the MCP response itself is valid.
+        # will have zero items - but the MCP response itself is valid.
         result = _call(mcp, "semantic_search", {"query": "customer login flow"})
         assert result is not None
 
@@ -273,7 +273,7 @@ class TestMcpToolsCall:
     def test_describe_module_known_prefix(self, engine: QueryEngine) -> None:
         mcp = build_mcp_server(engine)
         # Whether or not "App\\Http" exists in the fixture, MCP must
-        # serialise the response cleanly — empty_module is a valid shape.
+        # serialise the response cleanly - empty_module is a valid shape.
         result = _call(mcp, "describe_module", {"prefix": "App\\Http"})
         assert result is not None
 

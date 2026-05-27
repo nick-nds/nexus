@@ -1,4 +1,4 @@
-"""``semantic_search`` — vector retrieval with graph-aware re-ranking.
+"""``semantic_search`` - vector retrieval with graph-aware re-ranking.
 
 This is the only non-structural tool in the Phase 4 batch. It
 answers free-text questions ("where do we send welcome emails?")
@@ -10,7 +10,7 @@ by:
    ``payload.node_id``).
 4. Walking one hop around the node to gather small structural
    annotations (containing class, routes pointing at it, etc.).
-5. De-duplicating by node id — multiple chunks from the same
+5. De-duplicating by node id - multiple chunks from the same
    method collapse into one result row.
 6. Re-ranking with a small deterministic heuristic: the vector
    similarity score is multiplied by a node-kind weight that
@@ -69,7 +69,7 @@ _SNIPPET_CONTEXT_LINES = 2
 
 # A light prior that says methods and routes are more interesting
 # starting points than raw chunks or generic classes. Tuned by feel
-# on the momskitchen fixture — will be revisited after the Phase 5
+# on the momskitchen fixture - will be revisited after the Phase 5
 # external-validation dogfood.
 _KIND_WEIGHT: dict[NodeKind, float] = {
     NodeKind.METHOD: 1.20,
@@ -154,8 +154,8 @@ class SemanticHit(ToolOutput):
     vector_score: float = Field(
         description=(
             "Raw cosine similarity from the vector store (0-1). "
-            "Higher = closer to the query embedding. Compare this — not "
-            "``score`` — when reasoning about whether the embedding "
+            "Higher = closer to the query embedding. Compare this - not "
+            "``score`` - when reasoning about whether the embedding "
             "model actually found something semantically relevant."
         ),
     )
@@ -277,7 +277,7 @@ class SemanticSearchTool:
         # Sort descending by score, breaking ties by node_id ascending.
         # Without the secondary key, two hits at identical vector_scores
         # (common for boilerplate DTOs) would return in
-        # implementation-dependent order — flagged by audit P2-21.
+        # implementation-dependent order - flagged by audit P2-21.
         rows.sort(key=lambda r: (-r.score, r.node_id))
 
         # Audit P0-11: filter low-quality matches before slicing to
@@ -320,7 +320,7 @@ class SemanticSearchTool:
 # Audit P0-11: confidence thresholds tuned from synthesq-relay data.
 # Real queries clustered 0.60-0.68; gibberish queries ~0.57; genuine
 # misses fell below ~0.5. The boundaries are deliberately conservative
-# — closer to "is this worth showing the agent at all" than "is this
+# - closer to "is this worth showing the agent at all" than "is this
 # the right answer".
 _CONFIDENCE_HIGH_THRESHOLD = 0.65
 _CONFIDENCE_MEDIUM_THRESHOLD = 0.55
@@ -363,7 +363,7 @@ def _aggregate_by_node(hits: list[VectorSearchHit]) -> list[_Aggregate]:
     for hit in hits:
         node_id = str(hit.payload.get("node_id", "") or "")
         if not node_id:
-            # Chunks without a node binding still count — key on chunk id.
+            # Chunks without a node binding still count - key on chunk id.
             node_id = f"chunk:{hit.id}"
         current = by_node.get(node_id)
         if current is None or hit.score > current.best_score:
@@ -382,7 +382,7 @@ def _build_rows(graph: Graph, aggregates: list[_Aggregate]) -> list[SemanticHit]
     for agg in aggregates:
         node = graph.node_by_id(agg.node_id)
         if node is None:
-            # Dangling reference — keep the row so the chunk isn't lost
+            # Dangling reference - keep the row so the chunk isn't lost
             # but mark its kind as ``chunk`` and weight accordingly.
             rows.append(
                 SemanticHit(
@@ -475,7 +475,7 @@ def _attach_snippets(
     Files are read once per call and cached so a result with multiple
     hits in the same file pays one I/O per file. Failures (missing
     file, decode error, hit without a file or line range) yield a
-    ``None`` snippet — the caller distinguishes "snippet unavailable"
+    ``None`` snippet - the caller distinguishes "snippet unavailable"
     from "snippet empty" via the field type, not by reading docs.
     """
     cache: dict[Path, list[str] | None] = {}

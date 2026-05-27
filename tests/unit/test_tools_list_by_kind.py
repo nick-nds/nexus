@@ -72,7 +72,7 @@ def test_unknown_kind_returns_invalid_kind_error() -> None:
 
 
 def test_route_kind_is_rejected_with_pointer_to_dedicated_tool() -> None:
-    """``route`` has its own ``list_routes`` tool — refuse with hint."""
+    """``route`` has its own ``list_routes`` tool - refuse with hint."""
     ctx = _make_ctx(_make_graph())
     output = ListByKindTool().execute(ListByKindInput(kind="route"), ctx)
 
@@ -104,7 +104,7 @@ def test_name_glob_filter() -> None:
 
 
 def test_kind_with_zero_matches_returns_empty_not_error() -> None:
-    """No notifications in this graph — empty success, not error."""
+    """No notifications in this graph - empty success, not error."""
     ctx = _make_ctx(_make_graph())
     output = ListByKindTool().execute(ListByKindInput(kind="notification"), ctx)
 
@@ -241,7 +241,7 @@ def test_middleware_kind_excludes_framework_aliases() -> None:
     """
     g = _make_graph()
     _add_class(g, "App\\Http\\Middleware\\InjectActingUser", NodeKind.MIDDLEWARE)
-    # Framework alias node — id deliberately doesn't start with class:
+    # Framework alias node - id deliberately doesn't start with class:
     g.add_node(
         Node(
             id="middleware:auth",

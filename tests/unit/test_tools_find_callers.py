@@ -1,8 +1,8 @@
 """Unit tests for :class:`FindCallersTool`.
 
 Covers the happy path (CALLS edges populated, callers returned in
-deterministic order), method-not-found, and — pinning audit finding
-P0-8 — the ``calls_not_indexed`` structured error when the index was
+deterministic order), method-not-found, and - pinning audit finding
+P0-8 - the ``calls_not_indexed`` structured error when the index was
 built without an LSP.
 """
 
@@ -70,7 +70,7 @@ def test_returns_callers_in_deterministic_order_when_calls_indexed() -> None:
 
     assert output.error_code is None
     assert output.total == 2
-    # Sorted by (class_fqn, method, line) — A before B.
+    # Sorted by (class_fqn, method, line) - A before B.
     assert [r.class_fqn for r in output.callers] == ["App\\Services\\A", "App\\Services\\B"]
 
 
@@ -91,13 +91,13 @@ def test_calls_not_indexed_returns_structured_error_when_method_exists() -> None
     """Pinning P0-8 from the synthesq-relay audit.
 
     Without this guard, ``find_callers`` returns ``total: 0, error:
-    null`` — indistinguishable from "this method has no callers". The
+    null`` - indistinguishable from "this method has no callers". The
     agent has no way to know the question was unanswerable rather than
     answered "none".
     """
     g = Graph()
     target = _add_method(g, "App\\Models\\User", "scopeActive")
-    _ = target  # unused — the method exists, but CALLS edges don't
+    _ = target  # unused - the method exists, but CALLS edges don't
     ctx = _make_ctx(g, coverage=Coverage(calls_indexed=False))
 
     output = FindCallersTool().execute(
@@ -108,7 +108,7 @@ def test_calls_not_indexed_returns_structured_error_when_method_exists() -> None
     assert output.error_code == "calls_not_indexed"
     assert output.callers == []
     assert "lsp" in (output.error or "").lower()
-    # Method exists — we echo back the resolved id, not the raw input.
+    # Method exists - we echo back the resolved id, not the raw input.
     assert output.method_fqn == "method:App\\Models\\User::scopeActive"
 
 

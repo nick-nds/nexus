@@ -1,4 +1,4 @@
-"""``get_request_flow`` — multi-hop view of a route's full fan-out.
+"""``get_request_flow`` - multi-hop view of a route's full fan-out.
 
 Extends :mod:`trace_route` with one more level of causality:
 for every event the handler fires, also list the listeners that
@@ -6,7 +6,7 @@ subscribe to it, and for each listener surface any *further*
 events/jobs that listener fires.
 
 This is the tool that answers questions like *"what actually
-happens when a user hits ``POST /orders``?"* — the agent sees
+happens when a user hits ``POST /orders``?"* - the agent sees
 the immediate middleware + controller, the side-effect events,
 and the downstream listener work in one shot, without having to
 issue a cascade of follow-up queries.
@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 class GetRequestFlowInput(ToolInput):
     """Identify the route to walk.
 
-    Same shape as :class:`trace_route`'s input — either pass a
+    Same shape as :class:`trace_route`'s input - either pass a
     ``route_id`` or a ``(method, uri)`` pair.
     """
 
@@ -70,7 +70,7 @@ class ListenerFanOut(ToolOutput):
     """One listener reached from a fired event.
 
     The ``fires`` / ``dispatches`` / ``notifies`` lists are the
-    *downstream* work the listener itself does — the "and then what"
+    *downstream* work the listener itself does - the "and then what"
     level.
     """
 

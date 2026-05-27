@@ -27,7 +27,7 @@ def build_attribution(meta: ProjectMeta) -> dict[str, Any] | None:
     Returns:
         A plain dict suitable for JSON serialisation, or ``None`` when
         ``meta.kind`` is not ``"package"`` (including when ``meta.package``
-        is ``None`` — defensive against malformed meta).
+        is ``None`` - defensive against malformed meta).
     """
     if meta.kind != "package" or meta.package is None:
         return None

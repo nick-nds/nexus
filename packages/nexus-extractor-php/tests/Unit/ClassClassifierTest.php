@@ -84,7 +84,7 @@ final class ClassClassifierTest extends TestCase
     {
         // Regression: mailables internally use Illuminate\Bus\Queueable for
         // fluent queueing. Tagging them as "job" because they happen to use
-        // that trait is wrong — jobs are marked by
+        // that trait is wrong - jobs are marked by
         // Illuminate\Foundation\Bus\Dispatchable, which mailables do not use.
         $kinds = $this->classifier->classify(new ReflectionClass(WelcomeMail::class));
 
@@ -179,7 +179,7 @@ final class ClassClassifierTest extends TestCase
     public function test_trait_is_classified_as_trait_not_abstract(): void
     {
         // Audit P0-1 (trait variant). Bonus pickup alongside interface
-        // — they share the same return-early branch.
+        // - they share the same return-early branch.
         $kinds = $this->classifier->classify(new ReflectionClass(HasTimestamps::class));
 
         $this->assertSame(['trait'], $kinds);

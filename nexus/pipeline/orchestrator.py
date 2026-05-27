@@ -6,7 +6,7 @@ the first error. There is no DAG and no parallelism; a linear sequence
 is easier to reason about and recover from, and every pass listed in
 ``PHASE-3-indexing-pipeline.md`` is linear anyway.
 
-The orchestrator catches unexpected exceptions from passes — a
+The orchestrator catches unexpected exceptions from passes - a
 pass-level bug should not take down the whole process without leaving
 a trace. Caught exceptions become an :class:`Error` on the context
 with a ``pass_crashed`` code, and the pipeline result captures the

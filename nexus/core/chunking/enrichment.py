@@ -4,8 +4,8 @@ v1's embeddings used raw source code as input. That worked badly:
 vectors clustered by syntax ("classes with many private properties")
 instead of by meaning ("things that handle orders"). v2 builds a
 structured natural-language description of each chunk that weaves in
-the graph context around it — the containing class, the module, who
-calls it, what events it fires — and embeds *that*.
+the graph context around it - the containing class, the module, who
+calls it, what events it fires - and embeds *that*.
 
 The specific template lives in
 ``internal_docs/08-embedding-and-chunking.md`` §"Graph-enriched
@@ -17,7 +17,7 @@ Why pure
 
 Every argument is data. No filesystem reads, no embedder calls, no
 logging. That lets the Phase 3 tests assert on exact output strings
-and keeps the enrichment step cacheable — swapping in a new template
+and keeps the enrichment step cacheable - swapping in a new template
 flavour is an input change, not a code-path change.
 """
 
@@ -58,7 +58,7 @@ class EnrichedTextBuilder:
         Args:
             chunk: The source chunk produced by the chunker.
             graph: The project graph the chunk links into. May be
-                ``None``-free but partially populated — missing
+                ``None``-free but partially populated - missing
                 neighbours are silently omitted, not an error.
 
         Returns:
@@ -117,7 +117,7 @@ class EnrichedTextBuilder:
         a route node: method, URI, middleware, controller method. For
         a listener: event it handles.
 
-        Missing relationships are silently omitted — a method that
+        Missing relationships are silently omitted - a method that
         fires no events simply has no ``fires:`` line.
         """
         lines: list[str] = []

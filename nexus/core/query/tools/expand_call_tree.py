@@ -1,4 +1,4 @@
-r"""``expand_call_tree`` — bounded BFS through ``CALLS`` edges.
+r"""``expand_call_tree`` - bounded BFS through ``CALLS`` edges.
 
 Given a method, walk the call graph in either direction (callers
 or callees) up to a configurable depth and return every method
@@ -8,7 +8,7 @@ agents a multi-hop view in a single call.
 
 Like :class:`FindCallersTool`, this tool depends on the LSP-driven
 static analyser populating ``CALLS`` edges. On indexes built without
-an LSP the result is empty — agents should check
+an LSP the result is empty - agents should check
 ``response.coverage.calls_indexed`` before treating an empty
 response as "no callers/callees".
 
@@ -18,13 +18,13 @@ Output shape
 A flat list of :class:`CallTreeNode`, ordered by BFS visit order.
 Each node carries:
 
-* ``depth`` — 1 for direct neighbours of the root, 2 for
+* ``depth`` - 1 for direct neighbours of the root, 2 for
   neighbours-of-neighbours, etc.
-* ``via_*`` — the parent method that brought us here (i.e. the
+* ``via_*`` - the parent method that brought us here (i.e. the
   calling method when ``direction=upstream``, the called method
   when ``direction=downstream``), so the agent can reconstruct
   the tree without a follow-up call.
-* ``call_site_*`` — file/line of the actual call statement,
+* ``call_site_*`` - file/line of the actual call statement,
   recorded by the static analyser on the edge.
 """
 
@@ -81,7 +81,7 @@ class ExpandCallTreeInput(ToolInput):
         le=1000,
         description=(
             "Hard cap on returned nodes. Hot service methods can have "
-            "hundreds of callers — without a cap the agent gets a wall "
+            "hundreds of callers - without a cap the agent gets a wall "
             "of methods that crowds the next tool call out of context."
         ),
     )
@@ -100,7 +100,7 @@ class CallTreeNode(ToolOutput):
     via_class_fqn: str | None = Field(
         default=None,
         description=(
-            "Class FQN of the method that brought us here — for "
+            "Class FQN of the method that brought us here - for "
             "``upstream`` walks this is the callee (the method we "
             "discovered as calling ours), for ``downstream`` walks "
             "this is the caller (the method that called us)."
@@ -152,7 +152,7 @@ class ExpandCallTreeTool:
         "agent can reconstruct the tree. Useful when ``find_callers`` "
         "or ``find_event_chains`` only give one hop and the agent "
         "needs the broader blast radius. **Returns an empty list "
-        "unless the index was built with an LSP server** — check "
+        "unless the index was built with an LSP server** - check "
         "``response.coverage.calls_indexed`` before treating an empty "
         "result as 'no calls'."
     )
@@ -304,7 +304,7 @@ def _walk(
         and depth_limit_seen
         and _has_unwalked_neighbours(graph, visited, direction)
     ):
-        # Frontier still has neighbours we'd reach at a higher max_depth —
+        # Frontier still has neighbours we'd reach at a higher max_depth -
         # flag that for the agent so it can request more.
         truncated_reason = "max_depth"
 

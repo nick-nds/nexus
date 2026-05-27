@@ -1,4 +1,4 @@
-"""`nexus package index <path>` — index a Composer package."""
+"""`nexus package index <path>` - index a Composer package."""
 
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ def index_command(
     """Index a Composer package at PATH.
 
     Detects whether to use in-repo extraction (when the package already
-    has ``vendor/bin/testbench`` and ``vendor/nexus/extractor-php``) or
+    has ``vendor/bin/testbench`` and ``vendor/nick-nds/nexus-extractor``) or
     Nexus-driven extraction (builds an isolated scratch directory under
     ``~/.nexus/cache/``).
 
@@ -96,7 +96,7 @@ def index_command(
         # is useful on its own), but the user should know semantic
         # search will be unavailable until they configure an embedder.
         click.echo(
-            "WARNING: no embedder configured in ~/.nexus/config.yml — "
+            "WARNING: no embedder configured in ~/.nexus/config.yml - "
             "indexing graph only, semantic_search will be unavailable.",
             err=True,
         )

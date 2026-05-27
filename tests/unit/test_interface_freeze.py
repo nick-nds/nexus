@@ -18,7 +18,7 @@ breaking change that requires:
 3. An update to the expected set below.
 
 Do NOT just update the set to make CI green without the decision log
-entry — the whole point of this test is to make accidental renames
+entry - the whole point of this test is to make accidental renames
 loud.
 """
 
@@ -116,7 +116,7 @@ def _cli_commands() -> frozenset[str]:
     runner = CliRunner()
     result = runner.invoke(main, ["--help"])
     assert result.exit_code == 0
-    # Parse the "Commands:" section — lines that start with exactly two spaces
+    # Parse the "Commands:" section - lines that start with exactly two spaces
     # followed by a non-whitespace command name.
     commands: set[str] = set()
     in_commands = False

@@ -16,8 +16,8 @@ Why not dependency injection per pass?
 Threading the same context through each pass keeps the pass signature
 narrow (``run(ctx) -> None``) and lets downstream passes read whatever
 upstream passes produced without extra plumbing. A richer alternative
-— one input type and one output type per pass, with the orchestrator
-explicitly linking them — is noise we don't need for a linear pipeline
+- one input type and one output type per pass, with the orchestrator
+explicitly linking them - is noise we don't need for a linear pipeline
 with no branching.
 """
 
@@ -56,7 +56,7 @@ class PipelineContext:
             so the orchestrator can set it lazily.
         lsp: The language-server backend used by EnrichWithLspPass to
             populate CALLS edges. ``None`` (the default) disables the
-            pass — the pipeline still runs, but no CALLS edges are
+            pass - the pipeline still runs, but no CALLS edges are
             produced.
         lsp_server: A descriptive label for the LSP backend (binary
             path or name) recorded in ``meta.json`` so ``index status``

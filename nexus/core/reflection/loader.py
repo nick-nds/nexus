@@ -6,7 +6,7 @@ I/O. It is intentionally pure with respect to its arguments: pass it a
 raises a typed exception). No globals, no logging side effects.
 
 Why a custom exception hierarchy instead of letting Pydantic exceptions
-escape: callers — most notably the indexing pipeline — want to
+escape: callers - most notably the indexing pipeline - want to
 distinguish "file isn't there" from "file isn't valid JSON" from "file is
 valid JSON but for a schema we don't speak". Each maps to a different
 remediation message in the CLI/MCP layer.
@@ -105,6 +105,6 @@ def _check_schema_version(raw: object, *, source: Path) -> None:
         raise ReflectionVersionError(
             f"Reflection document schema_version {version} is not compatible "
             f"with this Nexus build (expected major {SCHEMA_MAJOR}). "
-            f"Upgrade or downgrade nexus/extractor-php to a matching major "
+            f"Upgrade or downgrade nick-nds/nexus-extractor to a matching major "
             f"version. Source: {source}",
         )

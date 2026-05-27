@@ -1,4 +1,4 @@
-"""``get_node_body`` — resolve a graph node id to its source text.
+"""``get_node_body`` - resolve a graph node id to its source text.
 
 Built on top of :class:`~nexus.core.query.tools.get_full_block.GetFullBlockTool`.
 Where ``get_full_block`` takes ``(file, start_line, end_line)``, this
@@ -89,7 +89,7 @@ def _chunk_index(store: VectorStore) -> dict[str, _ChunkLocation]:
             # First-write-wins; the chunker emits at most one chunk per
             # node id in practice. If a future chunker emits multiple
             # (e.g., long methods split into windows) we'll need to
-            # surface them as a list — flagged as a TODO at the
+            # surface them as a list - flagged as a TODO at the
             # benchmarking follow-up.
             continue
         file_path = payload.get("file_path")
@@ -176,12 +176,12 @@ class GetNodeBodyOutput(ToolOutput):
         default=False,
         description=(
             "``True`` when ``file_mtime_utc`` is strictly later than "
-            "the project's ``indexed_at`` — the file was edited after "
+            "the project's ``indexed_at`` - the file was edited after "
             "the chunk's line range was recorded, so the stored range "
             "may now point at the wrong region of the file. ``content`` "
             "still reflects what's currently at those lines, but the "
             "bytes may no longer belong to this node. ``False`` does "
-            "NOT mean fresh — only that we have no evidence of "
+            "NOT mean fresh - only that we have no evidence of "
             "staleness (typically because no ``indexed_at`` is set)."
         ),
     )
@@ -201,12 +201,12 @@ class GetNodeBodyTool:
     description: ClassVar[str] = (
         "Return the raw source text of a graph node (method or class) "
         "given its ``node_id``. "
-        "**Argument:** ``node_id`` (string) — a kind-prefixed graph id, "
+        "**Argument:** ``node_id`` (string) - a kind-prefixed graph id, "
         'e.g. ``node_id="method:App\\\\Models\\\\User::scopeActive"`` '
         'or ``node_id="class:App\\\\Models\\\\User"``. '
         "**Optional:** ``context_lines`` (int, default 0). "
         "Use this when ``describe_class`` or ``find_callers`` gives you "
-        "a node id but you still need to read the actual body — "
+        "a node id but you still need to read the actual body - "
         "typically because ``semantic_search`` couldn't surface it. The "
         "line range comes from the chunk metadata, so end-line is "
         "accurate even for methods whose graph node only carries the "
@@ -260,7 +260,7 @@ class GetNodeBodyTool:
                 symbol=node.name,
                 container_class=container_class,
                 error=(
-                    "No chunk indexed for this node — cannot determine "
+                    "No chunk indexed for this node - cannot determine "
                     "end line. Re-run ``nexus index sync`` to ensure "
                     "the chunk is present."
                     if has_any_location
@@ -273,7 +273,7 @@ class GetNodeBodyTool:
                 error_code=("chunk_not_found" if has_any_location else "node_has_no_source"),
             )
 
-        # Chunk has the authoritative file too — use it as a fallback.
+        # Chunk has the authoritative file too - use it as a fallback.
         resolved_file = file_path or chunk.file_path
 
         block_out = GetFullBlockTool().execute(

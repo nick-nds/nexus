@@ -1,21 +1,21 @@
 name: PR checks
 
 # Hardened gate for PRs into main.  These checks run *in addition* to
-# ci.yml's lint+test sweep — they exist to surface specific signals
+# ci.yml's lint+test sweep - they exist to surface specific signals
 # that get lost inside the 800-test pass:
 #
-# * ``freeze-check`` — runs the v1.0 public-API freeze test as its
+# * ``freeze-check`` - runs the v1.0 public-API freeze test as its
 #   own GitHub check so a CLI-name or MCP-tool-name regression shows
 #   up as a distinct red ❌, not buried in pytest output.
-# * ``error-codes-audit`` — confirms every emitted ``error_code`` is
+# * ``error-codes-audit`` - confirms every emitted ``error_code`` is
 #   documented in ``docs/error-codes.md`` (the agent contract, per
 #   D31 in ``internal_docs/13-decision-log.md``).
-# * ``php-lint`` / ``php-stan`` / ``php-test`` — the PHP package
+# * ``php-lint`` / ``php-stan`` / ``php-test`` - the PHP package
 #   gate, formerly only at publish time. Now path-filtered to
 #   ``packages/nexus-extractor-php/**`` so it only runs when PHP
 #   actually changed; runs a Pint / PHPStan / PHPUnit matrix in
 #   parallel across PHP 8.2/8.3 × Laravel 10/11/12 (excluding
-#   PHP 8.2 × Laravel 12 — the same exclusion publish-php.yml uses).
+#   PHP 8.2 × Laravel 12 - the same exclusion publish-php.yml uses).
 
 on:
   pull_request:
@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------
-  # Path detection — single small job that all PHP jobs depend on so
+  # Path detection - single small job that all PHP jobs depend on so
   # they no-op cleanly when only Python/docs changed.
   # ---------------------------------------------------------------------
   changes:
@@ -80,7 +80,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      # The audit script is pure stdlib — no uv sync needed.
+      # The audit script is pure stdlib - no uv sync needed.
       - name: Run scripts/list_error_codes.py --strict
         run: python3 scripts/list_error_codes.py --strict
 
@@ -88,19 +88,19 @@ jobs:
   # PHP package gate.
   #
   # ``php-package`` is a fast metadata sanity check that runs against
-  # one PHP version with no dependency install — catches broken
+  # one PHP version with no dependency install - catches broken
   # composer.json (bad PSR-4 namespaces, missing required fields,
   # unresolvable constraints) before we burn cycles on the matrix.
   #
   # Each downstream check (Pint / PHPStan / PHPUnit) runs as its own
   # parallel job across the full PHP × Laravel matrix.  Splitting the
   # checks (rather than chaining them in one job) makes failures
-  # specific in the PR checks panel — a Pint failure is visibly
+  # specific in the PR checks panel - a Pint failure is visibly
   # different from a PHPUnit failure without clicking into a single
   # job's logs.
   # ---------------------------------------------------------------------
   php-package:
-    name: PHP — Package validation
+    name: PHP - Package validation
     needs: changes
     if: needs.changes.outputs.php == 'true'
     runs-on: ubuntu-latest
@@ -118,7 +118,7 @@ jobs:
         # ``composer validate --strict`` checks metadata correctness
         # (required fields, PSR-4 namespace shape, license string,
         # version-constraint syntax) against the schema. It needs no
-        # dependency install, so this lights up fast — a malformed
+        # dependency install, so this lights up fast - a malformed
         # composer.json fails the PR before the matrix burns minutes.
         run: composer validate --strict
       - name: Check Composer dependencies resolve
@@ -135,7 +135,7 @@ jobs:
             "illuminate/filesystem:^10.0|^11.0|^12.0"
 
   php-lint:
-    name: PHP — Pint (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
+    name: PHP - Pint (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
     needs: changes
     if: needs.changes.outputs.php == 'true'
     runs-on: ubuntu-latest
@@ -182,7 +182,7 @@ jobs:
         run: composer lint
 
   php-stan:
-    name: PHP — PHPStan (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
+    name: PHP - PHPStan (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
     needs: changes
     if: needs.changes.outputs.php == 'true'
     runs-on: ubuntu-latest
@@ -229,7 +229,7 @@ jobs:
         run: composer stan
 
   php-test:
-    name: PHP — PHPUnit (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
+    name: PHP - PHPUnit (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
     needs: changes
     if: needs.changes.outputs.php == 'true'
     runs-on: ubuntu-latest

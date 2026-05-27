@@ -9,7 +9,7 @@ the MCP ``call_tool`` API and prints a perf table.
 
 Reports per tool:
 
-* ``status`` — ``ok`` / ``error`` / ``over_budget`` / ``skipped``
+* ``status`` - ``ok`` / ``error`` / ``over_budget`` / ``skipped``
 * ``duration_ms`` vs ``budget_ms``
 * ``error_code`` (if any) and ``result_size`` (length of the
   primary list field)
@@ -21,7 +21,7 @@ Run with:
     NEXUS_TRACE_DIR=/tmp/mcp-trace uv run python scripts/mcp_smoke.py
 
 Exit code is non-zero when any tool errored unexpectedly or busted
-its latency budget — convenient for CI gating.
+its latency budget - convenient for CI gating.
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ def build_engine(storage_root: Path, slug: str) -> QueryEngine:
     """Construct a real engine + context against the persisted index."""
     storage = ProjectStorage(root=storage_root, slug=slug)
     if not storage.project_dir.exists():
-        msg = f"index not found at {storage.project_dir} — run `nexus index rebuild` first"
+        msg = f"index not found at {storage.project_dir} - run `nexus index rebuild` first"
         raise SystemExit(msg)
 
     embedder = _resolve_embedder(storage_root)
@@ -85,7 +85,7 @@ def _resolve_embedder(storage_root: Path) -> Any:
         config_dict["dimensions"] = cfg.embedder.dimensions
     try:
         return plugins.resolve_embedder(cfg.embedder.provider, config_dict)
-    except Exception:  # noqa: BLE001 — graph-only fallback is acceptable
+    except Exception:  # noqa: BLE001 - graph-only fallback is acceptable
         return None
 
 
@@ -141,12 +141,12 @@ async def discover_targets(mcp: Any) -> Targets:
         if described and described.get("methods"):
             t.method_fqn = f"{t.class_fqn}::{described['methods'][0]['name']}"
 
-    # Find a model that actually has a policy — pick the first
+    # Find a model that actually has a policy - pick the first
     # ``policy`` node and read its target via describe_class, falling
     # back to ``policies_applied_to`` reverse-lookup on each model.
     policies = await _call(mcp, "list_by_kind", {"kind": "policy"})
     if policies and policies.get("items"):
-        # A policy's target model is recorded as an APPLIES_TO edge —
+        # A policy's target model is recorded as an APPLIES_TO edge -
         # easiest to discover by walking models and checking which
         # has ``policies_applied_to`` populated. Cap at the first match.
         models = await _call(mcp, "list_by_kind", {"kind": "model"})
@@ -320,7 +320,7 @@ async def run_probe(mcp: Any, probe: Probe, budget_ms: int) -> ProbeResult:
     start = time.perf_counter()
     try:
         result = await mcp.call_tool(probe.tool, probe.args)
-    except Exception as exc:  # noqa: BLE001 — surfaced as a row, not a crash
+    except Exception as exc:  # noqa: BLE001 - surfaced as a row, not a crash
         elapsed = (time.perf_counter() - start) * 1000.0
         return ProbeResult(
             tool=probe.tool,
@@ -337,7 +337,7 @@ async def run_probe(mcp: Any, probe: Probe, budget_ms: int) -> ProbeResult:
     error_code = payload.get("error_code") if isinstance(payload, dict) else None
     result_size = _estimate_size(payload)
 
-    # ``error_code`` is part of every tool's documented contract — a
+    # ``error_code`` is part of every tool's documented contract - a
     # structured "target not found" response is not a failure, just a
     # different return shape. We mark it ``ok-error`` so the perf table
     # makes the distinction explicit, but it does NOT count toward the

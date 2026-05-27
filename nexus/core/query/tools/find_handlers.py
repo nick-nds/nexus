@@ -1,16 +1,16 @@
-"""``find_handlers`` — reverse lookup from URI or class to routes.
+"""``find_handlers`` - reverse lookup from URI or class to routes.
 
 Reverse lookup from a URI glob or handler FQN to the routes that
 target a given handler. Two common agent questions:
 
-1. "Which class handles ``/api/users/{id}``?" — pass ``uri_glob``.
-2. "Which routes point at ``ShowUserController``?" — pass
+1. "Which class handles ``/api/users/{id}``?" - pass ``uri_glob``.
+2. "Which routes point at ``ShowUserController``?" - pass
    ``handler_fqn`` (class FQN, optionally ``::method``).
 
 The tool walks ``ROUTES_TO`` edges in the appropriate direction
 and returns handler-focused rows: each row is one route + the
 class/method/file/line that handles it. Middleware, events,
-policies are deliberately omitted — use ``trace_route`` if you
+policies are deliberately omitted - use ``trace_route`` if you
 need the full picture.
 """
 
@@ -214,7 +214,7 @@ def _build_row(
         if target is not None:
             class_fqn = str_attr(target.attributes, "class_fqn")
             method_name = target.name
-            # Method nodes don't carry ``file`` — resolve via the
+            # Method nodes don't carry ``file`` - resolve via the
             # parent class node so agents don't have to round-trip.
             file = file_for_method_node(graph, target)
             raw_line = target.attributes.get("line")

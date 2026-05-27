@@ -1,11 +1,11 @@
-"""``find_dispatchers`` — find the methods that fire a given event.
+"""``find_dispatchers`` - find the methods that fire a given event.
 
 The mirror image of :mod:`find_listeners`: instead of "who reacts
 to X", this tool answers "who causes X to be fired in the first
 place?" by walking ``FIRES`` edges backwards from the event.
 
-Each row identifies the firing method — its class FQN, method
-name, file, and line — so agents can jump to the source.
+Each row identifies the firing method - its class FQN, method
+name, file, and line - so agents can jump to the source.
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ class FindDispatchersTool:
     name: ClassVar[str] = "find_dispatchers"
     description: ClassVar[str] = (
         "Given an event FQN, return every method that fires it. "
-        "**Argument:** ``event`` (string) — the event FQN, e.g. "
+        "**Argument:** ``event`` (string) - the event FQN, e.g. "
         '``event="App\\\\Events\\\\OrderPlaced"``. '
         "Each row points at a caller's class, method, file, and line so "
         "agents can jump directly to the source."

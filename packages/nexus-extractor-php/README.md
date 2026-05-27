@@ -1,6 +1,6 @@
-# nexus/extractor-php
+# nick-nds/nexus-extractor
 
-> Laravel runtime + AST extractor for the [Nexus](https://github.com/nexus-tools/nexus) code intelligence tool.
+> Laravel runtime + AST extractor for the [Nexus](https://github.com/nick-nds/nexus) code intelligence tool.
 
 This Composer package adds an Artisan command, `nexus:extract`, that introspects a Laravel application and emits a comprehensive `reflection.json` describing every primitive Nexus's Python pipeline needs to build a typed semantic graph of the codebase.
 
@@ -18,7 +18,7 @@ of this document if you want to try it anyway.
 ## Installation
 
 ```bash
-composer require --dev nexus/extractor-php
+composer require --dev nick-nds/nexus-extractor
 ```
 
 The service provider is auto-discovered.
@@ -42,9 +42,9 @@ This produces `storage/app/nexus/reflection.json`. Options:
 
 ### Exit codes
 
-- `0` — success (may include warnings about partial extraction)
-- non-zero — fatal error, partial document written with `errors` entry
-- `2` — usage / argument error
+- `0` - success (may include warnings about partial extraction)
+- non-zero - fatal error, partial document written with `errors` entry
+- `2` - usage / argument error
 
 ### Broken class handling
 
@@ -70,7 +70,7 @@ cannot be declared is a real bug in your project; fix it and re-run.
 
 ## What it extracts
 
-**Phase A — Runtime registries:**
+**Phase A - Runtime registries:**
 
 - Routes (with middleware, where clauses, names, parameters)
 - Service container bindings (singletons, regular, contextual, deferred, aliases)
@@ -80,13 +80,13 @@ cannot be declared is a real bug in your project; fix it and re-run.
 - Selected config (database connections, queue, broadcasting; secrets redacted)
 - Scheduled tasks
 
-**Phase B — Class autoload sweep:**
+**Phase B - Class autoload sweep:**
 
 - Every class in the project class map
 - Classification by `instanceof` against Laravel base types (Model, Controller, FormRequest, Resource, Job, Notification, Event, Listener, Policy, ServiceProvider, Observer, Middleware, Mailable, Command, Cast, Rule, Exception, ...)
 - Reflection: methods, parameters with types, return types, PHP 8 attributes, traits, interfaces
 
-**Phase C — AST static analysis (`nikic/php-parser`):**
+**Phase C - AST static analysis (`nikic/php-parser`):**
 
 - Event dispatches (`event(...)`, `Event::dispatch(...)`, `SomeEvent::dispatch(...)`)
 - Job/notification dispatches
@@ -111,8 +111,8 @@ Nexus officially targets Laravel 10, 11, and 12 on PHP 8.2+. Those are the
 versions we test, the versions CI runs, and the versions we promise will
 keep working.
 
-If you want to try Nexus on an older Laravel version anyway — typically
-Laravel 9 on PHP 8.2+ — you can, but you're off the supported path.
+If you want to try Nexus on an older Laravel version anyway - typically
+Laravel 9 on PHP 8.2+ - you can, but you're off the supported path.
 
 **What will definitely not work:**
 
@@ -137,9 +137,9 @@ install on an older project. To get past this:
 
 1. Fork this repository.
 2. In your fork's `composer.json`, relax the `illuminate/*` constraints to
-   include the version you want to try — for example,
+   include the version you want to try - for example,
    `^9.0 || ^10.0 || ^11.0 || ^12.0`. Do **not** relax the `php` constraint
-   below `^8.2` — that will not help.
+   below `^8.2` - that will not help.
 3. Tag a version in your fork (or use `dev-main`) and add it to your
    project's `composer.json` as a VCS repository:
 
@@ -152,11 +152,11 @@ install on an older project. To get past this:
            }
        ],
        "require-dev": {
-           "nexus/extractor-php": "dev-main"
+           "nick-nds/nexus-extractor": "dev-main"
        }
    }
    ```
-4. Run `composer update nexus/extractor-php`, then `php artisan nexus:extract`.
+4. Run `composer update nick-nds/nexus-extractor`, then `php artisan nexus:extract`.
 
 ### What to expect
 
@@ -177,4 +177,8 @@ versions without a proposed fix will be closed.
 
 ## License
 
-MIT
+Business Source License 1.1 - see [LICENSE](LICENSE) for full terms.
+
+Free to use for any purpose **except** building a competing commercial product. Converts to Apache 2.0 on 2030-05-27.
+
+For alternative licensing, contact nitin.niku97@gmail.com.

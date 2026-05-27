@@ -1,14 +1,14 @@
-"""``Coverage`` — what was indexed, attached to every tool result.
+"""``Coverage`` - what was indexed, attached to every tool result.
 
 Every tool response carries a :class:`Coverage` block so an agent can
 distinguish three indistinguishable-looking outcomes:
 
 1. **No matches because nothing matches** (``find_callers`` for an
-   uncalled method) — the answer is genuinely empty.
+   uncalled method) - the answer is genuinely empty.
 2. **No matches because the feature isn't indexed** (``find_callers``
-   when ``calls_indexed`` is ``False``) — the question can't be
+   when ``calls_indexed`` is ``False``) - the question can't be
    answered with the current index, the agent should know.
-3. **Stale matches** — the index is old and the user's edit hasn't
+3. **Stale matches** - the index is old and the user's edit hasn't
    been re-indexed yet (``indexed_at`` is days ago).
 
 The coverage block is the explicit signal that turns case 2 from a
@@ -16,7 +16,7 @@ silent hallucination risk into a structured "this index does not
 support that query" response.
 
 The data is sourced from :class:`~nexus.adapters.storage.ProjectMeta`
-written by the indexing pipeline. New fields are added defensively —
+written by the indexing pipeline. New fields are added defensively -
 absent fields default so old ``meta.json`` files keep deserialising.
 """
 
@@ -86,7 +86,7 @@ class Coverage(BaseModel):
             "Liveness signal for the embedder that ``semantic_search`` "
             "depends on. ``True`` means the embedder responded to a "
             "probe; ``False`` means the embedder is configured but "
-            "unreachable (typically Ollama daemon not running) — "
+            "unreachable (typically Ollama daemon not running) - "
             "``semantic_search`` calls will fail until it's restored. "
             "``None`` means no probe ran (no embedder configured, or "
             "the engine was built without one). Agents can use this "
@@ -148,7 +148,7 @@ def _probe_semantic_search(
     | live             | set               | raises     | False  |
     +------------------+-------------------+------------+--------+
 
-    The probe call is skipped when ``meta.embedder_id is None`` —
+    The probe call is skipped when ``meta.embedder_id is None`` -
     we already know the answer is ``False`` (no vectors to search),
     so paying the round-trip would be wasteful.
 

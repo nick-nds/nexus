@@ -1,4 +1,4 @@
-"""Unit tests for :func:`resolve_class_id` — case-insensitive FQN fallback.
+"""Unit tests for :func:`resolve_class_id` - case-insensitive FQN fallback.
 
 Pins audit finding P1-17. The helper is shared by ``describe_class``,
 ``get_model_context``, ``get_policy_for``, and ``find_implementations``;
@@ -73,7 +73,7 @@ def test_unknown_class_returns_none_with_no_warning() -> None:
 def test_warning_uses_canonical_form_from_graph() -> None:
     """The warning's canonical FQN comes from the graph, not from input.
 
-    Important so the agent's next call uses the right casing — without
+    Important so the agent's next call uses the right casing - without
     this contract the warning would be useless.
     """
     g = Graph()

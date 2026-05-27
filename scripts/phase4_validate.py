@@ -10,7 +10,7 @@ Run with::
     .venv/bin/python scripts/phase4_validate.py
 
 Does **not** exercise ``semantic_search`` unless ``NEXUS_RUN_OLLAMA``
-is set — that tool needs a live Ollama daemon so the query
+is set - that tool needs a live Ollama daemon so the query
 vector can be produced with the same embedder the chunks were
 written with.
 """
@@ -70,7 +70,7 @@ def run_structural_suite(name: str, engine: QueryEngine) -> None:
     posts = engine.query("list_routes", {"method": "POST"})
     print(f"POST routes: {posts.total}")
 
-    # Pick the first route that has an actual controller handler —
+    # Pick the first route that has an actual controller handler -
     # closures would produce a blank trace and miss the interesting
     # describe_class follow-up.
     controller_route = next(
@@ -110,7 +110,7 @@ def run_structural_suite(name: str, engine: QueryEngine) -> None:
                     print(f"    {m.visibility or '?':>9} {m.name}")
                 print(f"  related_routes: {len(cls.related_routes)}")
 
-    # Events + listeners — pick the first event node that has at least
+    # Events + listeners - pick the first event node that has at least
     # one listener wired up, regardless of project.
     section("find_listeners (first event)")
     classifier = QueryClassifier()  # not strictly needed; demo the API

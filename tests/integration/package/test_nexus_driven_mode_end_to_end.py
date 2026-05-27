@@ -4,7 +4,7 @@ These tests exercise the orchestrator's nexus-driven path end-to-end:
 generate scratch composer.json, run composer install, boot Testbench,
 run nexus:extract-package, normalize paths, ingest into the graph.
 
-Known bugs may cause assertions to fail — that's intentional. Each
+Known bugs may cause assertions to fail - that's intentional. Each
 failure documents a regression the fix dispatch must close.
 """
 
@@ -70,7 +70,7 @@ def test_cold_run_writes_scratch_manifest(fixture_clone: Path, tmp_path: Path) -
 
 @skip_unless_integration
 def test_warm_run_skips_composer_install(fixture_clone: Path, tmp_path: Path) -> None:
-    """Cache hit on warm rerun — should be at least 5x faster."""
+    """Cache hit on warm rerun - should be at least 5x faster."""
     indexer = PackageIndexer(
         cache_root=tmp_path / "cache",
         nexus_root=tmp_path / "nexus",
@@ -86,7 +86,7 @@ def test_warm_run_skips_composer_install(fixture_clone: Path, tmp_path: Path) ->
     indexer.index(meta)
     warm = time.monotonic() - t1
 
-    assert warm < cold / 5, f"warm {warm:.1f}s vs cold {cold:.1f}s — cache hit broken"
+    assert warm < cold / 5, f"warm {warm:.1f}s vs cold {cold:.1f}s - cache hit broken"
 
 
 @skip_unless_integration
@@ -95,7 +95,7 @@ def test_packages_own_classes_reach_the_graph(fixture_clone: Path, tmp_path: Pat
 
     KNOWN BUG at the time this test was written: Phase B + Phase C
     both emit zero class entries because the scope-path comparison
-    is symlink-mismatched. This test pins the bug down — it should
+    is symlink-mismatched. This test pins the bug down - it should
     PASS after the fix lands.
     """
     indexer = PackageIndexer(
@@ -169,7 +169,7 @@ def test_bindings_are_scope_filtered(fixture_clone: Path, tmp_path: Path) -> Non
 
     KNOWN BUG at the time this test was written: Phase A registries are
     not scope-filtered, so ~218 Laravel core bindings leak into the
-    package index. This test pins the bug — it should PASS after the fix.
+    package index. This test pins the bug - it should PASS after the fix.
     """
     indexer = PackageIndexer(
         cache_root=tmp_path / "cache",

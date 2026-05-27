@@ -18,7 +18,7 @@ from nexus.core.query.tool_protocol import ToolInput, ToolOutput
 
 
 class _StubInput(ToolInput):
-    """Empty input model — the stub tool ignores the payload."""
+    """Empty input model - the stub tool ignores the payload."""
 
 
 class _StubOutput(ToolOutput):
@@ -34,7 +34,7 @@ class _StubTool:
 
     def execute(self, payload: ToolInput, ctx: QueryContext) -> ToolOutput:
         _ = payload, ctx
-        # Tools never set ``coverage`` themselves — the engine does.
+        # Tools never set ``coverage`` themselves - the engine does.
         return _StubOutput(answer="hello")
 
 
@@ -69,7 +69,7 @@ def test_engine_attaches_coverage_to_tool_output() -> None:
 
 
 def test_engine_passes_through_when_context_has_no_coverage() -> None:
-    """Coverage is optional — without it the output has the default ``None``."""
+    """Coverage is optional - without it the output has the default ``None``."""
     engine = _make_engine(coverage=None)
 
     output = engine.query("stub", {})
