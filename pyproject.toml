@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nexus-php"
-version = "1.0.0"
+version = "1.0.1"
 description = "Laravel-specific code intelligence: graph + vector RAG over a typed semantic graph of a Laravel codebase, exposed via MCP and CLI."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -28,7 +28,7 @@ dependencies = [
     "pydantic>=2.7,<3",
     "structlog>=24.1,<26",
     "pyyaml>=6.0,<7",
-    "lancedb>=0.13,<0.30",
+    "lancedb>=0.30,<0.34",
     "pyarrow>=15,<22",
     # CLI and terminal rendering. Click powers the subcommand tree;
     # rich provides progress bars, tables, and syntax-highlighted
