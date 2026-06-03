@@ -60,6 +60,32 @@ final class AstAnalyzerTest extends TestCase
         $this->assertHasFinding($findings, 'event_dispatch', 'App\\Events\\OrderPlaced');
     }
 
+    public function test_event_helper_dispatch_with_leading_backslash(): void
+    {
+        // The canonical idiom inside namespaced DDD code that hasn't
+        // aliased the helper: `\event(new Event(...))`. The NameResolver
+        // pass normalises the leading separator before our visitor runs,
+        // so the global helper is recognised the same as the bare form.
+        $code = <<<'PHP'
+        <?php
+        namespace App\Modules\Sales\Application\Commands;
+        use App\Modules\Sales\Domain\Events\OrderShipped;
+        class ShipOrderCommandHandler {
+            public function handle(): void {
+                \event(new OrderShipped(1));
+            }
+        }
+        PHP;
+
+        $findings = $this->analyse($code);
+
+        $this->assertHasFinding(
+            $findings,
+            'event_dispatch',
+            'App\\Modules\\Sales\\Domain\\Events\\OrderShipped',
+        );
+    }
+
     public function test_event_facade_dispatch(): void
     {
         $code = <<<'PHP'

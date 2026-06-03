@@ -26,6 +26,7 @@ from pydantic import Field
 from nexus.core.graph.types import EdgeKind
 from nexus.core.query.tool_protocol import ToolInput, ToolOutput
 from nexus.core.query.tools._common import str_attr, str_list_attr
+from nexus.core.query.tools.find_listeners import _event_edge_target_ids
 from nexus.core.query.tools.trace_route import (
     RouteTraceHandler,
     TraceRouteInput,
@@ -234,35 +235,34 @@ def _build_event_chain(graph: Graph, handler_method_id: str) -> list[EventFanOut
             continue
         seen_events.add(event_node.id)
 
+        # The FIRES edge landed us on whichever node form the dispatch
+        # pass targeted (usually ``class:<fqn>``), but LISTENS_TO edges
+        # target the ``event:<fqn>`` form. Walk both so the listener
+        # fan-out isn't silently empty.
         listeners: list[ListenerFanOut] = []
-        for listener_edge in incoming(graph, event_node.id, EdgeKind.LISTENS_TO):
-            listener_node = graph.node_by_id(listener_edge.source)
-            if listener_node is None:
-                continue
-            downstream_fires = _collect_targets(
-                graph,
-                listener_node.id,
-                EdgeKind.FIRES,
-            )
-            downstream_dispatches = _collect_targets(
-                graph,
-                listener_node.id,
-                EdgeKind.DISPATCHES,
-            )
-            downstream_notifies = _collect_targets(
-                graph,
-                listener_node.id,
-                EdgeKind.NOTIFIES,
-            )
-            listeners.append(
-                ListenerFanOut(
-                    listener=listener_node.name,
-                    listener_fqn=str_attr(listener_node.attributes, "fqn"),
-                    fires=sorted(set(downstream_fires)),
-                    dispatches=sorted(set(downstream_dispatches)),
-                    notifies=sorted(set(downstream_notifies)),
-                ),
-            )
+        seen_listeners: set[str] = set()
+        for target_id in _event_edge_target_ids(graph, event_node.id):
+            for listener_edge in incoming(graph, target_id, EdgeKind.LISTENS_TO):
+                if listener_edge.source in seen_listeners:
+                    continue
+                seen_listeners.add(listener_edge.source)
+                listener_node = graph.node_by_id(listener_edge.source)
+                if listener_node is None:
+                    continue
+                downstream_fires = _collect_targets(graph, listener_node.id, EdgeKind.FIRES)
+                downstream_dispatches = _collect_targets(
+                    graph, listener_node.id, EdgeKind.DISPATCHES
+                )
+                downstream_notifies = _collect_targets(graph, listener_node.id, EdgeKind.NOTIFIES)
+                listeners.append(
+                    ListenerFanOut(
+                        listener=listener_node.name,
+                        listener_fqn=str_attr(listener_node.attributes, "fqn"),
+                        fires=sorted(set(downstream_fires)),
+                        dispatches=sorted(set(downstream_dispatches)),
+                        notifies=sorted(set(downstream_notifies)),
+                    ),
+                )
 
         listeners.sort(key=lambda entry: entry.listener)
         chain.append(

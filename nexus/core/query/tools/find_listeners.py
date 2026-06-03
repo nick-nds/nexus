@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from pydantic import Field
 
+from nexus.core.graph.ids import class_id
 from nexus.core.graph.types import EdgeKind, NodeKind
 from nexus.core.query.tool_protocol import ToolInput, ToolOutput
 from nexus.core.query.tools._common import bool_attr, str_attr
@@ -166,3 +167,25 @@ def _resolve_event_id(graph: Graph, query: str) -> str | None:
                     return f"event:{node.id[len(prefix) :]}"
             return node.id
     return None
+
+
+def _event_edge_target_ids(graph: Graph, query: str) -> list[str]:
+    r"""Every node id an event's edges may target.
+
+    Events are stored two ways (see :func:`_resolve_event_id`), and
+    different passes attach edges to different forms: the events
+    section targets ``event:<fqn>`` (``LISTENS_TO``), while the
+    static-analysis dispatch pass targets ``class:<fqn>`` (``FIRES``,
+    via :func:`~nexus.core.graph.builder_findings.apply_static_findings`).
+    Reverse-traversal tools must check both forms or they silently
+    miss edges - the bug that made ``find_dispatchers`` return zero
+    for every dispatched event.
+
+    Returns both forms (canonical ``event:<fqn>`` first, then the
+    ``class:<fqn>`` form) or an empty list when the event can't be
+    resolved at all.
+    """
+    canonical = _resolve_event_id(graph, query)
+    if canonical is None:
+        return []
+    return [canonical, class_id(canonical[len("event:") :])]

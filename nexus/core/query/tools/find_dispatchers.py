@@ -17,7 +17,7 @@ from pydantic import Field
 from nexus.core.graph.types import EdgeKind
 from nexus.core.query.tool_protocol import ToolInput, ToolOutput
 from nexus.core.query.tools._common import int_attr, str_attr
-from nexus.core.query.tools.find_listeners import _resolve_event_id
+from nexus.core.query.tools.find_listeners import _event_edge_target_ids
 from nexus.core.query.traversal import incoming
 
 if TYPE_CHECKING:
@@ -79,28 +79,34 @@ class FindDispatchersTool:
         """Walk ``FIRES`` edges backwards from the event."""
         graph = ctx.storage.graph().load()
 
-        event_id = _resolve_event_id(graph, payload.event)
-        if event_id is None:
+        # FIRES edges target the ``class:<fqn>`` form while the event's
+        # canonical id is ``event:<fqn>``; resolve both so dispatchers
+        # are found regardless of which pass produced the edge. An empty
+        # list means the event itself couldn't be resolved.
+        target_ids = _event_edge_target_ids(graph, payload.event)
+        if not target_ids:
             return FindDispatchersOutput(
                 event=payload.event,
                 error=f"No event found matching {payload.event!r}.",
                 error_code="event_not_found",
             )
+        event_id = target_ids[0]
 
         rows: list[DispatcherRow] = []
-        for edge in incoming(graph, event_id, EdgeKind.FIRES):
-            method_node = graph.node_by_id(edge.source)
-            if method_node is None:
-                continue
-            attrs = method_node.attributes
-            rows.append(
-                DispatcherRow(
-                    class_fqn=str_attr(attrs, "class_fqn"),
-                    method=method_node.name,
-                    file=str_attr(attrs, "file"),
-                    line=int_attr(attrs, "line"),
-                ),
-            )
+        for target_id in target_ids:
+            for edge in incoming(graph, target_id, EdgeKind.FIRES):
+                method_node = graph.node_by_id(edge.source)
+                if method_node is None:
+                    continue
+                attrs = method_node.attributes
+                rows.append(
+                    DispatcherRow(
+                        class_fqn=str_attr(attrs, "class_fqn"),
+                        method=method_node.name,
+                        file=str_attr(attrs, "file"),
+                        line=int_attr(attrs, "line"),
+                    ),
+                )
 
         rows.sort(key=lambda r: (r.class_fqn or "", r.method))
 
