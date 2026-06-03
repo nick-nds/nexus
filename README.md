@@ -66,9 +66,16 @@ An agent using both gets: Boost for "what does the database look like?" and "wha
 
 ## Installation
 
+> **Python 3.11–3.13 required.** Python 3.14 is not yet supported: `pyarrow`
+> (a transitive dependency via LanceDB) has no prebuilt 3.14 wheels, so the
+> install falls back to compiling it from C++ source and fails unless you have
+> a full CMake/Arrow toolchain. If your system default is 3.14 (e.g. Arch),
+> create the environment with an explicit interpreter: `uv venv --python 3.13`.
+
 ```bash
 pip install nexus-php
-# or with uv
+# or with uv (pin the interpreter if your system default is 3.14)
+uv venv --python 3.13
 uv pip install nexus-php
 ```
 
@@ -416,7 +423,7 @@ The pure core never imports adapter modules. All dependencies are injected at th
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.11–3.13 (3.14 not yet supported)
 - [uv](https://docs.astral.sh/uv/) (recommended)
 - PHP 8.2+ and Composer (only for the extractor package)
 
@@ -454,8 +461,8 @@ uv run pytest tests/e2e/           # Full pipeline end-to-end
 
 ## Requirements
 
-- Python 3.11+
-- PHP 8.2+, Laravel 10 / 11 / 12
+- Python 3.11–3.13 (3.14 not yet supported)
+- PHP 8.2+, Laravel 10 / 11 / 12 / 13
 - Linux or macOS
 
 ## License

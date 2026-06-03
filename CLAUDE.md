@@ -132,7 +132,7 @@ Build for the requirements in the current phase. Resist creating "extension poin
 
 ### PHP (Composer package)
 
-- **Version:** PHP 8.2+, Laravel 10/11/12.
+- **Version:** PHP 8.2+, Laravel 10/11/12/13.
 - **Standard:** PSR-12, enforced by Pint.
 - **Static analysis:** PHPStan level 8.
 - **Naming:** PSR-4 autoload, namespaced under `Nexus\Extractor\`.

@@ -5,4 +5,4 @@ The version is read by ``pyproject.toml`` build tooling and by the CLI's
 described in ``internal_docs/MASTER-PLAN.md``.
 """
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
