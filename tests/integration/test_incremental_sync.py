@@ -11,7 +11,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import pytest
-
 from nexus.adapters.storage import ProjectStorage
 from nexus.core.graph.graph import Graph
 from nexus.core.graph.types import Edge, EdgeKind, Node, NodeKind
@@ -163,8 +162,7 @@ def test_incremental_sync_only_queries_changed_file_methods(tmp_path: Path) -> N
     # Carried edge (Foo::doFoo -> Bar::doBar) still present
     calls = [e for e in new_graph.edges if e.kind == EdgeKind.CALLS]
     assert any(
-        e.source == "method:App\\Foo::doFoo" and e.target == "method:App\\Bar::doBar"
-        for e in calls
+        e.source == "method:App\\Foo::doFoo" and e.target == "method:App\\Bar::doBar" for e in calls
     )
 
 
@@ -174,12 +172,8 @@ def test_full_flag_forces_all_methods_queried(tmp_path: Path) -> None:
     project.mkdir()
     foo_file = project / "Foo.php"
     bar_file = project / "Bar.php"
-    foo_file.write_text(
-        "<?php\nnamespace App;\nclass Foo {\n    public function doFoo() {}\n}\n"
-    )
-    bar_file.write_text(
-        "<?php\nnamespace App;\nclass Bar {\n    public function doBar() {}\n}\n"
-    )
+    foo_file.write_text("<?php\nnamespace App;\nclass Foo {\n    public function doFoo() {}\n}\n")
+    bar_file.write_text("<?php\nnamespace App;\nclass Bar {\n    public function doBar() {}\n}\n")
 
     graph = _build_two_class_graph(foo_file, bar_file)
 
