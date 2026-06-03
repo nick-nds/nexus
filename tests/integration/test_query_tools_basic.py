@@ -94,6 +94,15 @@ class TestListRoutes:
         for route in result.routes:
             assert route.uri.startswith("/api/v1/")
 
+    def test_uri_glob_is_leading_slash_agnostic(self, engine: QueryEngine) -> None:
+        # Routes are stored with a leading "/", but agents naturally write
+        # globs without one ("api/v1/*"). The match must not depend on it,
+        # or the agent gets a false "total: 0" for routes that exist.
+        with_slash = engine.query("list_routes", {"uri_glob": "/api/v1/*"})
+        without_slash = engine.query("list_routes", {"uri_glob": "api/v1/*"})
+
+        assert without_slash.total == with_slash.total > 0
+
     def test_filter_by_middleware(self, engine: QueryEngine) -> None:
         # momskitchen uses 'web' as an aliased middleware group.
         result = engine.query("list_routes", {"middleware": "web"})
@@ -343,6 +352,11 @@ class TestFindHandlers:
         assert result.total > 0
         uris = {h.uri for h in result.handlers}
         assert any(uri.startswith("/api/v1/customers") for uri in uris)
+
+    def test_uri_glob_is_leading_slash_agnostic(self, engine: QueryEngine) -> None:
+        with_slash = engine.query("find_handlers", {"uri_glob": "/api/v1/customers*"})
+        without_slash = engine.query("find_handlers", {"uri_glob": "api/v1/customers*"})
+        assert without_slash.total == with_slash.total > 0
 
     def test_by_handler_fqn(self, engine: QueryEngine) -> None:
         result = engine.query(

@@ -16,14 +16,18 @@ need the full picture.
 
 from __future__ import annotations
 
-import fnmatch
 from typing import TYPE_CHECKING, ClassVar
 
 from pydantic import Field
 
 from nexus.core.graph.types import EdgeKind, NodeKind
 from nexus.core.query.tool_protocol import ToolInput, ToolOutput
-from nexus.core.query.tools._common import file_for_method_node, str_attr, str_list_attr
+from nexus.core.query.tools._common import (
+    file_for_method_node,
+    str_attr,
+    str_list_attr,
+    uri_glob_matches,
+)
 from nexus.core.query.traversal import incoming, outgoing
 
 if TYPE_CHECKING:
@@ -41,7 +45,10 @@ class FindHandlersInput(ToolInput):
 
     uri_glob: str | None = Field(
         default=None,
-        description=("Shell-style glob matched against the route URI, e.g. ``/api/v1/users/*``."),
+        description=(
+            "Shell-style glob matched against the route URI, e.g. "
+            "``/api/v1/users/*``. The leading slash is optional."
+        ),
     )
     method: str | None = Field(
         default=None,
@@ -126,10 +133,7 @@ class FindHandlersTool:
         rows: list[HandlerRow] = []
         for route_node in candidate_routes:
             uri = str_attr(route_node.attributes, "uri") or route_node.name
-            if payload.uri_glob is not None and not fnmatch.fnmatchcase(
-                uri,
-                payload.uri_glob,
-            ):
+            if payload.uri_glob is not None and not uri_glob_matches(uri, payload.uri_glob):
                 continue
 
             methods = str_list_attr(route_node.attributes, "methods")

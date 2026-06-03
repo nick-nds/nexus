@@ -23,7 +23,12 @@ from pydantic import Field
 
 from nexus.core.graph.types import NodeKind
 from nexus.core.query.tool_protocol import ToolInput, ToolOutput
-from nexus.core.query.tools._common import route_summary, str_attr, str_list_attr
+from nexus.core.query.tools._common import (
+    route_summary,
+    str_attr,
+    str_list_attr,
+    uri_glob_matches,
+)
 
 if TYPE_CHECKING:
     from nexus.core.query.context import QueryContext
@@ -43,7 +48,8 @@ class ListRoutesInput(ToolInput):
         default=None,
         description=(
             "Shell-style glob pattern matched against the route's URI "
-            "(``/api/v1/*``). Case-sensitive."
+            "(``/api/v1/*``). Case-sensitive. The leading slash is "
+            "optional - ``api/v1/*`` matches the same routes."
         ),
     )
     name_glob: str | None = Field(
@@ -120,7 +126,7 @@ class ListRoutesTool:
 
             if method_filter is not None and method_filter not in methods:
                 continue
-            if payload.uri_glob is not None and not fnmatch.fnmatchcase(uri, payload.uri_glob):
+            if payload.uri_glob is not None and not uri_glob_matches(uri, payload.uri_glob):
                 continue
             if payload.name_glob is not None and (
                 name_str is None or not fnmatch.fnmatchcase(name_str, payload.name_glob)

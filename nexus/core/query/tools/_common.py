@@ -9,6 +9,7 @@ place so every tool gets the same behaviour.
 
 from __future__ import annotations
 
+import fnmatch
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -19,6 +20,20 @@ from nexus.core.query.traversal import outgoing
 if TYPE_CHECKING:
     from nexus.core.graph.graph import Graph
     from nexus.core.graph.types import Node
+
+
+def uri_glob_matches(uri: str, pattern: str) -> bool:
+    """Match a route URI against a shell-style glob, leading-slash agnostic.
+
+    Route URIs are stored with a leading ``/`` (``/api/v1/users``), but
+    agents naturally write globs without one (``api/v1/*``). A direct
+    :func:`fnmatch.fnmatchcase` would then return no matches and the
+    agent sees a false ``total: 0`` for routes that exist. Stripping a
+    single leading slash from both sides makes the match work whether or
+    not either side includes it, while leaving ``*``-prefixed patterns
+    (``*delivery-attempt*``) and embedded slashes untouched.
+    """
+    return fnmatch.fnmatchcase(uri.lstrip("/"), pattern.lstrip("/"))
 
 
 # ---------------------------------------------------------------------------
