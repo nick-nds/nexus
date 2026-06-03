@@ -73,11 +73,20 @@ An agent using both gets: Boost for "what does the database look like?" and "wha
 > create the environment with an explicit interpreter: `uv venv --python 3.13`.
 
 ```bash
-pip install nexus-php
+# [local-embeddings] pulls in the default fastembed backend. Indexing
+# needs an embedder, and the bare `nexus-php` install bundles none.
+pip install 'nexus-php[local-embeddings]'
 # or with uv (pin the interpreter if your system default is 3.14)
 uv venv --python 3.13
-uv pip install nexus-php
+uv pip install 'nexus-php[local-embeddings]'
 ```
+
+> **An embedder backend is required for indexing.** `nexus-php` on its own
+> ships no embedder. `[local-embeddings]` is the zero-setup default
+> (fastembed, CPU). For the faster local Ollama backend or a hosted API,
+> install `[ollama]`, `[openai]`, or `[voyage]` instead — see
+> [Embedder backends](#embedder-backends) for the trade-offs. Configure the
+> active backend via `embedder.provider` in `nexus.yml`.
 
 PHP extractor (required for indexing):
 
