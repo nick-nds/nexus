@@ -171,6 +171,47 @@ def test_probe_runs_exactly_once_per_coverage_construction() -> None:
     assert call_count == 1
 
 
+def test_unavailable_reason_names_embedder_failure_when_dead() -> None:
+    """A dead query-time embedder → reason names the probe failure and
+    carries the underlying error so the agent can relay *why*."""
+    coverage = Coverage.from_meta(
+        _meta_with_embedder("ollama:nomic"),
+        embedder=_DeadStubEmbedder(),  # type: ignore[arg-type]
+    )
+    assert coverage.semantic_search_available is False
+    assert coverage.semantic_search_unavailable_reason is not None
+    assert "cannot reach embedder daemon" in coverage.semantic_search_unavailable_reason
+
+
+def test_unavailable_reason_names_missing_vectors() -> None:
+    """Live embedder but no vectors indexed → reason explains the embed
+    pass didn't run, not that the embedder is down."""
+    coverage = Coverage.from_meta(
+        _meta_with_embedder(None),
+        embedder=_LiveStubEmbedder(),  # type: ignore[arg-type]
+    )
+    assert coverage.semantic_search_available is False
+    assert coverage.semantic_search_unavailable_reason is not None
+    assert "no embeddings" in coverage.semantic_search_unavailable_reason.lower()
+
+
+def test_unavailable_reason_is_none_when_available() -> None:
+    """When semantic search works, there is nothing to explain."""
+    coverage = Coverage.from_meta(
+        _meta_with_embedder("ollama:nomic"),
+        embedder=_LiveStubEmbedder(),  # type: ignore[arg-type]
+    )
+    assert coverage.semantic_search_available is True
+    assert coverage.semantic_search_unavailable_reason is None
+
+
+def test_unavailable_reason_is_none_when_no_embedder() -> None:
+    """No query-time embedder → no probe ran, so no reason to give."""
+    coverage = Coverage.from_meta(_meta_with_embedder("ollama:nomic"))
+    assert coverage.semantic_search_available is None
+    assert coverage.semantic_search_unavailable_reason is None
+
+
 def test_probe_skipped_when_no_vectors_indexed() -> None:
     """When ``meta.embedder_id is None`` the probe is short-circuited.
 

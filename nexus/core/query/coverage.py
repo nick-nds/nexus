@@ -94,6 +94,18 @@ class Coverage(BaseModel):
             "outage mid-tool-call."
         ),
     )
+    semantic_search_unavailable_reason: str | None = Field(
+        default=None,
+        description=(
+            "Human-readable reason ``semantic_search_available`` is "
+            "``False``. Names the specific cause - e.g. the embed pass "
+            "never ran (no vectors indexed) versus the query-time "
+            "embedder being unreachable, with the underlying error. "
+            "``None`` when search is available or no probe ran. Lets an "
+            "agent relay *why* search is off instead of silently falling "
+            "back to grep."
+        ),
+    )
 
     @classmethod
     def from_meta(
@@ -117,9 +129,12 @@ class Coverage(BaseModel):
         true for the field to be ``True``; either failure produces
         ``False``. The probe runs at most once per Coverage construction.
         """
-        probe = _probe_semantic_search(embedder=embedder, meta=meta)
+        probe, reason = _probe_semantic_search(embedder=embedder, meta=meta)
         if meta is None:
-            return cls(semantic_search_available=probe)
+            return cls(
+                semantic_search_available=probe,
+                semantic_search_unavailable_reason=reason,
+            )
         return cls(
             calls_indexed=meta.lsp_server is not None,
             lsp_server=meta.lsp_server,
@@ -127,6 +142,7 @@ class Coverage(BaseModel):
             indexed_at=meta.indexed_at,
             project_path=meta.project_path,
             semantic_search_available=probe,
+            semantic_search_unavailable_reason=reason,
         )
 
 
@@ -134,19 +150,19 @@ def _probe_semantic_search(
     *,
     embedder: Embedder | None,
     meta: ProjectMeta | None,
-) -> bool | None:
-    """Compute whether ``semantic_search`` will work for this project.
+) -> tuple[bool | None, str | None]:
+    """Compute whether ``semantic_search`` will work, plus the reason if not.
 
-    Truth table:
+    Truth table (second column is the returned ``reason``):
 
-    +------------------+-------------------+------------+--------+
-    | query embedder   | meta.embedder_id  | live probe | result |
-    +==================+===================+============+========+
-    | ``None``         | any               | n/a        | None   |
-    | live             | ``None``          | n/a        | False  |
-    | live             | set               | OK         | True   |
-    | live             | set               | raises     | False  |
-    +------------------+-------------------+------------+--------+
+    +------------------+-------------------+------------+--------+--------------------+
+    | query embedder   | meta.embedder_id  | live probe | result | reason             |
+    +==================+===================+============+========+====================+
+    | ``None``         | any               | n/a        | None   | None               |
+    | live             | ``None``          | n/a        | False  | "no embeddings ..."|
+    | live             | set               | OK         | True   | None               |
+    | live             | set               | raises     | False  | "embedder ..."     |
+    +------------------+-------------------+------------+--------+--------------------+
 
     The probe call is skipped when ``meta.embedder_id is None`` -
     we already know the answer is ``False`` (no vectors to search),
@@ -156,12 +172,19 @@ def _probe_semantic_search(
     unreachable; this function never propagates errors.
     """
     if embedder is None:
-        return None
+        return None, None
     if meta is None or meta.embedder_id is None:
-        return False
+        return False, (
+            "no embeddings in this index: the embed pass did not run "
+            "(no vectors to search). Re-index with an embedder configured."
+        )
     try:
         embedder.embed(["x"])
     except Exception as e:
         _log.debug("embedder_probe_failed", extra={"error": str(e)})
-        return False
-    return True
+        return False, (
+            f"query-time embedder {meta.embedder_id!r} is unreachable: {e}. "
+            "Semantic search will fail until it is restored "
+            "(for Ollama, check that `ollama serve` is running)."
+        )
+    return True, None
