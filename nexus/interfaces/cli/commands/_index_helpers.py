@@ -151,6 +151,16 @@ def run_pipeline(
 
     embedder = _build_embedder(cli_ctx)
 
+    # Fail fast on a misconfigured embedder *before* extraction and the
+    # multi-minute LSP pass, rather than after, on the final embed pass.
+    if embedder is not None:
+        from nexus.interfaces.cli.embedder import preflight_embedder  # noqa: PLC0415
+
+        problem = preflight_embedder(embedder)
+        if problem is not None:
+            print_error(cli_ctx, f"embedder not ready: {problem}")
+            raise click.exceptions.Exit(EXIT_USER_ACTION_REQUIRED)
+
     pipeline = _build_pipeline(php_binary=php_binary, container_project_path=container_project_path)
     pipe_ctx = PipelineContext(
         project_path=project_path,

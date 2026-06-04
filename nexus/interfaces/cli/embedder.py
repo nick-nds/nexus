@@ -55,3 +55,57 @@ def build_embedder_from_config(storage_root: Path) -> Embedder | None:
         return registry.resolve_embedder(embedder_cfg.provider, config_dict)
     except KeyError:
         return None
+
+
+#: Embedder providers ship in extras whose name differs from the provider
+#: id; everything else uses ``[<provider>]`` directly.
+_PROVIDER_EXTRAS: dict[str, str] = {"fastembed": "local-embeddings"}
+
+
+def preflight_embedder(embedder: Embedder) -> str | None:
+    """Probe the embedder before the expensive indexing passes run.
+
+    The backends import their optional client package lazily (e.g.
+    ``from ollama import Client``), so a missing extra or a downed daemon
+    only surfaces on the first ``embed`` call - which is the final pass,
+    after extraction and LSP enrichment have already burned minutes. This
+    runs a one-string probe up front and translates the failure into an
+    actionable remediation string.
+
+    Args:
+        embedder: The constructed embedder about to drive the embed pass.
+
+    Returns:
+        ``None`` when the embedder responds and indexing can proceed, or a
+        human-readable remediation message naming the specific cause (extra
+        to install, daemon to start, or model to pull) when it can't.
+    """
+    from nexus.adapters.embedders.errors import (  # noqa: PLC0415
+        EmbedderConnectionError,
+        EmbedderError,
+        EmbedderModelNotFoundError,
+    )
+
+    try:
+        embedder.embed(["preflight"])
+    except (ModuleNotFoundError, ImportError) as exc:
+        provider = embedder.model_id.split(":", 1)[0]
+        extra = _PROVIDER_EXTRAS.get(provider, provider)
+        return (
+            f"The '{provider}' embedder backend is missing its Python package "
+            f"({exc}). Install the matching extra:\n"
+            f"    pip install 'nexus-php[{extra}]'"
+        )
+    except EmbedderModelNotFoundError as exc:
+        return (
+            f"The embedding model is not installed: {exc}. "
+            f"Pull it first (for Ollama: `ollama pull <model>`)."
+        )
+    except EmbedderConnectionError as exc:
+        return (
+            f"The embedder daemon is unreachable: {exc}. "
+            f"Start it (for Ollama: `ollama serve`) and retry."
+        )
+    except EmbedderError as exc:
+        return f"The embedder probe failed: {exc}."
+    return None
