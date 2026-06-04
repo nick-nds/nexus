@@ -1,16 +1,16 @@
 # Nexus
 
-> Laravel-specific code intelligence: a typed semantic graph + vector RAG, exposed via MCP and CLI for AI agents.
+> Laravel code intelligence: a typed graph plus vector search over your codebase, exposed to AI agents over MCP and CLI.
 
-Nexus indexes a Laravel application into a typed knowledge graph (routes, models, controllers, jobs, events, listeners, policies, bindings, middleware) plus a vector store of code chunks. It exposes 28 structural and semantic query tools so agents like Claude Code, Cursor, and Copilot can answer questions about your codebase with less hallucination and fewer wasted tokens.
+Nexus indexes a Laravel application into a typed graph (routes, models, controllers, jobs, events, listeners, policies, bindings, middleware) and a vector store of code chunks. It exposes 25 structural and semantic query tools so agents like Claude Code, Cursor, and Copilot answer questions about your codebase with less hallucination and fewer tokens.
 
 ## The problem
 
-When an AI agent needs to answer "how does the checkout flow work?" it reads dozens of files, loses track of the chain halfway through, and fills the gaps with plausible-sounding nonsense. A controller calls a service, which dispatches a job, which fires an event, which triggers three listeners - the agent reading files linearly can't follow this.
+Ask an agent "how does the checkout flow work?" and it reads dozens of files, loses the thread halfway through, and fills the gaps with guesses. A controller calls a service, the service dispatches a job, the job fires an event, the event triggers three listeners. An agent reading files top to bottom cannot follow that chain reliably.
 
 ## The Nexus answer
 
-Each of those relationships is a typed edge in the graph. `trace_route POST /checkout` follows `ROUTES_TO -> VALIDATES_WITH -> DISPATCHES -> FIRES -> LISTENS_TO` edges in a single traversal. The agent gets the complete, accurate chain - not a guess.
+Each of those relationships is a typed edge. `trace_route POST /checkout` walks `ROUTES_TO`, `VALIDATES_WITH`, `DISPATCHES`, `FIRES`, and `LISTENS_TO` edges in one traversal and returns the actual chain, not a guess.
 
 ## How it works
 
@@ -18,35 +18,35 @@ Each of those relationships is a typed edge in the graph. `trace_route POST /che
 Your Laravel app
       |
       v
-PHP extractor (Artisan command)        -- boots your app, emits reflection.json
+PHP extractor (Artisan command)        boots your app, emits reflection.json
       |
       v
-Graph builder                          -- typed nodes and edges (SQLite)
+Graph builder                          typed nodes and edges (SQLite)
       |
       v
-Chunker (tree-sitter) + Embedder       -- vector store (LanceDB)
+Chunker (tree-sitter) + embedder       vector store (LanceDB)
       |
       v
-LSP enrichment (optional)              -- CALLS edges via intelephense/phpactor
+LSP enrichment (optional)              CALLS edges via intelephense/phpactor
       |
       v
-Query engine  ---------> MCP tools  ---------> Claude Code / Cursor / Copilot
-                          CLI tools
+Query engine  ------>  MCP tools  ------>  Claude Code / Cursor / Copilot
+                       CLI tools
 ```
 
-1. **Extraction** - the Composer package `nick-nds/nexus-extractor` boots your Laravel app and emits a `reflection.json` capturing every route, class, event, job, middleware, binding, policy, scheduled task, and dispatch call.
-2. **Graph build** - the Python builder creates typed nodes and edges: `ROUTES_TO`, `VALIDATES_WITH`, `FIRES`, `DISPATCHES`, `LISTENS_TO`, `EXTENDS`, `BOUND_TO`, and more.
-3. **Chunk + embed** - source files are chunked at class/method boundaries by tree-sitter and embedded into a LanceDB vector store using your chosen backend.
-4. **LSP enrichment** - optionally, intelephense or phpactor populates `CALLS` edges so the graph knows who-calls-whom across files.
-5. **Query** - 28 tools traverse the graph and search the vector store. An agent calls `trace_route`, then `find_event_chains`, then `get_model_context` - each call follows edges, not file reads.
+1. **Extraction.** The Composer package `nick-nds/nexus-extractor` boots your Laravel app and writes a `reflection.json` capturing every route, class, event, job, middleware, binding, policy, scheduled task, and dispatch call.
+2. **Graph build.** The Python builder creates typed nodes and edges: `ROUTES_TO`, `VALIDATES_WITH`, `FIRES`, `DISPATCHES`, `LISTENS_TO`, `EXTENDS`, `BOUND_TO`, and more.
+3. **Chunk and embed.** Source files are chunked at class and method boundaries by tree-sitter, then embedded into a LanceDB vector store using your chosen backend.
+4. **LSP enrichment.** Optionally, intelephense or phpactor populates `CALLS` edges so the graph knows who calls whom across files.
+5. **Query.** 25 tools traverse the graph and search the vector store. An agent calls `trace_route`, then `find_event_chains`, then `get_model_context`, following edges instead of reading files.
 
 ## Nexus and Laravel Boost
 
 [Laravel Boost](https://laravel.com/ai/boost) is the official Laravel MCP server. Nexus and Boost solve different problems and work well together.
 
-**Boost** gives agents runtime context: live database schema, application logs, browser errors, and semantic search over 17,000+ pieces of Laravel ecosystem documentation. It runs inside your Laravel process with zero indexing step.
+Boost gives agents runtime context: live database schema, application logs, browser errors, and semantic search over 17,000+ pieces of Laravel ecosystem documentation. It runs inside your Laravel process with no indexing step.
 
-**Nexus** gives agents structural context: how your codebase is wired together. It builds a persistent, typed graph of your application's routes, controllers, models, events, jobs, listeners, policies, and bindings - with cross-file call graph edges from LSP analysis and semantic search over your actual code.
+Nexus gives agents structural context: how your codebase is wired. It builds a persistent, typed graph of your routes, controllers, models, events, jobs, listeners, policies, and bindings, with cross-file call edges from LSP analysis and semantic search over your own code.
 
 | Capability | Boost | Nexus |
 |---|---|---|
@@ -54,7 +54,7 @@ Query engine  ---------> MCP tools  ---------> Claude Code / Cursor / Copilot
 | Laravel ecosystem docs (17k+ entries) | Yes | No |
 | Application and browser logs | Yes | No |
 | AI coding guidelines per package | Yes | No |
-| Code structure graph (15+ edge types) | No | Yes |
+| Code structure graph (20+ edge types) | No | Yes |
 | Cross-file call graph (LSP) | No | Yes |
 | Request flow tracing (route to listeners) | No | Yes |
 | Semantic search over your code | No | Yes |
@@ -62,46 +62,36 @@ Query engine  ---------> MCP tools  ---------> Claude Code / Cursor / Copilot
 | Container binding resolution | No | Yes |
 | Incremental indexing with change detection | No | Yes |
 
-An agent using both gets: Boost for "what does the database look like?" and "what do the Laravel docs say about X?" - Nexus for "how does this codebase work?" and "trace the request flow for POST /orders."
+Use Boost for "what does the database look like?" and "what do the Laravel docs say about X?". Use Nexus for "how does this codebase work?" and "trace the request flow for POST /orders".
 
 ## Installation
 
-> **Python 3.11–3.13 required.** Python 3.14 is not yet supported: `pyarrow`
-> (a transitive dependency via LanceDB) has no prebuilt 3.14 wheels, so the
-> install falls back to compiling it from C++ source and fails unless you have
-> a full CMake/Arrow toolchain. If your system default is 3.14 (e.g. Arch),
-> create the environment with an explicit interpreter: `uv venv --python 3.13`.
+Nexus needs Python 3.11, 3.12, or 3.13. Python 3.14 is not supported yet: `pyarrow` (pulled in by LanceDB) has no prebuilt 3.14 wheels, so the install tries to compile it from source and fails without a full CMake and Arrow toolchain. If your system Python is 3.14, create the environment with an explicit interpreter: `uv venv --python 3.13`.
 
 ```bash
-# [local-embeddings] pulls in the default fastembed backend. Indexing
-# needs an embedder, and the bare `nexus-php` install bundles none.
+# [local-embeddings] adds the default fastembed backend. Indexing needs an
+# embedder, and the bare nexus-php install ships none.
 pip install 'nexus-php[local-embeddings]'
-# or with uv (pin the interpreter if your system default is 3.14)
+# or with uv (pin the interpreter if your system Python is 3.14)
 uv venv --python 3.13
 uv pip install 'nexus-php[local-embeddings]'
 ```
 
-> **An embedder backend is required for indexing.** `nexus-php` on its own
-> ships no embedder. `[local-embeddings]` is the zero-setup default
-> (fastembed, CPU). For the faster local Ollama backend or a hosted API,
-> install `[ollama]`, `[openai]`, or `[voyage]` instead — see
-> [Embedder backends](#embedder-backends) for the trade-offs. Configure the
-> active backend via `embedder.provider` in `nexus.yml`.
+Indexing requires an embedder backend, and `nexus-php` ships none on its own. `[local-embeddings]` is the zero-setup default (fastembed, CPU). For the faster local Ollama backend or a hosted API, install `[ollama]`, `[openai]`, or `[voyage]` instead; see [Embedder backends](#embedder-backends). Choose the active backend with `embedder.provider` in `~/.nexus/config.yml`.
 
-PHP extractor (required for indexing):
+PHP extractor (required for indexing), run inside your Laravel project:
 
 ```bash
-# in your Laravel project
 composer require --dev nick-nds/nexus-extractor
 ```
 
-PHP language server (recommended - provides `CALLS` edges):
+PHP language server (recommended, provides `CALLS` edges):
 
 ```bash
 npm install -g intelephense
 ```
 
-Without an LSP, indexing still succeeds but the graph contains no `CALLS` edges - `find_callers`, `expand_call_tree`, and the call-graph side of `get_request_flow` will return empty results. The pipeline emits a clear warning when no server is found.
+Without an LSP, indexing still succeeds but the graph has no `CALLS` edges, so `find_callers`, `expand_call_tree`, and the call-graph part of `get_request_flow` return empty. The pipeline warns when no server is found.
 
 ## Quick start
 
@@ -124,24 +114,34 @@ nexus query get_model_context --fqn "App\\Models\\Order"
 
 ## MCP configuration
 
-Add to your Claude Code or Cursor MCP configuration:
+Register the server with your agent, and pass your project's slug so the server knows which index to serve.
 
 ```json
 {
   "mcpServers": {
     "nexus": {
       "command": "nexus",
-      "args": ["mcp", "serve"]
+      "args": ["--slug", "your-project-slug", "mcp", "serve"]
     }
   }
 }
 ```
 
+Or from the Claude Code CLI. Everything after `--` is the launch command, so global flags like `--slug` go there, before `mcp serve`:
+
+```bash
+claude mcp add nexus -- /abs/path/to/.venv/bin/nexus --slug your-project-slug mcp serve
+```
+
+**Project slug.** The server serves one index, stored at `~/.nexus/projects/<slug>/`. `--slug` is a global flag, so it must come before `mcp serve`. The slug is set at `nexus init`; it defaults to the slugified project-directory name and is saved in `nexus.yml`. The agent launches the server in its own working directory, so `nexus.yml` is not read automatically and the slug has to be explicit here. List your indexes with `ls ~/.nexus/projects/`. Pass `--storage-root` as well if your index lives outside the default `~/.nexus`.
+
+**Virtualenv installs.** The agent does not run your shell activation, so `"command": "nexus"` will not be on its `PATH`. Use the absolute path to the venv binary instead, for example `/abs/path/to/.venv/bin/nexus` (the agent does not expand `~`, so a full path is required). The console-script shebang pins it to the venv interpreter, so no activation is needed. Set any environment the server needs, such as `OLLAMA_HOST`, in an `"env"` block next to `command` and `args`.
+
 Then ask Claude: *"How does the checkout flow work?"* or *"Which jobs does PlaceOrderAction dispatch?"*
 
 ## MCP tools
 
-Nexus exposes 28 query tools via MCP (and identically via CLI):
+Nexus exposes 25 query tools over MCP, and identically over the CLI.
 
 ### Structural primitives
 
@@ -149,7 +149,7 @@ Nexus exposes 28 query tools via MCP (and identically via CLI):
 |---|---|
 | `list_routes` | List routes, optionally filtered by method or URI pattern |
 | `list_scheduled_tasks` | List scheduled cron jobs |
-| `list_by_kind` | List classes by type (models, controllers, events, jobs, etc.) |
+| `list_by_kind` | List classes by type (models, controllers, events, jobs, and so on) |
 | `list_modules` | List DDD modules |
 | `describe_module` | Describe a module's classes and imports |
 | `explore_entity` | Fuzzy-find classes by name |
@@ -170,7 +170,7 @@ Nexus exposes 28 query tools via MCP (and identically via CLI):
 | Tool | Description |
 |---|---|
 | `find_listeners` | All listeners for an event, with queue status |
-| `find_dispatchers` | Code that dispatches a given event or job, with file/line |
+| `find_dispatchers` | Code that dispatches a given event or job, with file and line |
 | `find_event_chains` | Transitive event-listener chains (multi-hop) |
 | `find_jobs_dispatching` | Jobs dispatched by a class |
 | `get_policy_for` | Policy class governing a model |
@@ -182,8 +182,8 @@ Nexus exposes 28 query tools via MCP (and identically via CLI):
 | `resolve_binding` | Resolve a service container binding (concrete, singleton, contextual) |
 | `find_implementations` | Concrete implementations of an interface or abstract class |
 | `find_callers` | All call sites for a method (requires LSP) |
-| `expand_call_tree` | BFS through call graph upstream or downstream (requires LSP) |
-| `find_cache_users` | Cache read/write sites |
+| `expand_call_tree` | BFS through the call graph upstream or downstream (requires LSP) |
+| `find_cache_users` | Cache read and write sites |
 
 ### Semantic retrieval
 
@@ -208,6 +208,7 @@ Every tool response carries a `coverage` block:
     "calls_indexed": true,
     "lsp_server": "/usr/local/bin/intelephense",
     "embedder_id": "ollama:nomic-embed-text",
+    "semantic_search_available": true,
     "indexed_at": "2026-05-03T12:13:34+00:00",
     "project_path": "/path/to/your-laravel-app"
   }
@@ -216,24 +217,25 @@ Every tool response carries a `coverage` block:
 
 | Field | Meaning |
 |---|---|
-| `calls_indexed` | `true` when LSP ran and `CALLS` edges were populated. `find_callers` and `expand_call_tree` only return meaningful results when this is `true`. |
-| `lsp_server` | Path or name of the LSP binary used. `null` when no LSP ran. |
+| `calls_indexed` | `true` when LSP ran and `CALLS` edges were populated. `find_callers` and `expand_call_tree` only return results when this is `true`. |
+| `lsp_server` | Path or name of the LSP binary used, or `null` when none ran. |
 | `embedder_id` | Embedder identifier. Score distributions vary by model. |
-| `indexed_at` | ISO-8601 timestamp of when the index was last built. |
-| `project_path` | Host-side project root the index was built from. |
+| `semantic_search_available` | `true` when the embedder answered a probe. `false`, with `semantic_search_unavailable_reason`, when it is configured but unreachable or no vectors were indexed. `null` when no embedder is wired in. |
+| `indexed_at` | ISO-8601 timestamp of the last build. |
+| `project_path` | Project root the index was built from. |
 
 ### Error codes
 
-Tools surface failures via `error` and `error_code` fields:
+Tools report failures through `error` and `error_code` fields:
 
 | Code | Meaning |
 |---|---|
-| `method_not_found` | The supplied method FQN doesn't exist in the graph |
-| `class_not_found` | The supplied class FQN doesn't exist |
-| `route_not_found` | No indexed route matches the supplied method/URI pair |
-| `event_not_found` | The supplied event FQN isn't in the graph |
-| `no_embedder` | `semantic_search` was called against a graph indexed without an embedder |
-| `no_confident_match` | (`ask` only) no rule matched and semantic fallback scored below threshold |
+| `method_not_found` | The supplied method FQN does not exist in the graph |
+| `class_not_found` | The supplied class FQN does not exist |
+| `route_not_found` | No indexed route matches the supplied method and URI |
+| `event_not_found` | The supplied event FQN is not in the graph |
+| `no_embedder` | `semantic_search` ran against a graph indexed without an embedder |
+| `no_confident_match` | (`ask` only) no rule matched and the semantic fallback scored below the threshold |
 
 ## CLI reference
 
@@ -258,7 +260,7 @@ nexus doctor [--project-path PATH]
 
 | Subcommand | Description |
 |---|---|
-| `rebuild` | Drop existing index and run the full pipeline |
+| `rebuild` | Drop the existing index and run the full pipeline |
 | `sync` | Incremental re-index, reusing the embedding cache |
 | `status` | Print stored metadata |
 | `clear` | Delete the project's index |
@@ -274,7 +276,7 @@ nexus index sync    [--project-path PATH] [--full]
 
 | Value | Behaviour |
 |---|---|
-| `auto` (default) | Detect intelephense or phpactor on PATH. Continue without LSP if none found. |
+| `auto` (default) | Detect intelephense or phpactor on PATH. Continue without LSP if none is found. |
 | `none` | Skip LSP enrichment entirely. |
 | `intelephense` / `phpactor` / path | Use this server explicitly. Exit 2 if not found. |
 
@@ -286,18 +288,18 @@ Run any tool directly from the command line:
 nexus query <tool-name> [OPTIONS]
 ```
 
-All 28 tools listed above are available as subcommands with typed options.
+All 25 tools above are available as subcommands with typed options.
 
 ### `nexus ask`
 
-Classifier-routed free-text query - Nexus picks the best tool automatically:
+Classifier-routed free-text query. Nexus picks the tool for you:
 
 ```
 nexus ask "how does checkout work?"
 nexus ask --explain "which jobs does PlaceOrderAction dispatch?"
 ```
 
-Returns the routing decision alongside the result so the calling agent can see why a particular tool ran.
+It returns the routing decision alongside the result so the calling agent can see why a tool ran.
 
 ### `nexus profile`
 
@@ -305,7 +307,7 @@ Returns the routing decision alongside the result so the calling agent can see w
 |---|---|
 | `list` | List all built-in profiles |
 | `detect` | Auto-detect the best profile for a directory |
-| `show NAME` | Show full definition of a profile |
+| `show NAME` | Show the full definition of a profile |
 
 ### `nexus cache`
 
@@ -326,7 +328,7 @@ Start the MCP server:
 nexus mcp serve [--transport stdio|sse|http] [--host HOST] [--port PORT]
 ```
 
-Default transport is `stdio`. Use `sse` or `http` for shared server deployments.
+The default transport is `stdio`. Use `sse` or `http` for shared server deployments.
 
 ## Docker support
 
@@ -363,7 +365,7 @@ The Laravel project files must be volume-mounted at the same absolute path insid
 | `laravel-api` | API-only (JSON responses, no Blade) |
 | `laravel-actions` | Action-based architecture |
 | `laravel-ddd` | Domain-Driven Design module layout |
-| `laravel-ddd-cqrs` | DDD + CQRS with commands and queries |
+| `laravel-ddd-cqrs` | DDD with CQRS commands and queries |
 | `laravel-filament` | Filament admin panel |
 | `laravel-repository` | Repository pattern over Eloquent |
 
@@ -404,13 +406,13 @@ ask:
   semantic_confidence_floor: 0.65
 ```
 
-The confidence floor controls when `nexus ask` returns a structured refusal instead of weak semantic hits. Tune per embedder:
+The confidence floor controls when `nexus ask` returns a structured refusal instead of weak semantic hits. Tune it per embedder:
 
 | Embedder | Suggested floor |
 |---|---|
 | fastembed / nomic-embed-text | 0.65 |
 | voyage-code-3 | 0.70 |
-| openai/text-embedding-3-large | 0.55 - 0.60 |
+| openai/text-embedding-3-large | 0.55 to 0.60 |
 
 ## Architecture
 
@@ -419,20 +421,20 @@ nexus/
 ├── core/           # Pure domain: graph builder, query engine, classifiers, chunkers
 ├── adapters/       # I/O: SQLite, LanceDB, embedder backends, LSP clients
 ├── pipeline/       # Indexing pipeline (5 passes)
-├── profiles/       # Built-in YAML profiles + auto-detection
+├── profiles/       # Built-in YAML profiles and auto-detection
 ├── config/         # Pydantic configuration models
 └── interfaces/
     ├── cli/        # Click commands
     └── mcp/        # FastMCP server adapter
 ```
 
-The pure core never imports adapter modules. All dependencies are injected at the edges.
+The pure core never imports adapter modules. Dependencies are injected at the edges.
 
 ## Development
 
 ### Prerequisites
 
-- Python 3.11–3.13 (3.14 not yet supported)
+- Python 3.11 to 3.13 (3.14 not supported yet)
 - [uv](https://docs.astral.sh/uv/) (recommended)
 - PHP 8.2+ and Composer (only for the extractor package)
 
@@ -470,12 +472,12 @@ uv run pytest tests/e2e/           # Full pipeline end-to-end
 
 ## Requirements
 
-- Python 3.11–3.13 (3.14 not yet supported)
+- Python 3.11 to 3.13 (3.14 not supported yet)
 - PHP 8.2+, Laravel 10 / 11 / 12 / 13
 - Linux or macOS
 
 ## License
 
-[Business Source License 1.1](LICENSE) - free to use for any purpose except building a competing commercial product. Converts to Apache 2.0 on 2030-05-27.
+[Business Source License 1.1](LICENSE). Free to use for any purpose except building a competing commercial product. Converts to Apache 2.0 on 2030-05-27.
 
 For alternative licensing, contact nitin.niku97@gmail.com.
