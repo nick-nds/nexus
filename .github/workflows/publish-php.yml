@@ -53,13 +53,26 @@ jobs:
 
       - name: Install Composer dependencies
         run: |
-          composer require "illuminate/console:${{ matrix.laravel-version }}" \
-                           "illuminate/contracts:${{ matrix.laravel-version }}" \
-                           "illuminate/support:${{ matrix.laravel-version }}" \
-                           "illuminate/routing:${{ matrix.laravel-version }}" \
-                           "illuminate/events:${{ matrix.laravel-version }}" \
-                           "illuminate/filesystem:${{ matrix.laravel-version }}" \
-            --no-update
+          # Pin orchestra/testbench to the major that matches the Laravel line
+          # under test. composer.json allows ^8|^9|^10|^11; without pinning,
+          # `composer update` greedily selects the newest testbench (^11 needs
+          # PHP 8.3 + Laravel 13) and fails to backtrack on the 8.2/Laravel-11
+          # leg instead of falling back to ^9.
+          case "${{ matrix.laravel-version }}" in
+            "10.*") TESTBENCH="^8.0" ;;
+            "11.*") TESTBENCH="^9.0" ;;
+            "12.*") TESTBENCH="^10.0" ;;
+            "13.*") TESTBENCH="^11.0" ;;
+            *) echo "::error::Unmapped Laravel version ${{ matrix.laravel-version }}"; exit 1 ;;
+          esac
+          composer require --no-update --dev "orchestra/testbench:${TESTBENCH}"
+          composer require --no-update \
+            "illuminate/console:${{ matrix.laravel-version }}" \
+            "illuminate/contracts:${{ matrix.laravel-version }}" \
+            "illuminate/support:${{ matrix.laravel-version }}" \
+            "illuminate/routing:${{ matrix.laravel-version }}" \
+            "illuminate/events:${{ matrix.laravel-version }}" \
+            "illuminate/filesystem:${{ matrix.laravel-version }}"
           composer update --prefer-dist --no-interaction
 
       - name: Pint (formatting check)
