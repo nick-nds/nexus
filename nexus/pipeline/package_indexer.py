@@ -99,7 +99,7 @@ def detect_mode(path: Path) -> IndexMode:
         :attr:`IndexMode.NEXUS_DRIVEN` otherwise.
     """
     has_testbench = (path / "vendor" / "bin" / "testbench").is_file()
-    has_extractor = (path / "vendor" / "nexus" / "extractor-php").is_dir()
+    has_extractor = (path / "vendor" / "nick-nds" / "nexus-extractor").is_dir()
     return IndexMode.IN_REPO if (has_testbench and has_extractor) else IndexMode.NEXUS_DRIVEN
 
 
@@ -417,7 +417,7 @@ class PackageIndexer:
                     "package_composer_install_failed",
                     f"composer install failed:\n{install_result.stderr[-2500:]}",
                 )
-            if not (builder.vendor_path / "nexus" / "extractor-php").is_dir():
+            if not (builder.vendor_path / "nick-nds" / "nexus-extractor").is_dir():
                 raise PackageIndexError(
                     "package_extractor_install_missing",
                     "composer install succeeded but vendor/nick-nds/nexus-extractor is absent. "
