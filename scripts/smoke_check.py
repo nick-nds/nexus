@@ -10,7 +10,7 @@ skipping the PHP extractor entirely.
 
 What this script verifies:
 
-1. ``nexus --version`` reports the pinned 1.0.0.
+1. ``nexus --version`` reports the package version.
 2. ``nexus --help`` lists the expected top-level commands.
 3. ``nexus doctor --json-summary`` runs to completion and emits a
    valid JSON report (individual checks may report warnings in CI;
@@ -62,10 +62,14 @@ def _run(
 
 
 def check_version() -> None:
-    """``nexus --version`` reports the pinned 1.0.0 release."""
+    """``nexus --version`` reports the package version from ``nexus.version``."""
+    from nexus.version import __version__
+
     result = _run([*NEXUS, "--version"])
-    if "1.0.0" not in result.stdout:
-        raise SystemExit(f"Expected 1.0.0 in nexus --version output, got: {result.stdout!r}")
+    if __version__ not in result.stdout:
+        raise SystemExit(
+            f"Expected {__version__} in nexus --version output, got: {result.stdout!r}"
+        )
 
 
 def check_top_level_help() -> None:
