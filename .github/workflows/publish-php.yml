@@ -73,6 +73,12 @@ jobs:
             "illuminate/routing:${{ matrix.laravel-version }}" \
             "illuminate/events:${{ matrix.laravel-version }}" \
             "illuminate/filesystem:${{ matrix.laravel-version }}"
+          # Composer 2.10 refuses versions under a security advisory at solve
+          # time. This is a compatibility matrix (does the extractor work
+          # against the declared Laravel range?), not a security audit, and the
+          # advisories are against Laravel itself (Laravel 10 is EOL), not this
+          # package, so opt out of the block for the CI resolve.
+          composer config policy.advisories.block false
           composer update --prefer-dist --no-interaction
 
       - name: Pint (formatting check)
