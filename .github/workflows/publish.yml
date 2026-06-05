@@ -1,19 +1,17 @@
 name: Publish to PyPI
 
-# DISABLED: triggers manually only (workflow_dispatch).
+# Publishes to PyPI on a version tag (v1.2.3), via PyPI Trusted Publishing
+# (OIDC, no API token). The Trusted Publisher is configured on PyPI:
+#   project nexus-php → Publishing → GitHub Actions
+#   owner nick-nds, repo nexus, workflow publish.yml, environment pypi
 #
-# This workflow is the documented release path but stays dormant until
-# the project is ready to publish. Re-enable by reverting the
-# ``on:`` block to:
-#
-#   on:
-#     push:
-#       tags:
-#         - "v[0-9]+.[0-9]+.[0-9]+"
-#
-# Manual run from GitHub UI: Actions → Publish to PyPI → Run workflow.
-# CI must pass before this workflow can publish.
+# A push of a matching tag triggers the full path: quality gate → build →
+# twine check → publish → GitHub Release. workflow_dispatch is kept for
+# manual replays (Actions → Publish to PyPI → Run workflow).
 on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
 
 permissions:
