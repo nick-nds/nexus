@@ -25,6 +25,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Opt JS-based actions onto Node 24 ahead of the 2026-06-16 forced migration
+# (silences the Node 20 deprecation warnings).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   # ---------------------------------------------------------------------
   # Path detection - single small job that all PHP jobs depend on so

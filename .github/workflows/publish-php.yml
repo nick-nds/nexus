@@ -24,6 +24,11 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
 
+# Opt JS-based actions onto Node 24 ahead of the 2026-06-16 forced migration
+# (silences the Node 20 deprecation warnings).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   validate:
     name: Validate PHP package

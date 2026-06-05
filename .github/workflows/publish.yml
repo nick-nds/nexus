@@ -19,6 +19,12 @@ permissions:
   # Required for PyPI Trusted Publishing (OIDC - no API token needed).
   id-token: write
 
+# Opt JS-based actions onto Node 24 ahead of the 2026-06-16 forced migration,
+# silencing the Node 20 deprecation warnings without pinning action versions
+# that don't have a Node 24 major yet.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build:
     name: Build distributions
@@ -92,14 +98,14 @@ jobs:
           path: dist/
 
       - name: Publish to PyPI (Trusted Publishing)
+        # No API token needed - uses PyPI's OIDC Trusted Publisher, configured
+        # on PyPI (project nexus-php -> Publishing -> GitHub Actions: owner
+        # nick-nds, repo nexus, workflow publish.yml, environment pypi).
         uses: pypa/gh-action-pypi-publish@release/v1
-        # No API token needed - uses PyPI's OIDC Trusted Publisher mechanism.
-        # Configure the Trusted Publisher in PyPI's project settings:
-        #   Publisher: GitHub Actions
-        #   Owner: <github-org-or-user>
-        #   Repository: nexus-v2 (or whatever the repo is named)
-        #   Workflow: publish.yml
-        #   Environment: pypi
+        with:
+          # Re-running a release, or re-tagging an already-published version,
+          # is a clean no-op instead of a hard 400 "file already exists".
+          skip-existing: true
 
   create-github-release:
     name: Create GitHub Release
