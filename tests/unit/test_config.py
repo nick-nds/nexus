@@ -20,7 +20,10 @@ class TestGlobalConfigDefaults:
     def test_defaults_construct_cleanly(self) -> None:
         cfg = GlobalConfig.defaults()
 
-        assert cfg.embedder.provider == "sentence_transformers"
+        # Default provider must be one the registry actually knows, or a
+        # defaults-only config.yml resolves to no embedder.
+        assert cfg.embedder.provider == "fastembed"
+        assert cfg.embedder.model == "BAAI/bge-small-en-v1.5"
         assert cfg.cost.confirm_above_usd == 0.50
         assert cfg.schema_version.startswith("1.")
 

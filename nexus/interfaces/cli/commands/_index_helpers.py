@@ -149,7 +149,7 @@ def run_pipeline(
     lsp, lsp_server = resolve_lsp_for_run(cli_ctx, lsp_choice)
     confirm_cost_if_paid(cli_ctx, project_path)
 
-    embedder = _build_embedder(cli_ctx)
+    embedder = _build_embedder(cli_ctx, project_path)
 
     # Fail fast on a misconfigured embedder *before* extraction and the
     # multi-minute LSP pass, rather than after, on the final embed pass.
@@ -374,22 +374,26 @@ def _build_pipeline(
     )
 
 
-def _build_embedder(cli_ctx: CliContext) -> Embedder | None:
-    """Construct an embedder from the global config, or return None.
+def _build_embedder(cli_ctx: CliContext, project_path: Path) -> Embedder | None:
+    """Construct the embedder for this run, or return None.
 
-    Returns None (no embedding) if the config file doesn't exist or
-    if the configured provider is unknown. A missing provider warning
-    is echoed to stderr so the user sees why embeddings were skipped;
-    the pipeline still proceeds in graph-only mode.
+    Resolves the project ``nexus.yml`` ``embedder:`` override before the
+    global ``config.yml`` default (see
+    :func:`~nexus.interfaces.cli.embedder.resolve_embedder`). Returns None
+    (graph-only indexing) when neither configures an embedder. When an
+    embedder *is* configured but its provider is unknown to the registry,
+    a warning is echoed so the user sees why embeddings were skipped.
     """
-    from nexus.interfaces.cli.embedder import build_embedder_from_config  # noqa: PLC0415
+    from nexus.interfaces.cli.embedder import (  # noqa: PLC0415
+        _choose_embedder_spec,
+        resolve_embedder,
+    )
 
-    config_path = cli_ctx.storage_root / "config.yml"
-    embedder = build_embedder_from_config(cli_ctx.storage_root)
-    if embedder is None and config_path.exists():
-        # Config exists but the helper returned None - the provider name
-        # is unknown to the plugin registry. Surface that, since the user
-        # explicitly configured something.
+    embedder = resolve_embedder(cli_ctx.storage_root, project_path)
+    if embedder is None and _choose_embedder_spec(cli_ctx.storage_root, project_path) is not None:
+        # An embedder was configured but the provider name is unknown to
+        # the plugin registry. Surface it, since the user explicitly asked
+        # for something.
         click.echo(
             "WARNING: configured embedder provider is unknown - running without embedder.",
             file=sys.stderr,

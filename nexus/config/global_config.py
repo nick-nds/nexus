@@ -34,14 +34,14 @@ class EmbedderConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     provider: str = Field(
-        default="sentence_transformers",
+        default="fastembed",
         description=(
-            "Backend name: one of sentence_transformers, ollama, voyage, openai. "
-            "Local defaults are used out of the box so no API key is required."
+            "Backend name: one of fastembed, ollama, voyage, openai. "
+            "The fastembed default needs no API key or daemon."
         ),
     )
     model: str = Field(
-        default="all-MiniLM-L6-v2",
+        default="BAAI/bge-small-en-v1.5",
         description="Model identifier within the provider.",
     )
     api_key_env: str | None = Field(

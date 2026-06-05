@@ -21,40 +21,94 @@ if TYPE_CHECKING:
     from nexus.core.protocols import Embedder
 
 
-def build_embedder_from_config(storage_root: Path) -> Embedder | None:
-    """Resolve the configured embedder from ``<storage_root>/config.yml``.
+#: An embedder configuration: the provider name plus the per-provider
+#: config dict (``model``, ``dimensions``, ...) passed to the factory.
+EmbedderSpec = tuple[str, dict[str, object]]
 
-    Args:
-        storage_root: Root of the Nexus storage directory (typically
-            ``~/.nexus``).
 
-    Returns:
-        A constructed :class:`Embedder` when ``config.yml`` is present
-        and names a known provider. ``None`` when the config file is
-        absent or the configured provider is unknown to the plugin
-        registry - callers degrade to graph-only indexing.
-    """
-    from nexus.adapters.embedders.registration import register_builtin_embedders  # noqa: PLC0415
+def _global_embedder_spec(storage_root: Path) -> EmbedderSpec | None:
+    """The embedder configured in ``<storage_root>/config.yml`` (user default)."""
     from nexus.config.global_config import load_global_config  # noqa: PLC0415
-    from nexus.plugins.registry import PluginRegistry  # noqa: PLC0415
 
     config_path = storage_root / "config.yml"
     if not config_path.exists():
         return None
+    cfg = load_global_config(config_path).embedder
+    config: dict[str, object] = {"model": cfg.model}
+    if cfg.dimensions is not None:
+        config["dimensions"] = cfg.dimensions
+    return (cfg.provider, config)
 
-    global_cfg = load_global_config(config_path)
+
+def _project_embedder_spec(project_path: Path) -> EmbedderSpec | None:
+    """The embedder pinned in ``<project_path>/nexus.yml`` (project override).
+
+    Returns ``None`` when there is no ``nexus.yml``, it has no ``embedder``
+    block, or it fails to parse - the caller then falls back to the global
+    config rather than aborting the run on a malformed project file.
+    """
+    from nexus.config.loader import ConfigError  # noqa: PLC0415
+    from nexus.config.project_profile import load_project_profile  # noqa: PLC0415
+
+    nexus_yml = project_path / "nexus.yml"
+    if not nexus_yml.exists():
+        return None
+    try:
+        profile = load_project_profile(nexus_yml)
+    except ConfigError:
+        return None
+    embedder = profile.embedder
+    if not embedder or not embedder.get("provider"):
+        return None
+    provider = embedder["provider"]
+    config: dict[str, object] = {k: v for k, v in embedder.items() if k != "provider"}
+    return (provider, config)
+
+
+def _choose_embedder_spec(storage_root: Path, project_path: Path) -> EmbedderSpec | None:
+    """Resolve the winning embedder spec: project override, then global default.
+
+    Precedence (highest first): ``<project_path>/nexus.yml`` ``embedder:``
+    block, then ``<storage_root>/config.yml`` ``embedder:`` block. Returns
+    ``None`` when neither configures an embedder.
+    """
+    return _project_embedder_spec(project_path) or _global_embedder_spec(storage_root)
+
+
+def _build_from_spec(spec: EmbedderSpec | None) -> Embedder | None:
+    if spec is None:
+        return None
+    from nexus.adapters.embedders.registration import register_builtin_embedders  # noqa: PLC0415
+    from nexus.plugins.registry import PluginRegistry  # noqa: PLC0415
+
+    provider, config = spec
     registry = PluginRegistry()
     register_builtin_embedders(registry)
-
-    embedder_cfg = global_cfg.embedder
-    config_dict: dict[str, object] = {"model": embedder_cfg.model}
-    if embedder_cfg.dimensions is not None:
-        config_dict["dimensions"] = embedder_cfg.dimensions
-
     try:
-        return registry.resolve_embedder(embedder_cfg.provider, config_dict)
+        return registry.resolve_embedder(provider, config)
     except KeyError:
         return None
+
+
+def resolve_embedder(storage_root: Path, project_path: Path) -> Embedder | None:
+    """Build the embedder for a project index run.
+
+    Resolves project ``nexus.yml`` (override) before the global
+    ``config.yml`` (default); see :func:`_choose_embedder_spec`. Returns
+    ``None`` when no embedder is configured or the provider is unknown to
+    the registry, in which case callers degrade to graph-only indexing.
+    """
+    return _build_from_spec(_choose_embedder_spec(storage_root, project_path))
+
+
+def build_embedder_from_config(storage_root: Path) -> Embedder | None:
+    """Resolve the embedder from the global ``<storage_root>/config.yml`` only.
+
+    Used by ``nexus package index``, which has no project ``nexus.yml`` to
+    override from. Project-mode indexing uses :func:`resolve_embedder`.
+    Returns ``None`` when the config is absent or names an unknown provider.
+    """
+    return _build_from_spec(_global_embedder_spec(storage_root))
 
 
 #: Embedder providers ship in extras whose name differs from the provider

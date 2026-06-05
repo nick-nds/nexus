@@ -43,6 +43,15 @@ if TYPE_CHECKING:
 _EMBEDDER_CHOICES = ["fastembed", "ollama", "voyage", "openai"]
 _DEFAULT_EMBEDDER = "fastembed"
 
+#: Default model written to config.yml per provider, so a fresh `init`
+#: produces a config that resolves to a real, installed-on-demand model.
+_DEFAULT_MODELS = {
+    "fastembed": "BAAI/bge-small-en-v1.5",
+    "ollama": "nomic-embed-text",
+    "voyage": "voyage-code-3",
+    "openai": "text-embedding-3-small",
+}
+
 # ---------------------------------------------------------------------------
 # Command
 # ---------------------------------------------------------------------------
@@ -152,9 +161,10 @@ def init_command(
         return
 
     try:
-        _write_nexus_yml(nexus_yml, project_slug, profile_name, embedder_provider)
+        _write_nexus_yml(nexus_yml, project_slug, profile_name)
+        config_path = _ensure_global_embedder(cli_ctx.storage_root, embedder_provider)
     except OSError as exc:
-        print_error(cli_ctx, f"could not write {nexus_yml}: {exc}")
+        print_error(cli_ctx, f"could not write project files: {exc}")
         raise click.exceptions.Exit(1) from exc
 
     render(
@@ -165,6 +175,7 @@ def init_command(
             "slug": project_slug,
             "profile": profile_name,
             "embedder": embedder_provider,
+            "config": str(config_path),
         },
     )
 
@@ -221,13 +232,18 @@ def _write_nexus_yml(
     path: Path,
     slug: str,
     profile: str,
-    embedder: str,
 ) -> None:
     """Serialise and write ``nexus.yml`` to *path*.
 
     We hand-roll the YAML rather than dumping a Pydantic model so the
     output is minimal and readable (no ``null`` fields, no long lists of
     defaults). A minimal ``nexus.yml`` is easy to understand and edit.
+
+    The embedder is intentionally *not* written here: it lives in the
+    global ``~/.nexus/config.yml`` (see :func:`_ensure_global_embedder`),
+    which is where the index pipeline reads it from. A project that wants
+    to pin a specific embedder can add an ``embedder:`` block to this file
+    by hand - it overrides the global default.
     """
     lines = [
         "schema_version: '1.0'",
@@ -236,14 +252,30 @@ def _write_nexus_yml(
         f"  slug: {slug}",
         "",
         f"profile: {profile}",
+        "",
     ]
-
-    if embedder != _DEFAULT_EMBEDDER:
-        lines += [
-            "",
-            "embedder:",
-            f"  provider: {embedder}",
-        ]
-
-    lines.append("")  # trailing newline
     path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _ensure_global_embedder(storage_root: Path, provider: str) -> Path:
+    """Write the chosen embedder into the global ``<storage_root>/config.yml``.
+
+    This is where ``nexus index`` actually reads the embedder from, so a
+    fresh ``nexus init`` now produces a working semantic-search setup
+    instead of silently indexing graph-only. Existing ``config.yml``
+    settings (cost, ask) are preserved; only the ``embedder`` block is
+    (re)written. Returns the config path.
+    """
+    import yaml  # noqa: PLC0415
+
+    config_path = storage_root / "config.yml"
+    storage_root.mkdir(parents=True, exist_ok=True)
+    raw: dict[str, object] = {}
+    if config_path.exists():
+        loaded = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+        if isinstance(loaded, dict):
+            raw = loaded
+    raw.setdefault("schema_version", "1.0")
+    raw["embedder"] = {"provider": provider, "model": _DEFAULT_MODELS[provider]}
+    config_path.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
+    return config_path

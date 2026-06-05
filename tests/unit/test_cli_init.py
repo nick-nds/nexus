@@ -16,6 +16,20 @@ def runner() -> CliRunner:
     return CliRunner()
 
 
+@pytest.fixture(autouse=True)
+def _isolate_storage_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep ``nexus init``'s global ``config.yml`` write inside ``tmp_path``.
+
+    ``init`` writes the chosen embedder to ``<storage_root>/config.yml``;
+    without this, every invocation would clobber the developer's real
+    ``~/.nexus/config.yml``.
+    """
+    import importlib
+
+    main_mod = importlib.import_module("nexus.interfaces.cli.main")
+    monkeypatch.setattr(main_mod, "DEFAULT_ROOT", tmp_path / ".nexus")
+
+
 # ---------------------------------------------------------------------------
 # _slugify helper
 # ---------------------------------------------------------------------------
@@ -110,8 +124,8 @@ class TestInitNonInteractive:
         content = (tmp_path / "nexus.yml").read_text()
         assert "profile: laravel-api" in content
 
-    def test_default_embedder_not_written_to_yml(self, runner: CliRunner, tmp_path: Path) -> None:
-        """fastembed is the default - the embedder block should be omitted."""
+    def test_embedder_never_written_to_nexus_yml(self, runner: CliRunner, tmp_path: Path) -> None:
+        """The embedder lives in the global config.yml, not the project file."""
         runner.invoke(
             main,
             [
@@ -124,14 +138,16 @@ class TestInitNonInteractive:
                 "--slug",
                 "my-project",
                 "--embedder",
-                "fastembed",
+                "ollama",
             ],
         )
         content = (tmp_path / "nexus.yml").read_text()
-        # The YAML embedder block must not be written for the default provider.
+        assert "embedder" not in content
         assert "provider:" not in content
 
-    def test_non_default_embedder_written_to_yml(self, runner: CliRunner, tmp_path: Path) -> None:
+    def test_embedder_written_to_global_config(self, runner: CliRunner, tmp_path: Path) -> None:
+        """init seeds the chosen embedder into <storage_root>/config.yml,
+        which is where the index pipeline actually reads it from."""
         runner.invoke(
             main,
             [
@@ -145,8 +161,9 @@ class TestInitNonInteractive:
                 "ollama",
             ],
         )
-        content = (tmp_path / "nexus.yml").read_text()
-        assert "provider: ollama" in content
+        config = (tmp_path / ".nexus" / "config.yml").read_text()
+        assert "provider: ollama" in config
+        assert "model: nomic-embed-text" in config
 
     def test_schema_version_in_output(self, runner: CliRunner, tmp_path: Path) -> None:
         runner.invoke(
