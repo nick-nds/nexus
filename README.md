@@ -77,7 +77,7 @@ uv venv --python 3.13
 uv pip install 'nexus-php[local-embeddings]'
 ```
 
-Indexing requires an embedder backend, and `nexus-php` ships none on its own. `[local-embeddings]` is the zero-setup default (fastembed, CPU). For the faster local Ollama backend or a hosted API, install `[ollama]`, `[openai]`, or `[voyage]` instead; see [Embedder backends](#embedder-backends). Choose the active backend with `embedder.provider` in `~/.nexus/config.yml`.
+Indexing requires an embedder backend, and `nexus-php` ships none on its own. `[local-embeddings]` is the zero-setup default (fastembed, CPU). For the faster local Ollama backend or a hosted API, install `[ollama]`, `[openai]`, or `[voyage]` instead; see [Embedder backends](#embedder-backends). `nexus init` records your chosen backend in `~/.nexus/config.yml`; a project can override it via `nexus.yml` (see [Configuration](#configuration)).
 
 PHP extractor (required for indexing), run inside your Laravel project:
 
@@ -103,14 +103,17 @@ nexus init
 # 2. Check your environment
 nexus doctor
 
-# 3. Build the index
-nexus index rebuild
+# 3. Build the index. --slug names this project's index namespace;
+#    reuse the same slug for every sync, query, and MCP server.
+nexus --slug my-app index rebuild
 
-# 4. Query it
-nexus ask "how does user authentication work?"
-nexus query trace_route --method POST --uri /api/orders
-nexus query get_model_context --fqn "App\\Models\\Order"
+# 4. Query it (same --slug)
+nexus --slug my-app ask "how does user authentication work?"
+nexus --slug my-app query trace_route --method POST --uri /api/orders
+nexus --slug my-app query get_model_context --fqn "App\\Models\\Order"
 ```
+
+`--slug` is a **global** flag, so it goes **before** the subcommand. It selects the index namespace at `~/.nexus/projects/<slug>/`, and the same slug must be used to index, `sync`, `query`, and `mcp serve` a given project. Omit it and everything uses the `default` namespace, which is fine for a single project but collides once you index more than one.
 
 ## MCP configuration
 
@@ -266,11 +269,13 @@ nexus doctor [--project-path PATH]
 | `clear` | Delete the project's index |
 
 ```
-nexus index rebuild [--project-path PATH] [--include-tests]
-                    [--php CMD] [--container-project-path PATH]
-                    [--lsp auto|none|intelephense|phpactor|PATH]
-nexus index sync    [--project-path PATH] [--full]
+nexus --slug SLUG index rebuild [--project-path PATH] [--include-tests]
+                                [--php CMD] [--container-project-path PATH]
+                                [--lsp auto|none|intelephense|phpactor|PATH]
+nexus --slug SLUG index sync    [--project-path PATH] [--full]
 ```
+
+`--slug` is the global flag (before `index`) that picks the project namespace at `~/.nexus/projects/<SLUG>/`. Use the same slug you intend to `query` and `mcp serve` with; it defaults to `default` when omitted.
 
 `--lsp` selects the language server for `CALLS` edge population:
 
@@ -332,21 +337,29 @@ The default transport is `stdio`. Use `sse` or `http` for shared server deployme
 
 ## Docker support
 
-If PHP runs inside a Docker container, use the `--php` flag:
+When PHP runs inside a container (`docker exec`, Laravel Sail), point `--php` at the in-container PHP **and** pass `--container-project-path` with the path where the project is mounted inside the container. Host paths are not valid inside the container, so Nexus uses it to resolve `artisan` and to route the extractor's output file through the mounted project directory (`~/.nexus` is not mounted, so the output can't be written there directly). The host `--project-path` is still used for local checks and is what your queries reference.
 
 ```bash
-# Docker Compose
-nexus index rebuild \
-  --project-path /path/to/your-laravel-app \
-  --php "docker compose exec -T app php"
+# Docker Compose (project mounted at /var/www inside the container)
+nexus --slug my-app index rebuild \
+  --project-path /home/me/projects/my-app \
+  --php "docker compose exec -T app php" \
+  --container-project-path /var/www
 
-# Laravel Sail
-nexus index rebuild \
+# docker exec against a named container
+nexus --slug my-app index rebuild \
+  --project-path /home/me/projects/my-app \
+  --php "docker exec my-app-container php" \
+  --container-project-path /var/www
+
+# Laravel Sail (Sail mounts the project at /var/www/html)
+nexus --slug my-app index rebuild \
   --project-path /path/to/your-laravel-app \
-  --php "/path/to/your-laravel-app/vendor/bin/sail php"
+  --php "./vendor/bin/sail php" \
+  --container-project-path /var/www/html
 ```
 
-The Laravel project files must be volume-mounted at the same absolute path inside the container as on the host (most Sail and Compose setups do this by default). Use `--container-project-path` if the paths differ.
+Find the mount path with `docker inspect` or your `docker-compose.yml` `volumes:` entry (the right-hand side of `host:container`). Only when PHP runs directly on the host (no container) do you omit both `--php` and `--container-project-path`.
 
 ## Embedder backends
 
@@ -392,12 +405,15 @@ indexing:
 
 ### `~/.nexus/config.yml` (user-level)
 
+`nexus init` writes this file with the embedder you choose, so a fresh setup has a working backend. It's also where you change the embedder later.
+
 ```yaml
 schema_version: '1.0'
 
 embedder:
   provider: fastembed          # fastembed | ollama | voyage | openai
-  model: all-MiniLM-L6-v2
+  model: BAAI/bge-small-en-v1.5
+  # dimensions: 384            # pin for non-default model widths (Ollama needs this)
 
 cost:
   confirm_above_usd: 0.50
@@ -405,6 +421,8 @@ cost:
 ask:
   semantic_confidence_floor: 0.65
 ```
+
+**Embedder precedence.** The index pipeline resolves the embedder as: the project `nexus.yml` `embedder:` block (if present) **overrides** this global `config.yml`, which is the user/machine default. A team can commit an `embedder:` block to `nexus.yml` to standardise on one backend for comparable vectors; otherwise the global default is used. If neither configures an embedder, indexing runs graph-only and `semantic_search` is unavailable (the `coverage.embedder_id` comes back `null`).
 
 The confidence floor controls when `nexus ask` returns a structured refusal instead of weak semantic hits. Tune it per embedder:
 
