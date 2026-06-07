@@ -66,7 +66,7 @@ final class FatalErrorHandlerTest extends TestCase
 
         /** @var array<string, mixed> $written */
         $written = json_decode((string) file_get_contents($this->outputPath), true, 512, JSON_THROW_ON_ERROR);
-        $this->assertSame('2.4.0', $written['schema_version']);
+        $this->assertSame('2.5.0', $written['schema_version']);
         $this->assertNotEmpty($written['errors']);
         $this->assertSame('fatal_during_class_load', $written['errors'][0]['code']);
         $this->assertStringContainsString('App\\Broken\\Thing', $written['errors'][0]['message']);

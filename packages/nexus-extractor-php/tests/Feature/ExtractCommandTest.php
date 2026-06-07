@@ -83,7 +83,7 @@ final class ExtractCommandTest extends TestCase
         /** @var array<string, mixed> $doc */
         $doc = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
 
-        $this->assertSame('2.4.0', $doc['schema_version']);
+        $this->assertSame('2.5.0', $doc['schema_version']);
         $this->assertSame('SampleApp', $doc['project']['name']);
         $this->assertNotEmpty($doc['project']['laravel_version']);
 

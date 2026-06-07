@@ -3,8 +3,9 @@ r"""``find_listeners`` - list the listeners subscribed to an event.
 Given an event FQN (e.g. ``App\Events\UserRegistered``), walk
 the ``LISTENS_TO`` edges backwards to enumerate every listener
 the project has wired up to it. Returns listener metadata -
-class FQN, whether it's queued, and the handler method name -
-so agents can decide where to start reading.
+class FQN, the handler method, whether it's queued, the source
+file, and how it was wired (``source``) - in execution order, so
+agents can decide where to start reading.
 
 The event is identified by its stable graph id
 (``event:<fqn>``) or by its FQN. Wildcard listeners are picked
@@ -21,7 +22,7 @@ from pydantic import Field
 from nexus.core.graph.ids import class_id
 from nexus.core.graph.types import EdgeKind, NodeKind
 from nexus.core.query.tool_protocol import ToolInput, ToolOutput
-from nexus.core.query.tools._common import bool_attr, str_attr
+from nexus.core.query.tools._common import bool_attr, int_attr, str_attr
 from nexus.core.query.traversal import incoming
 
 if TYPE_CHECKING:
@@ -48,6 +49,11 @@ class ListenerRow(ToolOutput):
     method: str | None = None
     queued: bool = False
     file: str | None = None
+    #: How the listener was wired: ``"listen"`` (explicit
+    #: ``EventServiceProvider::$listen`` map) or ``"discovered"`` (Laravel
+    #: auto-discovery, ``Event::listen``, or a subscriber). ``None`` when
+    #: the index predates source tracking.
+    source: str | None = None
 
 
 class FindListenersOutput(ToolOutput):
@@ -75,7 +81,10 @@ class FindListenersTool:
         "**Argument:** ``event`` (string) - the event FQN, e.g. "
         '``event="App\\\\Events\\\\OrderPlaced"``. '
         "Each row includes the listener's class FQN, the handler method, "
-        "whether it implements ``ShouldQueue``, and the source file."
+        "whether it implements ``ShouldQueue`` (``queued``), the source "
+        "file, and how it was wired (``source``: ``listen`` for an explicit "
+        "``$listen`` entry, ``discovered`` otherwise). Listeners are "
+        "returned in execution order."
     )
     input_model: ClassVar[type[ToolInput]] = FindListenersInput
     output_model: ClassVar[type[ToolOutput]] = FindListenersOutput
@@ -97,25 +106,36 @@ class FindListenersTool:
                 error_code="event_not_found",
             )
 
-        rows: list[ListenerRow] = []
+        ordered_rows: list[tuple[int, ListenerRow]] = []
         for edge in incoming(graph, event_id, EdgeKind.LISTENS_TO):
             listener_node = graph.node_by_id(edge.source)
             if listener_node is None:
                 continue
             attrs = listener_node.attributes
-            rows.append(
-                ListenerRow(
-                    listener_fqn=str_attr(attrs, "class_fqn")
-                    or str_attr(attrs, "fqn")
-                    or listener_node.name,
-                    short_name=listener_node.name,
-                    method=str_attr(attrs, "method"),
-                    queued=bool_attr(attrs, "queued"),
-                    file=str_attr(attrs, "file"),
+            # ``order`` and ``source`` are wiring-level, so they live on
+            # the edge, not the listener node.
+            order = int_attr(edge.attributes, "order")
+            ordered_rows.append(
+                (
+                    order if order is not None else len(ordered_rows),
+                    ListenerRow(
+                        listener_fqn=str_attr(attrs, "class_fqn")
+                        or str_attr(attrs, "fqn")
+                        or listener_node.name,
+                        short_name=listener_node.name,
+                        method=str_attr(attrs, "method"),
+                        queued=bool_attr(attrs, "queued"),
+                        file=str_attr(attrs, "file"),
+                        source=str_attr(edge.attributes, "source"),
+                    ),
                 ),
             )
 
-        rows.sort(key=lambda r: r.listener_fqn)
+        # Preserve the dispatcher's registration order (= execution order
+        # in modern Laravel). Break ties on the FQN so the output stays
+        # deterministic when ``order`` is absent on a legacy index.
+        ordered_rows.sort(key=lambda pair: (pair[0], pair[1].listener_fqn))
+        rows = [row for _, row in ordered_rows]
 
         return FindListenersOutput(
             event=event_id,

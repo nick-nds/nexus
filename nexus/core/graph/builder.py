@@ -489,7 +489,7 @@ class GraphBuilder:
                 ),
             )
 
-            for callback in entry.listeners:
+            for order, callback in enumerate(entry.listeners):
                 if callback.kind != "class" or callback.class_name is None:
                     # Closure listeners are recorded as warnings; the
                     # source location is captured in their attributes
@@ -507,6 +507,10 @@ class GraphBuilder:
                     continue
 
                 lid = listener_id(callback.class_name, callback.method or "handle")
+                # queued/file are properties of the listener class, so they
+                # live on the node. source/order describe *this* wiring (a
+                # class can be wired to several events differently), so they
+                # live on the edge.
                 graph.add_node(
                     Node(
                         id=lid,
@@ -515,11 +519,18 @@ class GraphBuilder:
                         attributes={
                             "class_fqn": callback.class_name,
                             "method": callback.method or "handle",
+                            "queued": callback.queued,
+                            "file": callback.file,
                         },
                     ),
                 )
                 graph.add_edge(
-                    Edge(source=lid, target=event_node_id, kind=EdgeKind.LISTENS_TO),
+                    Edge(
+                        source=lid,
+                        target=event_node_id,
+                        kind=EdgeKind.LISTENS_TO,
+                        attributes={"order": order, "source": callback.source},
+                    ),
                 )
 
     # ------------------------------------------------------------------

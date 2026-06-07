@@ -69,6 +69,6 @@ final class ReflectionDocumentKindTest extends TestCase
     {
         $doc = new ReflectionDocument(new ErrorCollector);
         $array = $doc->toArray();
-        $this->assertSame('2.4.0', $array['schema_version']);
+        $this->assertSame('2.5.0', $array['schema_version']);
     }
 }

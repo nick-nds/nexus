@@ -15,7 +15,7 @@ final class SchemaVersion
 {
     public const MAJOR = 2;
 
-    public const MINOR = 4;
+    public const MINOR = 5;
 
     public const PATCH = 0;
 

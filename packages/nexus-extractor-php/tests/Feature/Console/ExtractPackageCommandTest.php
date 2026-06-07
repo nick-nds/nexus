@@ -61,7 +61,7 @@ final class ExtractPackageCommandTest extends TestCase
         // TODO(v1.0.1): extractor reads version from Composer\InstalledVersions which
         // returns 'dev-main' for path-resolved packages; should read composer.json directly.
         $this->assertContains($doc['package']['version'], ['1.2.0', 'dev-main']);
-        $this->assertSame('2.4.0', $doc['schema_version']);
+        $this->assertSame('2.5.0', $doc['schema_version']);
 
         $this->assertSame(
             'Synthetic Laravel package fixture for Nexus package-indexing tests.',

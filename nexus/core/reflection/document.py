@@ -171,6 +171,14 @@ class ListenerCallback(_StrictModel):
     method: str | None = None
     file: str | None = None
     line: int | None = None
+    #: ``True`` when the listener class implements
+    #: ``Illuminate\Contracts\Queue\ShouldQueue`` (runs on a queue).
+    queued: bool = False
+    #: How the listener was wired: ``"listen"`` when it appears in an
+    #: ``EventServiceProvider::$listen`` map, ``"discovered"`` when it is
+    #: registered some other way (Laravel auto-discovery, ``Event::listen``,
+    #: or a subscriber). ``None`` in documents predating schema 2.5.
+    source: Literal["listen", "discovered"] | None = None
 
     model_config = ConfigDict(
         extra="forbid",
