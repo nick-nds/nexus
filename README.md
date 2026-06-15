@@ -488,6 +488,15 @@ uv run pytest tests/golden/        # Snapshot tests against fixture app
 uv run pytest tests/e2e/           # Full pipeline end-to-end
 ```
 
+### How this is built
+
+Nexus is developed with heavy use of AI coding assistants, under human review
+and an enforced quality gate. We mention this because we'd rather be upfront
+about it than have you wonder. The bar for what merges is the same regardless of
+who or what wrote a line: `ruff`, `mypy --strict`, 90%+ enforced test coverage,
+and the contract, golden, and end-to-end suites above all run in CI, and nothing
+lands that doesn't pass them.
+
 ## Requirements
 
 - Python 3.11 to 3.13 (3.14 not supported yet)
