@@ -396,6 +396,10 @@ project:
 
 profile: laravel-default    # auto-detected if omitted
 
+embedder:                   # written by `nexus init`; the per-project default
+  provider: fastembed       # fastembed | ollama | voyage | openai
+  model: BAAI/bge-small-en-v1.5
+
 indexing:
   include_tests: false
   exclude_paths:
@@ -405,7 +409,7 @@ indexing:
 
 ### `~/.nexus/config.yml` (user-level)
 
-`nexus init` writes this file with the embedder you choose, so a fresh setup has a working backend. It's also where you change the embedder later.
+`nexus init` seeds this file with a default embedder only when it doesn't already exist, so a fresh machine has a working backend. It never overwrites an embedder you've already configured here. This is the machine-wide default; the per-project `embedder:` block in `nexus.yml` (above) takes precedence.
 
 ```yaml
 schema_version: '1.0'

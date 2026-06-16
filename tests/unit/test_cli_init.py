@@ -124,8 +124,8 @@ class TestInitNonInteractive:
         content = (tmp_path / "nexus.yml").read_text()
         assert "profile: laravel-api" in content
 
-    def test_embedder_never_written_to_nexus_yml(self, runner: CliRunner, tmp_path: Path) -> None:
-        """The embedder lives in the global config.yml, not the project file."""
+    def test_embedder_written_to_nexus_yml(self, runner: CliRunner, tmp_path: Path) -> None:
+        """The chosen embedder is a per-project preference and lives in nexus.yml."""
         runner.invoke(
             main,
             [
@@ -142,13 +142,13 @@ class TestInitNonInteractive:
             ],
         )
         content = (tmp_path / "nexus.yml").read_text()
-        assert "embedder" not in content
-        assert "provider:" not in content
+        assert "provider: ollama" in content
+        assert "model: nomic-embed-text" in content
 
-    def test_embedder_written_to_global_config(self, runner: CliRunner, tmp_path: Path) -> None:
-        """init seeds the chosen embedder into <storage_root>/config.yml,
-        which is where the index pipeline actually reads it from."""
-        runner.invoke(
+    def test_global_config_seeded_when_missing(self, runner: CliRunner, tmp_path: Path) -> None:
+        """With no existing global config, init seeds the chosen embedder as
+        the machine-wide default so package indexing has a backend."""
+        result = runner.invoke(
             main,
             [
                 "--format",
@@ -164,6 +164,38 @@ class TestInitNonInteractive:
         config = (tmp_path / ".nexus" / "config.yml").read_text()
         assert "provider: ollama" in config
         assert "model: nomic-embed-text" in config
+        assert json.loads(result.output)["global_embedder"] == "seeded"
+
+    def test_existing_global_embedder_preserved(self, runner: CliRunner, tmp_path: Path) -> None:
+        """init must never clobber a user's machine-wide embedder preference."""
+        config_path = tmp_path / ".nexus" / "config.yml"
+        config_path.parent.mkdir(parents=True)
+        config_path.write_text(
+            "schema_version: '1.0'\nembedder:\n  provider: voyage\n  model: voyage-code-3\n"
+        )
+
+        result = runner.invoke(
+            main,
+            [
+                "--format",
+                "json",
+                "init",
+                "--project-path",
+                str(tmp_path),
+                "--non-interactive",
+                "--embedder",
+                "fastembed",
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        # Global default untouched...
+        config = config_path.read_text()
+        assert "provider: voyage" in config
+        assert "fastembed" not in config
+        # ...while the project gets its own override.
+        assert "provider: fastembed" in (tmp_path / "nexus.yml").read_text()
+        assert json.loads(result.output)["global_embedder"] == "preserved"
 
     def test_schema_version_in_output(self, runner: CliRunner, tmp_path: Path) -> None:
         runner.invoke(

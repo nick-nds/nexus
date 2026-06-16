@@ -161,8 +161,8 @@ def init_command(
         return
 
     try:
-        _write_nexus_yml(nexus_yml, project_slug, profile_name)
-        config_path = _ensure_global_embedder(cli_ctx.storage_root, embedder_provider)
+        _write_nexus_yml(nexus_yml, project_slug, profile_name, embedder_provider)
+        config_path, seeded = _seed_global_embedder(cli_ctx.storage_root, embedder_provider)
     except OSError as exc:
         print_error(cli_ctx, f"could not write project files: {exc}")
         raise click.exceptions.Exit(1) from exc
@@ -176,6 +176,7 @@ def init_command(
             "profile": profile_name,
             "embedder": embedder_provider,
             "config": str(config_path),
+            "global_embedder": "seeded" if seeded else "preserved",
         },
     )
 
@@ -232,6 +233,7 @@ def _write_nexus_yml(
     path: Path,
     slug: str,
     profile: str,
+    embedder_provider: str,
 ) -> None:
     """Serialise and write ``nexus.yml`` to *path*.
 
@@ -239,11 +241,10 @@ def _write_nexus_yml(
     output is minimal and readable (no ``null`` fields, no long lists of
     defaults). A minimal ``nexus.yml`` is easy to understand and edit.
 
-    The embedder is intentionally *not* written here: it lives in the
-    global ``~/.nexus/config.yml`` (see :func:`_ensure_global_embedder`),
-    which is where the index pipeline reads it from. A project that wants
-    to pin a specific embedder can add an ``embedder:`` block to this file
-    by hand - it overrides the global default.
+    The embedder chosen during ``init`` is a *per-project* preference, so
+    it is written here - the project ``nexus.yml`` ``embedder:`` block
+    overrides the global ``~/.nexus/config.yml`` default (see
+    :func:`_seed_global_embedder` and ``nexus.interfaces.cli.embedder``).
     """
     lines = [
         "schema_version: '1.0'",
@@ -253,29 +254,40 @@ def _write_nexus_yml(
         "",
         f"profile: {profile}",
         "",
+        "embedder:",
+        f"  provider: {embedder_provider}",
+        f"  model: {_DEFAULT_MODELS[embedder_provider]}",
+        "",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def _ensure_global_embedder(storage_root: Path, provider: str) -> Path:
-    """Write the chosen embedder into the global ``<storage_root>/config.yml``.
+def _seed_global_embedder(storage_root: Path, provider: str) -> tuple[Path, bool]:
+    """Seed a machine-wide default embedder into ``<storage_root>/config.yml``.
 
-    This is where ``nexus index`` actually reads the embedder from, so a
-    fresh ``nexus init`` now produces a working semantic-search setup
-    instead of silently indexing graph-only. Existing ``config.yml``
-    settings (cost, ask) are preserved; only the ``embedder`` block is
-    (re)written. Returns the config path.
+    The per-project embedder choice is written to the project's ``nexus.yml``
+    (see :func:`_write_nexus_yml`). This function only ensures a *machine*
+    default exists, so that ``nexus package index`` and projects without an
+    ``embedder:`` block still resolve a backend.
+
+    An embedder already configured in the global ``config.yml`` is left
+    untouched - ``init`` never clobbers a user's machine-wide preference.
+    Returns ``(config_path, seeded)`` where ``seeded`` is ``True`` when the
+    embedder block was written and ``False`` when an existing one was kept.
     """
     import yaml  # noqa: PLC0415
 
     config_path = storage_root / "config.yml"
-    storage_root.mkdir(parents=True, exist_ok=True)
     raw: dict[str, object] = {}
     if config_path.exists():
         loaded = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         if isinstance(loaded, dict):
             raw = loaded
+    if "embedder" in raw:
+        return config_path, False
+
+    storage_root.mkdir(parents=True, exist_ok=True)
     raw.setdefault("schema_version", "1.0")
     raw["embedder"] = {"provider": provider, "model": _DEFAULT_MODELS[provider]}
     config_path.write_text(yaml.safe_dump(raw, sort_keys=False), encoding="utf-8")
-    return config_path
+    return config_path, True
