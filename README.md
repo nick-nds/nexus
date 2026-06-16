@@ -405,6 +405,7 @@ indexing:
   exclude_paths:
     - storage/
     - bootstrap/cache/
+  # embed_batch_size: 64      # chunks per embed request; lower for CPU-only Ollama
 ```
 
 ### `~/.nexus/config.yml` (user-level)
@@ -418,6 +419,7 @@ embedder:
   provider: fastembed          # fastembed | ollama | voyage | openai
   model: BAAI/bge-small-en-v1.5
   # dimensions: 384            # pin for non-default model widths (Ollama needs this)
+  # timeout_seconds: 600       # raise for slow CPU-only inference of large models
 
 cost:
   confirm_above_usd: 0.50
@@ -427,6 +429,8 @@ ask:
 ```
 
 **Embedder precedence.** The index pipeline resolves the embedder as: the project `nexus.yml` `embedder:` block (if present) **overrides** this global `config.yml`, which is the user/machine default. A team can commit an `embedder:` block to `nexus.yml` to standardise on one backend for comparable vectors; otherwise the global default is used. If neither configures an embedder, indexing runs graph-only and `semantic_search` is unavailable (the `coverage.embedder_id` comes back `null`).
+
+**Slow embedding on CPU (Ollama).** A large embedding model on a CPU-only machine can take minutes per batch. Each Ollama request now allows 5 minutes by default; if you still hit timeouts, raise `embedder.timeout_seconds` (global or per-project) and/or lower `indexing.embed_batch_size` (e.g. `64`) so each request finishes sooner. `timeout_seconds` is currently honored by the Ollama backend; `embed_batch_size` applies regardless of backend and only changes request granularity and peak memory — chunk boundaries and vector quality are unaffected.
 
 The confidence floor controls when `nexus ask` returns a structured refusal instead of weak semantic hits. Tune it per embedder:
 

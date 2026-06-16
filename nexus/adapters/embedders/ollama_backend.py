@@ -89,7 +89,7 @@ class OllamaEmbedder:
         model: str = _DEFAULT_MODEL,
         host: str | None = None,
         dimensions: int | None = None,
-        timeout_seconds: float = 120.0,
+        timeout_seconds: float = 300.0,
         max_input_chars: int | None = None,
     ) -> None:
         """Build an Ollama-backed embedder.
@@ -109,9 +109,12 @@ class OllamaEmbedder:
                 let callers override for other models. If the first
                 embed call returns a different size we trust that
                 and update the stored value.
-            timeout_seconds: Per-request timeout. Defaults to 2
-                minutes, comfortably above what an Ollama batch of
-                256 chunks takes on a modern CPU.
+            timeout_seconds: Per-request timeout. Defaults to 5
+                minutes. A GPU batch finishes in seconds; the generous
+                default is headroom for CPU-only inference of large
+                models, where a 256-chunk batch can take minutes. Raise
+                it further (or lower ``embed_batch_size``) via config if
+                a batch still exceeds it.
             max_input_chars: Per-input character limit before
                 truncation. Defaults to
                 :data:`_DEFAULT_MAX_INPUT_CHARS`. Ollama < 0.14 panics

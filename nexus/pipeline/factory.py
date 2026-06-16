@@ -37,6 +37,7 @@ def build_default_pipeline(
     extractor: PhpExtractor | None = None,
     builder: GraphBuilder | None = None,
     cache: EmbeddingCache | None = None,
+    batch_size: int | None = None,
 ) -> Pipeline:
     """Build a :class:`Pipeline` with the four standard passes wired in.
 
@@ -45,6 +46,9 @@ def build_default_pipeline(
             to a stock instance.
         builder: Optional :class:`GraphBuilder` override.
         cache: Optional :class:`EmbeddingCache` override.
+        batch_size: Chunks embedded per request. ``None`` uses the
+            pass default (256). Lower it for CPU-only embedding so each
+            request stays under the embedder timeout.
 
     Returns:
         A ready-to-run :class:`Pipeline`.
@@ -55,7 +59,7 @@ def build_default_pipeline(
             BuildGraphPass(builder=builder),
             EnrichWithLspPass(),
             ChunkPass(),
-            EmbedAndPersistPass(cache=cache),
+            EmbedAndPersistPass(cache=cache, batch_size=batch_size),
         ],
     )
 

@@ -117,6 +117,17 @@ class IndexingSettings(BaseModel):
     include_blade: bool = True
     exclude_paths: list[str] = Field(default_factory=list)
     include_vendor_packages: list[str] = Field(default_factory=list)
+    embed_batch_size: int | None = Field(
+        default=None,
+        gt=0,
+        description=(
+            "Chunks sent to the embedder per request. Lower it (e.g. 64) on "
+            "CPU-only machines so each request finishes well under the embedder "
+            "timeout. Does not change chunk boundaries or vector quality - only "
+            "request granularity and peak memory. Omitted uses the pipeline "
+            "default (256)."
+        ),
+    )
 
 
 class ProjectProfile(BaseModel):
@@ -149,7 +160,9 @@ class ProjectProfile(BaseModel):
     # Embedder override is the one place where a project preference
     # legitimately supersedes user global config - teams standardising
     # on a specific embedder for reproducibility across contributors.
-    embedder: dict[str, str] | None = None
+    # Values are mostly strings (provider, model, host) but numeric keys
+    # like ``dimensions`` and ``timeout_seconds`` are also accepted.
+    embedder: dict[str, str | int | float] | None = None
 
 
 def load_project_profile(path: Path) -> ProjectProfile:

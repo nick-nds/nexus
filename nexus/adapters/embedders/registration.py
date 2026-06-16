@@ -69,9 +69,11 @@ def _ollama_factory(config: dict[str, Any]) -> Embedder:
     host = config.get("host")
     dimensions = config.get("dimensions")
     timeout = config.get("timeout_seconds")
-    return OllamaEmbedder(
-        model=model,
-        host=str(host) if host is not None else None,
-        dimensions=int(dimensions) if dimensions is not None else None,
-        timeout_seconds=float(timeout) if timeout is not None else 120.0,
-    )
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "host": str(host) if host is not None else None,
+        "dimensions": int(dimensions) if dimensions is not None else None,
+    }
+    if timeout is not None:
+        kwargs["timeout_seconds"] = float(timeout)
+    return OllamaEmbedder(**kwargs)

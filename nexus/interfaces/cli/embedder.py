@@ -37,6 +37,8 @@ def _global_embedder_spec(storage_root: Path) -> EmbedderSpec | None:
     config: dict[str, object] = {"model": cfg.model}
     if cfg.dimensions is not None:
         config["dimensions"] = cfg.dimensions
+    if cfg.timeout_seconds is not None:
+        config["timeout_seconds"] = cfg.timeout_seconds
     return (cfg.provider, config)
 
 
@@ -60,7 +62,7 @@ def _project_embedder_spec(project_path: Path) -> EmbedderSpec | None:
     embedder = profile.embedder
     if not embedder or not embedder.get("provider"):
         return None
-    provider = embedder["provider"]
+    provider = str(embedder["provider"])
     config: dict[str, object] = {k: v for k, v in embedder.items() if k != "provider"}
     return (provider, config)
 

@@ -161,7 +161,11 @@ def run_pipeline(
             print_error(cli_ctx, f"embedder not ready: {problem}")
             raise click.exceptions.Exit(EXIT_USER_ACTION_REQUIRED)
 
-    pipeline = _build_pipeline(php_binary=php_binary, container_project_path=container_project_path)
+    pipeline = _build_pipeline(
+        php_binary=php_binary,
+        container_project_path=container_project_path,
+        batch_size=_project_embed_batch_size(project_path),
+    )
     pipe_ctx = PipelineContext(
         project_path=project_path,
         storage=storage,
@@ -351,6 +355,7 @@ def confirm_cost_if_paid(cli_ctx: CliContext, project_path: Path) -> None:
 def _build_pipeline(
     php_binary: str | None = None,
     container_project_path: Path | None = None,
+    batch_size: int | None = None,
 ) -> Pipeline:
     """Build the default pipeline with a stock :class:`PhpExtractor`.
 
@@ -365,13 +370,38 @@ def _build_pipeline(
         container_project_path: Forwarded to :class:`PhpExtractor`.
             When the project runs in a container, this is the path
             where the project is mounted inside that container.
+        batch_size: Chunks embedded per request, from the project's
+            ``nexus.yml`` ``indexing.embed_batch_size``. ``None`` uses
+            the pass default.
     """
     return build_default_pipeline(
         extractor=PhpExtractor(
             php_binary=php_binary,
             container_project_path=container_project_path,
-        )
+        ),
+        batch_size=batch_size,
     )
+
+
+def _project_embed_batch_size(project_path: Path) -> int | None:
+    """Read ``indexing.embed_batch_size`` from ``<project_path>/nexus.yml``.
+
+    Returns ``None`` when there is no ``nexus.yml``, it has no override,
+    or it fails to parse - the pipeline then uses its default batch size
+    rather than aborting the run on a malformed project file (mirrors the
+    tolerance of the embedder-spec resolution).
+    """
+    from nexus.config.loader import ConfigError  # noqa: PLC0415
+    from nexus.config.project_profile import load_project_profile  # noqa: PLC0415
+
+    nexus_yml = project_path / "nexus.yml"
+    if not nexus_yml.exists():
+        return None
+    try:
+        profile = load_project_profile(nexus_yml)
+    except ConfigError:
+        return None
+    return profile.indexing.embed_batch_size
 
 
 def _build_embedder(cli_ctx: CliContext, project_path: Path) -> Embedder | None:

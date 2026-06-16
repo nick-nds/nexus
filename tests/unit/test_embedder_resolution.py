@@ -85,3 +85,31 @@ def test_malformed_project_nexus_yml_falls_back_to_global(tmp_path: Path) -> Non
 
     assert spec is not None
     assert spec[0] == "fastembed"
+
+
+def test_global_timeout_flows_into_spec(tmp_path: Path) -> None:
+    global_yml = (
+        "schema_version: '1.0'\n"
+        "embedder:\n  provider: ollama\n  model: mxbai-embed-large\n  timeout_seconds: 600\n"
+    )
+    storage, project = _layout(tmp_path, global_yml=global_yml, project_yml=None)
+
+    spec = _choose_embedder_spec(storage, project)
+
+    assert spec is not None
+    assert spec[1].get("timeout_seconds") == 600.0
+
+
+def test_project_timeout_flows_into_spec(tmp_path: Path) -> None:
+    project_yml = (
+        "schema_version: '1.0'\n"
+        "project:\n  slug: demo\n"
+        "embedder:\n  provider: ollama\n  model: mxbai-embed-large\n  timeout_seconds: 600\n"
+    )
+    storage, project = _layout(tmp_path, global_yml=_GLOBAL, project_yml=project_yml)
+
+    spec = _choose_embedder_spec(storage, project)
+
+    assert spec is not None
+    assert spec[0] == "ollama"
+    assert spec[1].get("timeout_seconds") == 600

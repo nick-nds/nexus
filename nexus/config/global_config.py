@@ -55,6 +55,14 @@ class EmbedderConfig(BaseModel):
         default=None,
         description="Vector dimensionality override when the provider supports multiple.",
     )
+    timeout_seconds: float | None = Field(
+        default=None,
+        description=(
+            "Per-request timeout for backends that make network calls "
+            "(currently Ollama). Raise this for slow CPU-only inference of "
+            "large models. Omitted leaves the backend's own default in place."
+        ),
+    )
 
 
 class CostThresholds(BaseModel):

@@ -227,6 +227,17 @@ class TestHostConfig:
         assert emb._host == "http://override:9999"  # type: ignore[attr-defined]
 
 
+class TestTimeoutConfig:
+    def test_default_timeout_is_five_minutes(self) -> None:
+        """CPU-only inference of large models needs headroom past 2 min."""
+        emb = OllamaEmbedder(model="m")
+        assert emb._timeout == 300.0  # type: ignore[attr-defined]
+
+    def test_explicit_timeout_is_honoured(self) -> None:
+        emb = OllamaEmbedder(model="m", timeout_seconds=900.0)
+        assert emb._timeout == 900.0  # type: ignore[attr-defined]
+
+
 # ---------------------------------------------------------------------------
 # Registry integration
 # ---------------------------------------------------------------------------
@@ -253,6 +264,7 @@ class TestRegistration:
 
         assert emb.model_id == "ollama:nomic-embed-text"
         assert emb.dimensions == 768
+        assert emb._timeout == 300.0  # type: ignore[attr-defined]
 
     def test_factory_honours_config_overrides(self) -> None:
         from nexus.adapters.embedders import register_builtin_embedders
@@ -272,3 +284,4 @@ class TestRegistration:
 
         assert emb.model_id == "ollama:mxbai-embed-large"
         assert emb.dimensions == 1024
+        assert emb._timeout == 60.0  # type: ignore[attr-defined]
