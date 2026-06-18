@@ -121,6 +121,48 @@ class TestPersistAndLoad:
         assert store.edge_count() == 0
 
 
+class TestCrossConnectionInvalidation:
+    """A live store must reflect a reindex committed by another connection.
+
+    The MCP server holds a long-lived store and loads the graph once,
+    caching it in memory. A ``nexus index`` run happens in a *separate
+    process* (a separate SQLite connection). The live store must drop its
+    cache when it detects the on-disk database changed underneath it -
+    otherwise it serves a pre-reindex snapshot forever.
+    """
+
+    def test_load_reflects_reindex_from_another_connection(self, tmp_path: Path) -> None:
+        path = tmp_path / "graph.sqlite"
+        reader = SqliteGraphStore(path)
+        reader.initialise()
+        reader.persist(make_simple_graph())
+        first = reader.load()
+        assert {n.id for n in first.nodes} == {"a", "b"}
+
+        # A separate connection rewrites the graph, as a reindex in
+        # another process would.
+        writer = SqliteGraphStore(path)
+        writer.initialise()
+        rewritten = Graph()
+        rewritten.add_node(Node(id="c", kind=NodeKind.MODEL, name="C"))
+        writer.persist(rewritten)
+        writer.close()
+
+        reloaded = reader.load()
+
+        assert {n.id for n in reloaded.nodes} == {"c"}
+        reader.close()
+
+    def test_load_keeps_cache_without_external_change(self, store: SqliteGraphStore) -> None:
+        store.persist(make_simple_graph())
+
+        first = store.load()
+        second = store.load()
+
+        # No external commit happened, so the cached instance is reused.
+        assert first is second
+
+
 class TestAgainstRealFixture:
     """Persist the real momskitchen-derived graph and verify the counts."""
 
