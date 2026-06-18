@@ -64,6 +64,12 @@ class SqliteGraphStore:
         # per tool call today; caching turns a ~600 ms SQLite + JSON
         # decode on the helm-v7 index into ~1 ms after the first hit.
         self._cached_graph: Graph | None = None
+        # ``PRAGMA data_version`` value captured when ``_cached_graph`` was
+        # populated. SQLite bumps this whenever *another* connection commits
+        # (it is unchanged for our own commits), so comparing it on each
+        # :meth:`load` lets a long-lived store detect a reindex performed by a
+        # separate process and drop its stale cache.
+        self._cached_data_version: int | None = None
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -155,6 +161,7 @@ class SqliteGraphStore:
             self._conn = None
         self._initialised = False
         self._cached_graph = None
+        self._cached_data_version = None
 
     # ------------------------------------------------------------------
     # Persistence
@@ -235,13 +242,20 @@ class SqliteGraphStore:
         it. Subsequent calls return the cached instance so tools in a
         long-lived query session don't pay the SQLite + JSON decode
         cost on every invocation. The cache is invalidated by any
-        mutating method (:meth:`persist`, :meth:`clear`).
+        mutating method on this store (:meth:`persist`, :meth:`clear`)
+        and, crucially, when ``PRAGMA data_version`` reveals that another
+        connection - typically a reindex in a separate process - committed
+        changes underneath us. Without that second check a long-lived MCP
+        server would serve a pre-reindex snapshot until restarted.
         """
-        if self._cached_graph is not None:
-            return self._cached_graph
-
         conn = self._connection()
         self.initialise()
+
+        if self._cached_graph is not None:
+            if self._data_version(conn) == self._cached_data_version:
+                return self._cached_graph
+            # Another connection committed since we cached; reload.
+            self._cached_graph = None
 
         graph = Graph()
 
@@ -277,7 +291,19 @@ class SqliteGraphStore:
             )
 
         self._cached_graph = graph
+        self._cached_data_version = self._data_version(conn)
         return graph
+
+    @staticmethod
+    def _data_version(conn: sqlite3.Connection) -> int:
+        """Return ``PRAGMA data_version`` - a monotonic-ish change marker.
+
+        SQLite bumps this value whenever the database file is modified by
+        a connection *other* than this one; it is unchanged for commits
+        made on ``conn`` itself. We use it to detect a reindex performed
+        by a separate process and invalidate the in-memory graph cache.
+        """
+        return int(conn.execute("PRAGMA data_version").fetchone()[0])
 
     def clear(self) -> None:
         """Drop every row (but keep the schema)."""

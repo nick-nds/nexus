@@ -58,12 +58,33 @@ without the data the tool needs.
 |---|---|---|---|
 | `no_embedder` | `semantic_search` | The query context has no embedder configured. | Configure an embedder backend (Ollama / Voyage / OpenAI) and re-index, or use a structural alternative tool. |
 | `no_vector_dimensions` | `semantic_search` | The vector store has no recorded dimensionality (likely empty or never written). | Re-index with embedding enabled. |
+| `calls_not_indexed` | `find_callers`, `expand_call_tree` | The index was built without an LSP server, so `CALLS` edges were never populated. | Re-index with `--lsp auto` (or `--lsp intelephense`); `response.coverage.calls_indexed` is the canary. |
 
 The richer "feature flags" live on `response.coverage` - when that
 block exists, check `coverage.calls_indexed`, `coverage.cache_indexed`,
-etc. before treating an empty result as "no match." The two error
-codes above are emitted only when `semantic_search` fundamentally
-cannot run.
+etc. before treating an empty result as "no match." The error
+codes above are emitted only when the tool fundamentally cannot run.
+
+### Ambiguous / no confident match
+
+| Code | Tools | What it means | Recovery |
+|---|---|---|---|
+| `low_relevance` | `semantic_search` | Candidates were fetched but none crossed the relevance threshold (`min_vector_score`); all were filtered out. | Use a more specific query, or lower `min_vector_score` (e.g. `0.3`) to inspect weak matches. |
+
+## Source retrieval
+
+These tools read raw source by node id or by file path and line
+range. They can fail on lookup, path safety, or I/O - distinct from a
+"target not found" because the arg shape was plausible.
+
+| Code | Tools | What it means | Recovery |
+|---|---|---|---|
+| `node_not_found` | `get_node_body` | No node has the supplied `node_id`. | Discover a valid id via `explore_entity`, `list_by_kind`, or a `describe_*` tool, then retry. |
+| `file_not_found` | `get_full_block` | `file_path` doesn't resolve to a regular file. | Pass a path a tool returned (e.g. `get_node_body`'s `file`), not a hand-typed guess. |
+| `file_outside_project` | `get_full_block` | The resolved path lies outside the indexed project root; Nexus refuses to read it. | Pass a path within the indexed project. |
+| `invalid_range` | `get_full_block` | `end_line` is less than `start_line`. | Pass a range where `end_line >= start_line`. |
+| `range_out_of_bounds` | `get_full_block` | `start_line` is past end-of-file. | Check `total_file_lines` on the response and pass an in-range `start_line`. |
+| `read_error` | `get_full_block` | The file exists but the OS read failed (permissions, transient I/O). | Check file permissions and retry. |
 
 ## `nexus ask` refusals
 
