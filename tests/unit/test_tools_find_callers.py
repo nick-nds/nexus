@@ -88,7 +88,7 @@ def test_unknown_method_returns_method_not_found() -> None:
 
 
 def test_calls_not_indexed_returns_structured_error_when_method_exists() -> None:
-    """Pinning P0-8 from the synthesq-relay audit.
+    """Pinning P0-8 from the acme-platform audit.
 
     Without this guard, ``find_callers`` returns ``total: 0, error:
     null`` - indistinguishable from "this method has no callers". The

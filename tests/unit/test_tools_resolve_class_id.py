@@ -27,25 +27,25 @@ def _add_class(graph: Graph, fqn: str) -> str:
 
 def test_exact_case_returns_id_with_no_warning() -> None:
     g = Graph()
-    canonical = _add_class(g, "Synthesq\\Relay\\Events\\SynthesQEvent")
+    canonical = _add_class(g, "Acme\\Platform\\Events\\AcmeEvent")
 
-    resolved, warning = resolve_class_id(g, "Synthesq\\Relay\\Events\\SynthesQEvent")
+    resolved, warning = resolve_class_id(g, "Acme\\Platform\\Events\\AcmeEvent")
 
     assert resolved == canonical
     assert warning is None
 
 
 def test_lowercase_input_resolves_via_case_insensitive_fallback() -> None:
-    """The synthesq-relay audit's exact reproduction case."""
+    """The acme-platform audit's exact reproduction case."""
     g = Graph()
-    canonical = _add_class(g, "Synthesq\\Relay\\Events\\SynthesQEvent")
+    canonical = _add_class(g, "Acme\\Platform\\Events\\AcmeEvent")
 
-    resolved, warning = resolve_class_id(g, "synthesq\\relay\\events\\synthesqevent")
+    resolved, warning = resolve_class_id(g, "acme\\platform\\events\\acmeevent")
 
     assert resolved == canonical
     assert warning is not None
-    assert "synthesqevent" in warning  # original is mentioned
-    assert "SynthesQEvent" in warning  # canonical is mentioned
+    assert "acmeevent" in warning  # original is mentioned
+    assert "AcmeEvent" in warning  # canonical is mentioned
     assert "case-corrected" in warning
 
 

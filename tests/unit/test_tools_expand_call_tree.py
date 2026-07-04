@@ -169,7 +169,7 @@ def test_unknown_method_returns_structured_error() -> None:
 
 
 def test_calls_not_indexed_returns_structured_error_when_method_exists() -> None:
-    """Pinning P0-8 from the synthesq-relay audit.
+    """Pinning P0-8 from the acme-platform audit.
 
     When the index was built without an LSP, CALLS edges aren't
     populated. The tool must NOT silently return an empty walk - the

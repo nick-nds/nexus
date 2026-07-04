@@ -62,7 +62,7 @@ class SqliteGraphStore:
         # call and cleared by :meth:`persist`, :meth:`clear`, and
         # :meth:`close`. The Phase 4 query engine loads the graph once
         # per tool call today; caching turns a ~600 ms SQLite + JSON
-        # decode on the helm-v7 index into ~1 ms after the first hit.
+        # decode on the largeapp index into ~1 ms after the first hit.
         self._cached_graph: Graph | None = None
         # ``PRAGMA data_version`` value captured when ``_cached_graph`` was
         # populated. SQLite bumps this whenever *another* connection commits

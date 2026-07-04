@@ -45,7 +45,7 @@ def _finding(
 
 
 def test_synthesises_binding_node_when_phase_a_missed_it() -> None:
-    """The synthesq-relay case: Phase A's container snapshot didn't
+    """The acme-platform case: Phase A's container snapshot didn't
     include this binding (closure registered too late). We create
     the node from the static-analysis finding."""
     graph = Graph()
@@ -54,19 +54,19 @@ def test_synthesises_binding_node_when_phase_a_missed_it() -> None:
         graph,
         [
             _finding(
-                abstract="Synthesq\\Relay\\Adapters\\SynthesQClient",
-                concrete="Synthesq\\Relay\\Adapters\\SynthesQClient",
+                abstract="Acme\\Platform\\Adapters\\AcmeClient",
+                concrete="Acme\\Platform\\Adapters\\AcmeClient",
                 binding_kind="singleton",
             ),
         ],
     )
 
-    bid = binding_id("Synthesq\\Relay\\Adapters\\SynthesQClient")
+    bid = binding_id("Acme\\Platform\\Adapters\\AcmeClient")
     node = graph.node_by_id(bid)
     assert node is not None
     assert node.kind == NodeKind.BINDING
     assert node.attributes["concrete_kind"] == "class"
-    assert node.attributes["concrete_class"] == "Synthesq\\Relay\\Adapters\\SynthesQClient"
+    assert node.attributes["concrete_class"] == "Acme\\Platform\\Adapters\\AcmeClient"
     assert node.attributes["shared"] is True  # singleton → shared
     assert node.attributes["source"] == "static_analysis"
 

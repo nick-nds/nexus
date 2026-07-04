@@ -1,7 +1,7 @@
 """Tests for the ``min_vector_score`` threshold + ``confidence`` field (audit P0-11).
 
 Before this change, semantic_search returned the top ``final_k`` rows
-regardless of how weak the cosine similarity was. The synthesq-relay
+regardless of how weak the cosine similarity was. The acme-platform
 audit showed gibberish queries returning 10 DTOs at vector_score ~0.57
 - marginally below real-query scores of 0.6-0.68 - which made it
 impossible for an agent to tell signal from noise.
@@ -42,7 +42,7 @@ def test_confidence_low_for_weak_top_score() -> None:
 
 def test_min_vector_score_default_is_0_4() -> None:
     """The threshold default should filter obvious gibberish (~0.57 in
-    the synthesq-relay audit) while keeping marginal real matches.
+    the acme-platform audit) while keeping marginal real matches.
 
     0.4 was chosen as conservative - it lets a re-tune happen later
     without breaking calls that rely on the default. Agents that want

@@ -2,12 +2,12 @@
 
 Covers the event / job / policy / binding / implementation /
 caller tools registered in :mod:`nexus.core.query.tools`. Uses
-the committed momskitchen reflection fixture so every test
+the committed demoapp reflection fixture so every test
 exercises the real graph adapter pipeline, not a mock.
 
 Some edge kinds (``FIRES``, ``DISPATCHES``, ``CALLS``,
 ``APPLIES_TO``) are populated by Phase 3's static analyser,
-which hadn't run against the momskitchen fixture at the time
+which hadn't run against the demoapp fixture at the time
 these tests were written. Tests that would require those edges
 assert the structured ``*_not_found`` error shape - still a
 useful contract test even on a partially-populated fixture.
@@ -30,7 +30,7 @@ from nexus.core.reflection import load_reflection
 pytestmark = pytest.mark.integration
 
 
-FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "momskitchen.json"
+FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "demoapp.json"
 
 
 @dataclass(frozen=True)
@@ -65,7 +65,7 @@ def engine(tmp_path: Path) -> QueryEngine:
 # ---------------------------------------------------------------------------
 
 
-CUSTOMER_ACTIVATED = "Synthesq\\Relay\\Modules\\CRM\\Customers\\Events\\CustomerActivated"
+CUSTOMER_ACTIVATED = "Acme\\Platform\\Modules\\CRM\\Customers\\Events\\CustomerActivated"
 
 
 class TestFindListeners:
@@ -102,7 +102,7 @@ class TestFindDispatchers:
         assert result.error_code == "event_not_found"
 
     def test_known_event_without_fires_edges(self, engine: QueryEngine) -> None:
-        # momskitchen's fixture predates Phase 3 static analysis, so
+        # demoapp's fixture predates Phase 3 static analysis, so
         # no FIRES edges exist - the call should succeed with empty
         # results rather than erroring.
         result = engine.query("find_dispatchers", {"event": CUSTOMER_ACTIVATED})
@@ -202,7 +202,7 @@ class TestFindImplementations:
         self,
         engine: QueryEngine,
     ) -> None:
-        # momskitchen's concrete controllers all extend the project's
+        # demoapp's concrete controllers all extend the project's
         # base ``App\Http\Controllers\Controller`` abstract class. It's
         # the only interface-like type whose node is actually present
         # in the fixture (vendor interfaces appear only as dangling

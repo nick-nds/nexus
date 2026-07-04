@@ -1,7 +1,7 @@
 """Integration tests for the basic structural query tools.
 
 Builds a real :class:`ProjectStorage` from the committed
-momskitchen reflection fixture, persists the graph to a temp
+demoapp reflection fixture, persists the graph to a temp
 SQLite file, and runs list_routes / describe_class /
 get_model_context against the result. Verifies end-to-end
 correctness of the whole Phase 4 infrastructure plus Batch 1
@@ -28,7 +28,7 @@ from nexus.core.reflection import load_reflection
 pytestmark = pytest.mark.integration
 
 
-FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "momskitchen.json"
+FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "demoapp.json"
 
 
 @dataclass(frozen=True)
@@ -75,7 +75,7 @@ class TestListRoutes:
     def test_lists_all_routes(self, engine: QueryEngine) -> None:
         result = engine.query("list_routes")
 
-        # momskitchen has 23 routes; assert we see them all
+        # demoapp has 23 routes; assert we see them all
         assert result.total == 23
         assert result.returned == 23
         assert len(result.routes) == 23
@@ -104,7 +104,7 @@ class TestListRoutes:
         assert without_slash.total == with_slash.total > 0
 
     def test_filter_by_middleware(self, engine: QueryEngine) -> None:
-        # momskitchen uses 'web' as an aliased middleware group.
+        # demoapp uses 'web' as an aliased middleware group.
         result = engine.query("list_routes", {"middleware": "web"})
 
         # Not every route has web middleware, but some do.
@@ -119,7 +119,7 @@ class TestListRoutes:
     def test_returns_controller_for_controller_actions(self, engine: QueryEngine) -> None:
         result = engine.query("list_routes")
 
-        # At least some of momskitchen's routes are controller actions
+        # At least some of demoapp's routes are controller actions
         controller_routes = [r for r in result.routes if r.action_kind == "controller"]
         assert len(controller_routes) > 0
         for r in controller_routes:
@@ -139,7 +139,7 @@ class TestDescribeClass:
         assert result.error is not None
 
     def test_describes_known_controller(self, engine: QueryEngine) -> None:
-        # momskitchen has many controllers; pick one we saw in Phase 3
+        # demoapp has many controllers; pick one we saw in Phase 3
         result = engine.query(
             "describe_class",
             {"fqn": "App\\Http\\Controllers\\CustomersController"},
@@ -200,7 +200,7 @@ class TestGetModelContext:
         assert result.error_code == "class_not_found"
 
     def test_model_flag_set_for_real_model(self, engine: QueryEngine) -> None:
-        # momskitchen has App\Models\* classes
+        # demoapp has App\Models\* classes
         # Find a real one via list of models
         result = engine.query("get_model_context", {"fqn": "App\\Models\\RefreshToken"})
         assert result.error is None
@@ -266,7 +266,7 @@ class TestTraceRoute:
         self,
         engine: QueryEngine,
     ) -> None:
-        # momskitchen: GET /api/v1/customers → CustomersController::index,
+        # demoapp: GET /api/v1/customers → CustomersController::index,
         # five middleware entries including the JWT + tenancy stack.
         result = engine.query(
             "trace_route",

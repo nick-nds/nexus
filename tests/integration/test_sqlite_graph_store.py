@@ -21,7 +21,7 @@ from nexus.core.reflection import load_reflection
 pytestmark = pytest.mark.integration
 
 
-FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "momskitchen.json"
+FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "demoapp.json"
 
 
 @dataclass(frozen=True)
@@ -164,9 +164,9 @@ class TestCrossConnectionInvalidation:
 
 
 class TestAgainstRealFixture:
-    """Persist the real momskitchen-derived graph and verify the counts."""
+    """Persist the real demoapp-derived graph and verify the counts."""
 
-    def test_round_trip_momskitchen_graph(self, store: SqliteGraphStore) -> None:
+    def test_round_trip_demoapp_graph(self, store: SqliteGraphStore) -> None:
         document = load_reflection(FIXTURE)
         built = GraphBuilder().build(document, StubProfile()).value
 

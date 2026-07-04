@@ -2,7 +2,7 @@
 
 Two layers of testing:
 
-1. End-to-end against the committed momskitchen reflection fixture.
+1. End-to-end against the committed demoapp reflection fixture.
    This is the strongest signal: real data, real shapes, real edge
    cases the synthetic fixtures would miss.
 2. Synthetic unit cases for specific behaviours (warning emission,
@@ -23,7 +23,7 @@ from nexus.core.graph.types import EdgeKind, NodeKind
 from nexus.core.reflection import load_reflection
 from nexus.core.reflection.document import ClassEntry, ClassReflection
 
-FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "momskitchen.json"
+FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "demoapp.json"
 
 
 @dataclass(frozen=True)
@@ -56,7 +56,7 @@ def builder() -> GraphBuilder:
 
 
 # ----------------------------------------------------------------------------
-# End-to-end against the real momskitchen fixture
+# End-to-end against the real demoapp fixture
 # ----------------------------------------------------------------------------
 
 
@@ -172,7 +172,7 @@ class TestBuildAgainstRealFixture:
         result = builder.build(document, empty_profile)
 
         mw_nodes = [n for n in result.value.nodes if n.kind == NodeKind.MIDDLEWARE]
-        # momskitchen has 11 middleware aliases (verified during Phase 1)
+        # demoapp has 11 middleware aliases (verified during Phase 1)
         assert len(mw_nodes) >= 11
 
 
@@ -201,13 +201,11 @@ class TestPerformance:
 
     A regression here usually means someone broke ``Graph.add_node``'s
     O(1) deduplication path, which on real enterprise fixtures
-    (helm-v7, ~46k nodes) is the difference between a sub-second build
+    (largeapp, ~46k nodes) is the difference between a sub-second build
     and a 30-second build.
     """
 
-    def test_momskitchen_builds_fast(
-        self, builder: GraphBuilder, empty_profile: StubProfile
-    ) -> None:
+    def test_demoapp_builds_fast(self, builder: GraphBuilder, empty_profile: StubProfile) -> None:
         document = load_reflection(FIXTURE)
 
         start = time.perf_counter()
@@ -215,7 +213,7 @@ class TestPerformance:
         elapsed = time.perf_counter() - start
 
         assert result.ok
-        # Generous bound - momskitchen should build in well under 100 ms.
+        # Generous bound - demoapp should build in well under 100 ms.
         # If this fails, the eager-index fix has likely been undone.
         assert elapsed < 0.5, f"Build took {elapsed * 1000:.0f}ms (regression)"
 
@@ -266,7 +264,7 @@ class TestKindPriority:
 
 
 class TestBuilderEdgeCases:
-    """Exercise builder branches the momskitchen fixture doesn't hit.
+    """Exercise builder branches the demoapp fixture doesn't hit.
 
     Synthesises minimal ReflectionDocument fixtures that trigger the
     policy-mapping, scheduled-task, binding-closure, and route-closure
@@ -414,7 +412,7 @@ class TestWarnings:
     def test_closure_listener_warns(
         self, builder: GraphBuilder, empty_profile: StubProfile
     ) -> None:
-        # The momskitchen fixture has a number of closure listeners
+        # The demoapp fixture has a number of closure listeners
         # registered by Laravel internals (PailServiceProvider,
         # FoundationServiceProvider). Confirm we record warnings for
         # them but still produce a graph.

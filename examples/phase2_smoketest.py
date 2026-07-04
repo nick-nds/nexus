@@ -2,7 +2,7 @@
 
 Exercises every Phase 2 component on a real reflection document:
 
-1. Load the committed momskitchen reflection.json via the Pydantic
+1. Load the committed demoapp reflection.json via the Pydantic
    loader.
 2. Load the built-in profiles and run the auto-detector against a
    synthetic project tree.
@@ -63,7 +63,7 @@ def step(name: str) -> None:
 
 def main() -> None:
     repo_root = Path(__file__).parent.parent
-    fixture = repo_root / "tests" / "fixtures" / "reflection-samples" / "momskitchen.json"
+    fixture = repo_root / "tests" / "fixtures" / "reflection-samples" / "demoapp.json"
 
     step("1. Load reflection document")
     document = load_reflection(fixture)

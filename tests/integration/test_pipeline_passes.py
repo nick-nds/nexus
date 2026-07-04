@@ -3,7 +3,7 @@
 Wires a full pipeline against a temporary Laravel-ish project and a
 fake embedder so every pass runs against real adapters (real SQLite,
 real LanceDB, real chunker) without needing an actual PHP install.
-The reflection file is the committed momskitchen fixture.
+The reflection file is the committed demoapp fixture.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ pytestmark = pytest.mark.integration
 
 
 FIXTURE_REFLECTION = (
-    Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "momskitchen.json"
+    Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "demoapp.json"
 )
 
 
@@ -322,7 +322,7 @@ class TestPartialReflection:
         RunExtractorPass(extractor=StubExtractor()).run(ctx)  # type: ignore[arg-type]
         BuildGraphPass().run(ctx)
 
-        # Momskitchen's reflection has closure listeners that the
+        # DemoApp's reflection has closure listeners that the
         # graph builder records as warnings. They should be surfaced.
         closure_warnings = [
             w for w in ctx.warnings if isinstance(w, Warning) and w.code == "closure_listener"

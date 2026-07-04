@@ -86,8 +86,8 @@ final class ClassClassifier
         }
 
         if ($reflection->isAbstract()) {
-            // True abstract classes - bases like ``Synthesq\Relay\Events
-            // \SynthesQEvent`` or ``App\Modules\Module``. Profile-defined
+            // True abstract classes - bases like ``Acme\Platform\Events
+            // \AcmeEvent`` or ``App\Modules\Module``. Profile-defined
             // ``custom_bases`` may upgrade these to more specific kinds
             // in Phase 2 of the Python pipeline.
             return ['abstract'];
@@ -147,7 +147,7 @@ final class ClassClassifier
     private function isLikelyBootstrap(ReflectionClass $reflection, array $existingKinds): bool
     {
         // Bootstrap classes are the package's entry point - e.g.
-        // ``Synthesq\Relay\Relay``, ``Sentry\Sentry``, ``Cashier::class``.
+        // ``Acme\Platform\Relay``, ``Sentry\Sentry``, ``Cashier::class``.
         // They expose a ``public static boot()`` method declared on
         // themselves that wires up service providers, routes, and
         // extensions. Audit P2-20.

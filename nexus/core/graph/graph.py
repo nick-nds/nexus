@@ -42,7 +42,7 @@ class Graph:
     The graph builder appends to ``nodes``, ``edges``, and ``warnings``
     as it walks the reflection document. The id → node index is
     maintained eagerly so deduplication during build is O(1) per add;
-    on the helm-v7 fixture (~46k nodes) this is the difference between
+    on the largeapp fixture (~46k nodes) this is the difference between
     a 30-second build and a 30-millisecond build.
     """
 
@@ -76,7 +76,7 @@ class Graph:
         Built on first access and cached for the life of the graph.
         Query-time tools walk the graph thousands of times per second;
         a per-call linear scan of ``self.edges`` turns a 200 ms budget
-        into a 2 s regression on the helm-v7 index. The index is reset
+        into a 2 s regression on the largeapp index. The index is reset
         whenever :meth:`add_edge` (or merge) mutates the edge list so
         correctness is preserved during incremental construction.
         """

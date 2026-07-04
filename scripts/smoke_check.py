@@ -144,7 +144,7 @@ def check_query_help_lists_tools() -> None:
 
 def check_reflection_sample_loads() -> None:
     """A known reflection.json loads cleanly through the Pydantic loader."""
-    sample = REFLECTION_SAMPLES / "momskitchen.json"
+    sample = REFLECTION_SAMPLES / "demoapp.json"
     if not sample.is_file():
         raise SystemExit(f"Missing fixture: {sample}")
 
@@ -175,7 +175,7 @@ def main() -> int:
         ("nexus init --non-interactive", check_init_creates_yaml),
         ("nexus profile list", check_profile_list),
         ("nexus query --help (auto-generated)", check_query_help_lists_tools),
-        ("reflection-samples/momskitchen.json loads", check_reflection_sample_loads),
+        ("reflection-samples/demoapp.json loads", check_reflection_sample_loads),
     )
 
     for label, fn in checks:

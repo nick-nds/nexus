@@ -47,8 +47,8 @@ def test_ddd_module_prefix_uses_modules_segment() -> None:
 def test_vendor_namespaced_ddd_module_prefix() -> None:
     """Module detection works regardless of vendor depth."""
     assert (
-        detect_module_prefix("Synthesq\\Relay\\Modules\\CRM\\Leads\\Lead")
-        == "Synthesq\\Relay\\Modules\\CRM"
+        detect_module_prefix("Acme\\Platform\\Modules\\CRM\\Leads\\Lead")
+        == "Acme\\Platform\\Modules\\CRM"
     )
 
 
@@ -136,21 +136,19 @@ def test_module_kinds_breakdown() -> None:
 
 
 def test_middleware_classes_count_toward_module_membership() -> None:
-    """Pinning P0-9 from the synthesq-relay audit.
+    """Pinning P0-9 from the acme-platform audit.
 
     Before the fix, MODULE_CLASS_KINDS excluded MIDDLEWARE so the
-    three middleware classes in synthesq-relay (InjectActingUser,
+    three middleware classes in acme-platform (InjectActingUser,
     InjectTenantScopedClient, TenantResolutionMiddleware) weren't
     counted in ``list_modules`` totals - exactly accounting for the
     250-vs-253 mismatch between the index total and the filesystem
     PHP file count.
     """
     g = Graph()
-    _add_class(g, "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser", NodeKind.MIDDLEWARE)
-    _add_class(
-        g, "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient", NodeKind.MIDDLEWARE
-    )
-    _add_class(g, "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware", NodeKind.MIDDLEWARE)
+    _add_class(g, "Acme\\Platform\\Http\\Middleware\\InjectActingUser", NodeKind.MIDDLEWARE)
+    _add_class(g, "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient", NodeKind.MIDDLEWARE)
+    _add_class(g, "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware", NodeKind.MIDDLEWARE)
     # Add a framework alias to confirm it is NOT counted (no class: id).
     g.add_node(
         Node(
@@ -164,10 +162,10 @@ def test_middleware_classes_count_toward_module_membership() -> None:
 
     output = ListModulesTool().execute(ListModulesInput(min_classes=1), ctx)
 
-    relay_prefix = next(m for m in output.modules if m.prefix == "Synthesq\\Relay")
-    # 2 middleware classes are under Synthesq\Relay\Http\Middleware (rolls
-    # up to Synthesq\Relay\Http actually - those have their own module).
-    # The Tenancy one rolls up to Synthesq\Relay\Tenancy. So Synthesq\Relay
+    relay_prefix = next(m for m in output.modules if m.prefix == "Acme\\Platform")
+    # 2 middleware classes are under Acme\Platform\Http\Middleware (rolls
+    # up to Acme\Platform\Http actually - those have their own module).
+    # The Tenancy one rolls up to Acme\Platform\Tenancy. So Acme\Platform
     # itself has nothing directly here; modules below it do.
     # Sanity check the kinds breakdown contains "middleware" somewhere.
     all_kinds: set[str] = set()

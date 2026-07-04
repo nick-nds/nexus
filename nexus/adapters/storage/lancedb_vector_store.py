@@ -10,7 +10,7 @@ migration.
 Why LanceDB over ChromaDB:
 
 * Columnar on-disk format - faster cold reads than Chroma's SQLite
-  backend once the store gets large (the helm-v7 scale).
+  backend once the store gets large (the largeapp scale).
 * No background daemon; the library opens and reads files directly.
 * Cleaner per-project isolation: each project's store is a directory
   under ``~/.nexus/projects/<slug>/vectors/``.
@@ -231,7 +231,7 @@ class LanceDbVectorStore:
         """Yield every stored record in table-scan order.
 
         Loads the whole table into Arrow in one pass and yields each
-        row. For the v1 scale (helm-v7: ~20k chunks) the working set
+        row. For the v1 scale (largeapp: ~20k chunks) the working set
         is ~10-20 MB of payload bytes, comfortably below the budget
         of a query-time tool that needs a full scan (currently only
         ``get_node_body``'s node→chunk lookup).

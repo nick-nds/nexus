@@ -32,13 +32,13 @@ final class ContainerBindingVisitorTest extends TestCase
         $code = <<<'PHP'
         <?php
         namespace App\Providers;
-        use App\Adapters\SynthesQClient;
+        use App\Adapters\AcmeClient;
         use App\Contracts\Client;
 
         class AppServiceProvider {
             public function register(): void {
                 $this->app->singleton(Client::class, function ($app) {
-                    return new SynthesQClient($app);
+                    return new AcmeClient($app);
                 });
             }
         }
@@ -49,7 +49,7 @@ final class ContainerBindingVisitorTest extends TestCase
         $this->assertCount(1, $findings);
         $f = $findings[0];
         $this->assertSame('closure_binding', $f->kind);
-        $this->assertSame('App\\Adapters\\SynthesQClient', $f->target);
+        $this->assertSame('App\\Adapters\\AcmeClient', $f->target);
         $this->assertSame('App\\Contracts\\Client', $f->meta['abstract']);
         $this->assertSame('singleton', $f->meta['binding_kind']);
     }

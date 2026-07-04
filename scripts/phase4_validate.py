@@ -1,6 +1,6 @@
 """Phase 4 end-to-end validation against real indexed projects.
 
-Opens the persisted helm-v7 and CRM indexes produced during the
+Opens the persisted largeapp and CRM indexes produced during the
 Phase 3 validation runs and exercises a representative slice of
 the structural tools against them. Output is human-readable so
 it can be pasted into STATUS.md as evidence.
@@ -30,14 +30,14 @@ from nexus.core.query.tools import register_builtin_tools
 # Known-good persisted indexes from the Phase 3 validation runs.
 INDEXES = [
     (
-        "helm-v7",
+        "largeapp",
         Path("/tmp/nexus-phase3-0uehqrzp/.nexus"),
-        "momskitchen-smoketest",
+        "demoapp-smoketest",
     ),
     (
         "crm",
         Path("/tmp/nexus-phase3-ukfoaf6d/.nexus"),
-        "momskitchen-smoketest",
+        "demoapp-smoketest",
     ),
 ]
 
