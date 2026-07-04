@@ -88,7 +88,7 @@ def test_unknown_method_returns_method_not_found() -> None:
 
 
 def test_calls_not_indexed_returns_structured_error_when_method_exists() -> None:
-    """Pinning P0-8 from the synthesq-relay audit.
+    """Pinning P0-8 from the acme-platform audit.
 
     Without this guard, ``find_callers`` returns ``total: 0, error:
     null`` - indistinguishable from "this method has no callers". The
@@ -123,6 +123,36 @@ def test_calls_not_indexed_does_not_fire_when_method_not_found() -> None:
     )
 
     assert output.error_code == "method_not_found"
+
+
+def test_synthetic_bus_edges_are_returned_even_without_lsp() -> None:
+    """Bus-convention CALLS edges are synthesised by the graph builder
+    without an LSP. A dispatch site linked this way must be returned even
+    when ``calls_indexed`` is False - otherwise the coverage guard would
+    hide the very edges that fix CQRS-bus blindness."""
+    g = Graph()
+    target = _add_method(g, "App\\Modules\\Routing\\QueryHandlers\\EvalHandler", "handle")
+    dispatcher = _add_method(g, "App\\Http\\Controllers\\RoutingController", "resolve")
+    g.add_edge(
+        Edge(
+            source=dispatcher,
+            target=target,
+            kind=EdgeKind.CALLS,
+            attributes={"via": "bus_convention", "synthetic": True, "line": 55},
+        ),
+    )
+    ctx = _make_ctx(g, coverage=Coverage(calls_indexed=False))
+
+    output = FindCallersTool().execute(
+        FindCallersInput(
+            method_fqn="App\\Modules\\Routing\\QueryHandlers\\EvalHandler::handle",
+        ),
+        ctx,
+    )
+
+    assert output.error_code is None
+    assert output.total == 1
+    assert output.callers[0].class_fqn == "App\\Http\\Controllers\\RoutingController"
 
 
 def test_coverage_none_skips_guard() -> None:

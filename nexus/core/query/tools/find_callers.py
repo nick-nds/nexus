@@ -75,7 +75,10 @@ class FindCallersTool:
         "The stable graph id form ``method:<class_fqn>::<name>`` is "
         "also accepted. Call-site file and line come from the edge "
         "attributes populated by the LSP-driven static analyser. "
-        "**Returns an empty list unless the index was built with an "
+        "CQRS command/query dispatches are also resolved to their "
+        "handler via synthetic ``via=bus_convention`` edges, populated "
+        "even without an LSP. "
+        "**Direct method-call edges require an index built with an "
         "LSP server** - check ``response.coverage.calls_indexed`` "
         "before treating an empty result as 'no callers'."
     )
@@ -99,23 +102,6 @@ class FindCallersTool:
                 error_code="method_not_found",
             )
 
-        # The method exists, but if the index was built without an LSP
-        # the CALLS edges were never populated. Return a structured
-        # signal rather than an empty result the agent can't distinguish
-        # from "this method genuinely has no callers".
-        if ctx.coverage is not None and ctx.coverage.calls_indexed is False:
-            return FindCallersOutput(
-                method_fqn=method_id,
-                error=(
-                    "Callers cannot be resolved: this index was built without "
-                    "an LSP server, so CALLS edges were never populated. "
-                    "Re-index with ``--lsp auto`` (or ``--lsp intelephense``) "
-                    "to enable. ``response.coverage.calls_indexed`` is the "
-                    "canary."
-                ),
-                error_code="calls_not_indexed",
-            )
-
         rows: list[CallerRow] = []
         for edge in incoming(graph, method_id, EdgeKind.CALLS):
             caller = graph.node_by_id(edge.source)
@@ -134,6 +120,26 @@ class FindCallersTool:
                     file=str_attr(edge_attrs, "file") or str_attr(caller_attrs, "file"),
                     line=int_attr(edge_attrs, "line") or int_attr(caller_attrs, "line"),
                 ),
+            )
+
+        # An empty result is ambiguous only when the LSP call graph was
+        # never built: the agent can't tell "genuinely no callers" from
+        # "callers weren't indexed". Return a structured signal in that
+        # case. But bus-convention CALLS edges (synthetic, from the graph
+        # builder) are populated *without* an LSP - so if we found any
+        # callers, they are real and must be returned even when
+        # ``calls_indexed`` is False.
+        if not rows and ctx.coverage is not None and ctx.coverage.calls_indexed is False:
+            return FindCallersOutput(
+                method_fqn=method_id,
+                error=(
+                    "Callers cannot be resolved: this index was built without "
+                    "an LSP server, so CALLS edges were never populated. "
+                    "Re-index with ``--lsp auto`` (or ``--lsp intelephense``) "
+                    "to enable. ``response.coverage.calls_indexed`` is the "
+                    "canary."
+                ),
+                error_code="calls_not_indexed",
             )
 
         rows.sort(key=lambda r: (r.class_fqn or "", r.method, r.line or 0))
