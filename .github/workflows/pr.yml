@@ -132,13 +132,18 @@ jobs:
         # solver against Packagist for every Laravel target. Catches
         # impossible version pins for any matrix cell early.
         run: |
+          # Composer 2.10 blocks advisory-affected versions at solve time;
+          # the matrix is a compatibility check, not a security audit (see
+          # the install steps below). Scope to the CI-supported Laravel
+          # range (10/11) - 12/13 is deferred until larastan ^3.x.
+          composer config policy.advisories.block false
           composer require --dev --dry-run --no-interaction \
-            "illuminate/console:^10.0|^11.0|^12.0" \
-            "illuminate/contracts:^10.0|^11.0|^12.0" \
-            "illuminate/support:^10.0|^11.0|^12.0" \
-            "illuminate/routing:^10.0|^11.0|^12.0" \
-            "illuminate/events:^10.0|^11.0|^12.0" \
-            "illuminate/filesystem:^10.0|^11.0|^12.0"
+            "illuminate/console:^10.0|^11.0" \
+            "illuminate/contracts:^10.0|^11.0" \
+            "illuminate/support:^10.0|^11.0" \
+            "illuminate/routing:^10.0|^11.0" \
+            "illuminate/events:^10.0|^11.0" \
+            "illuminate/filesystem:^10.0|^11.0"
 
   php-lint:
     name: PHP - Pint (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
@@ -152,10 +157,10 @@ jobs:
       fail-fast: false
       matrix:
         php-version: ["8.2", "8.3"]
-        laravel-version: ["10.*", "11.*", "12.*"]
-        exclude:
-          - php-version: "8.2"
-            laravel-version: "12.*"
+        # Laravel 12/13 are allowed by composer.json but excluded from the
+        # CI matrix until larastan is bumped to ^3.x (^2.9 does not resolve
+        # against Laravel 12). Mirrors publish-php.yml.
+        laravel-version: ["10.*", "11.*"]
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -218,10 +223,10 @@ jobs:
       fail-fast: false
       matrix:
         php-version: ["8.2", "8.3"]
-        laravel-version: ["10.*", "11.*", "12.*"]
-        exclude:
-          - php-version: "8.2"
-            laravel-version: "12.*"
+        # Laravel 12/13 are allowed by composer.json but excluded from the
+        # CI matrix until larastan is bumped to ^3.x (^2.9 does not resolve
+        # against Laravel 12). Mirrors publish-php.yml.
+        laravel-version: ["10.*", "11.*"]
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -284,10 +289,10 @@ jobs:
       fail-fast: false
       matrix:
         php-version: ["8.2", "8.3"]
-        laravel-version: ["10.*", "11.*", "12.*"]
-        exclude:
-          - php-version: "8.2"
-            laravel-version: "12.*"
+        # Laravel 12/13 are allowed by composer.json but excluded from the
+        # CI matrix until larastan is bumped to ^3.x (^2.9 does not resolve
+        # against Laravel 12). Mirrors publish-php.yml.
+        laravel-version: ["10.*", "11.*"]
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
