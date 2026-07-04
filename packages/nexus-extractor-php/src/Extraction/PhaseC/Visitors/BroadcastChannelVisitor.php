@@ -6,7 +6,9 @@ namespace Nexus\Extractor\Extraction\PhaseC\Visitors;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\New_;
+use PhpParser\Node\InterpolatedStringPart;
 use PhpParser\Node\Name;
+use PhpParser\Node\Scalar\InterpolatedString;
 use PhpParser\Node\Scalar\String_;
 
 /**
@@ -138,19 +140,14 @@ final class BroadcastChannelVisitor extends ContextTrackingVisitor
             }
         }
 
-        // Double-quoted strings with interpolations come through as
-        // ``InterpolatedString`` nodes (``Encapsed`` in older parser
-        // versions). Capture the leading literal segment so a name
-        // like ``"user.{$id}"`` still surfaces as ``"user."`` with a
-        // prefix hint.
-        $interpolated_class = 'PhpParser\\Node\\InterpolatedString';
-        $part_class = 'PhpParser\\Node\\InterpolatedStringPart';
-        if (is_a($value, $interpolated_class) || is_a($value, 'PhpParser\\Node\\Scalar\\Encapsed')) {
-            $parts = $value->parts ?? [];
-            $first = $parts[0] ?? null;
-            if ($first !== null
-                && (is_a($first, $part_class) || is_a($first, 'PhpParser\\Node\\Scalar\\EncapsedStringPart'))
-                && is_string($first->value)) {
+        // Double-quoted strings with interpolations (``"user.{$id}"``)
+        // parse to an InterpolatedString. Capture the leading literal
+        // segment so the name still surfaces as ``"user."`` with a
+        // prefix hint. (nikic/php-parser is pinned to ^5.0, so the
+        // pre-5.0 ``Encapsed`` node names no longer apply.)
+        if ($value instanceof InterpolatedString) {
+            $first = $value->parts[0] ?? null;
+            if ($first instanceof InterpolatedStringPart && is_string($first->value)) {
                 return [$first->value, 'prefix'];
             }
         }

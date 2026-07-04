@@ -48,6 +48,7 @@ jobs:
           filters: |
             php:
               - 'packages/nexus-extractor-php/**'
+              - '.github/workflows/pr.yml'
 
   # ---------------------------------------------------------------------
   # Python-side PR-only checks
@@ -131,13 +132,18 @@ jobs:
         # solver against Packagist for every Laravel target. Catches
         # impossible version pins for any matrix cell early.
         run: |
+          # Composer 2.10 blocks advisory-affected versions at solve time;
+          # the matrix is a compatibility check, not a security audit (see
+          # the install steps below). Scope to the CI-supported Laravel
+          # range (10/11) - 12/13 is deferred until larastan ^3.x.
+          composer config policy.advisories.block false
           composer require --dev --dry-run --no-interaction \
-            "illuminate/console:^10.0|^11.0|^12.0" \
-            "illuminate/contracts:^10.0|^11.0|^12.0" \
-            "illuminate/support:^10.0|^11.0|^12.0" \
-            "illuminate/routing:^10.0|^11.0|^12.0" \
-            "illuminate/events:^10.0|^11.0|^12.0" \
-            "illuminate/filesystem:^10.0|^11.0|^12.0"
+            "illuminate/console:^10.0|^11.0" \
+            "illuminate/contracts:^10.0|^11.0" \
+            "illuminate/support:^10.0|^11.0" \
+            "illuminate/routing:^10.0|^11.0" \
+            "illuminate/events:^10.0|^11.0" \
+            "illuminate/filesystem:^10.0|^11.0"
 
   php-lint:
     name: PHP - Pint (PHP ${{ matrix.php-version }}, Laravel ${{ matrix.laravel-version }})
@@ -151,10 +157,10 @@ jobs:
       fail-fast: false
       matrix:
         php-version: ["8.2", "8.3"]
-        laravel-version: ["10.*", "11.*", "12.*"]
-        exclude:
-          - php-version: "8.2"
-            laravel-version: "12.*"
+        # Laravel 12/13 are allowed by composer.json but excluded from the
+        # CI matrix until larastan is bumped to ^3.x (^2.9 does not resolve
+        # against Laravel 12). Mirrors publish-php.yml.
+        laravel-version: ["10.*", "11.*"]
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -175,13 +181,32 @@ jobs:
             composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-
       - name: Install Composer dependencies
         run: |
-          composer require "illuminate/console:${{ matrix.laravel-version }}" \
-                           "illuminate/contracts:${{ matrix.laravel-version }}" \
-                           "illuminate/support:${{ matrix.laravel-version }}" \
-                           "illuminate/routing:${{ matrix.laravel-version }}" \
-                           "illuminate/events:${{ matrix.laravel-version }}" \
-                           "illuminate/filesystem:${{ matrix.laravel-version }}" \
-            --no-update
+          # Pin orchestra/testbench to the major matching the Laravel line
+          # under test (composer.json allows ^8|^9|^10|^11). Without pinning,
+          # `composer update` greedily selects the newest testbench and fails
+          # to backtrack on the older-Laravel legs. Mirrors publish-php.yml.
+          case "${{ matrix.laravel-version }}" in
+            "10.*") TESTBENCH="^8.0" ;;
+            "11.*") TESTBENCH="^9.0" ;;
+            "12.*") TESTBENCH="^10.0" ;;
+            "13.*") TESTBENCH="^11.0" ;;
+            *) echo "::error::Unmapped Laravel version ${{ matrix.laravel-version }}"; exit 1 ;;
+          esac
+          composer require --no-update --dev "orchestra/testbench:${TESTBENCH}"
+          composer require --no-update \
+            "illuminate/console:${{ matrix.laravel-version }}" \
+            "illuminate/contracts:${{ matrix.laravel-version }}" \
+            "illuminate/support:${{ matrix.laravel-version }}" \
+            "illuminate/routing:${{ matrix.laravel-version }}" \
+            "illuminate/events:${{ matrix.laravel-version }}" \
+            "illuminate/filesystem:${{ matrix.laravel-version }}"
+          # Composer 2.10 refuses versions under a security advisory at solve
+          # time. This is a compatibility matrix (does the extractor work
+          # against the declared Laravel range?), not a security audit, and the
+          # advisories are against Laravel itself (Laravel 10 is EOL), not this
+          # package, so opt out of the block for the CI resolve. Mirrors
+          # publish-php.yml.
+          composer config policy.advisories.block false
           composer update --prefer-dist --no-interaction
       - name: Pint (formatting check)
         run: composer lint
@@ -198,10 +223,10 @@ jobs:
       fail-fast: false
       matrix:
         php-version: ["8.2", "8.3"]
-        laravel-version: ["10.*", "11.*", "12.*"]
-        exclude:
-          - php-version: "8.2"
-            laravel-version: "12.*"
+        # Laravel 12/13 are allowed by composer.json but excluded from the
+        # CI matrix until larastan is bumped to ^3.x (^2.9 does not resolve
+        # against Laravel 12). Mirrors publish-php.yml.
+        laravel-version: ["10.*", "11.*"]
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -222,13 +247,32 @@ jobs:
             composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-
       - name: Install Composer dependencies
         run: |
-          composer require "illuminate/console:${{ matrix.laravel-version }}" \
-                           "illuminate/contracts:${{ matrix.laravel-version }}" \
-                           "illuminate/support:${{ matrix.laravel-version }}" \
-                           "illuminate/routing:${{ matrix.laravel-version }}" \
-                           "illuminate/events:${{ matrix.laravel-version }}" \
-                           "illuminate/filesystem:${{ matrix.laravel-version }}" \
-            --no-update
+          # Pin orchestra/testbench to the major matching the Laravel line
+          # under test (composer.json allows ^8|^9|^10|^11). Without pinning,
+          # `composer update` greedily selects the newest testbench and fails
+          # to backtrack on the older-Laravel legs. Mirrors publish-php.yml.
+          case "${{ matrix.laravel-version }}" in
+            "10.*") TESTBENCH="^8.0" ;;
+            "11.*") TESTBENCH="^9.0" ;;
+            "12.*") TESTBENCH="^10.0" ;;
+            "13.*") TESTBENCH="^11.0" ;;
+            *) echo "::error::Unmapped Laravel version ${{ matrix.laravel-version }}"; exit 1 ;;
+          esac
+          composer require --no-update --dev "orchestra/testbench:${TESTBENCH}"
+          composer require --no-update \
+            "illuminate/console:${{ matrix.laravel-version }}" \
+            "illuminate/contracts:${{ matrix.laravel-version }}" \
+            "illuminate/support:${{ matrix.laravel-version }}" \
+            "illuminate/routing:${{ matrix.laravel-version }}" \
+            "illuminate/events:${{ matrix.laravel-version }}" \
+            "illuminate/filesystem:${{ matrix.laravel-version }}"
+          # Composer 2.10 refuses versions under a security advisory at solve
+          # time. This is a compatibility matrix (does the extractor work
+          # against the declared Laravel range?), not a security audit, and the
+          # advisories are against Laravel itself (Laravel 10 is EOL), not this
+          # package, so opt out of the block for the CI resolve. Mirrors
+          # publish-php.yml.
+          composer config policy.advisories.block false
           composer update --prefer-dist --no-interaction
       - name: PHPStan (static analysis)
         run: composer stan
@@ -245,10 +289,10 @@ jobs:
       fail-fast: false
       matrix:
         php-version: ["8.2", "8.3"]
-        laravel-version: ["10.*", "11.*", "12.*"]
-        exclude:
-          - php-version: "8.2"
-            laravel-version: "12.*"
+        # Laravel 12/13 are allowed by composer.json but excluded from the
+        # CI matrix until larastan is bumped to ^3.x (^2.9 does not resolve
+        # against Laravel 12). Mirrors publish-php.yml.
+        laravel-version: ["10.*", "11.*"]
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -269,13 +313,32 @@ jobs:
             composer-${{ runner.os }}-php${{ matrix.php-version }}-laravel${{ matrix.laravel-version }}-
       - name: Install Composer dependencies
         run: |
-          composer require "illuminate/console:${{ matrix.laravel-version }}" \
-                           "illuminate/contracts:${{ matrix.laravel-version }}" \
-                           "illuminate/support:${{ matrix.laravel-version }}" \
-                           "illuminate/routing:${{ matrix.laravel-version }}" \
-                           "illuminate/events:${{ matrix.laravel-version }}" \
-                           "illuminate/filesystem:${{ matrix.laravel-version }}" \
-            --no-update
+          # Pin orchestra/testbench to the major matching the Laravel line
+          # under test (composer.json allows ^8|^9|^10|^11). Without pinning,
+          # `composer update` greedily selects the newest testbench and fails
+          # to backtrack on the older-Laravel legs. Mirrors publish-php.yml.
+          case "${{ matrix.laravel-version }}" in
+            "10.*") TESTBENCH="^8.0" ;;
+            "11.*") TESTBENCH="^9.0" ;;
+            "12.*") TESTBENCH="^10.0" ;;
+            "13.*") TESTBENCH="^11.0" ;;
+            *) echo "::error::Unmapped Laravel version ${{ matrix.laravel-version }}"; exit 1 ;;
+          esac
+          composer require --no-update --dev "orchestra/testbench:${TESTBENCH}"
+          composer require --no-update \
+            "illuminate/console:${{ matrix.laravel-version }}" \
+            "illuminate/contracts:${{ matrix.laravel-version }}" \
+            "illuminate/support:${{ matrix.laravel-version }}" \
+            "illuminate/routing:${{ matrix.laravel-version }}" \
+            "illuminate/events:${{ matrix.laravel-version }}" \
+            "illuminate/filesystem:${{ matrix.laravel-version }}"
+          # Composer 2.10 refuses versions under a security advisory at solve
+          # time. This is a compatibility matrix (does the extractor work
+          # against the declared Laravel range?), not a security audit, and the
+          # advisories are against Laravel itself (Laravel 10 is EOL), not this
+          # package, so opt out of the block for the CI resolve. Mirrors
+          # publish-php.yml.
+          composer config policy.advisories.block false
           composer update --prefer-dist --no-interaction
       - name: PHPUnit (tests)
         run: composer test
