@@ -135,7 +135,12 @@ final class ReflectionInspector
     private function describeEnumCases(ReflectionClass $reflection): array
     {
         $cases = [];
-        $enumReflection = new ReflectionEnum($reflection->getName());
+        // describeEnumCases is only called for enum classes, so getName()
+        // is a UnitEnum class-string; narrow it for ReflectionEnum's
+        // stricter signature (newer PHPStan enforces this).
+        /** @var class-string<\UnitEnum> $enumName */
+        $enumName = $reflection->getName();
+        $enumReflection = new ReflectionEnum($enumName);
         foreach ($enumReflection->getCases() as $case) {
             $value = null;
             if ($case instanceof ReflectionEnumBackedCase) {
