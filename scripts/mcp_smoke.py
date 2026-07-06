@@ -2,7 +2,7 @@
 """End-to-end MCP smoke test against a real index.
 
 Builds the FastMCP server in-process against ``--slug`` (default
-``synthesq-api``), discovers a representative target for each tool
+``acme-api``), discovers a representative target for each tool
 that needs a parametrised arg (a real route URI, a real model FQN,
 a real event, etc.), then invokes every registered tool through
 the MCP ``call_tool`` API and prints a perf table.
@@ -497,7 +497,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--slug",
-        default="synthesq-api",
+        default="acme-api",
         help="Project slug under <storage-root>/projects/.",
     )
     parser.add_argument(

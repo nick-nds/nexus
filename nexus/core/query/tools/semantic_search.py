@@ -69,7 +69,7 @@ _SNIPPET_CONTEXT_LINES = 2
 
 # A light prior that says methods and routes are more interesting
 # starting points than raw chunks or generic classes. Tuned by feel
-# on the momskitchen fixture - will be revisited after the Phase 5
+# on the demoapp fixture - will be revisited after the Phase 5
 # external-validation dogfood.
 _KIND_WEIGHT: dict[NodeKind, float] = {
     NodeKind.METHOD: 1.20,
@@ -317,7 +317,7 @@ class SemanticSearchTool:
         )
 
 
-# Audit P0-11: confidence thresholds tuned from synthesq-relay data.
+# Audit P0-11: confidence thresholds tuned from acme-platform data.
 # Real queries clustered 0.60-0.68; gibberish queries ~0.57; genuine
 # misses fell below ~0.5. The boundaries are deliberately conservative
 # - closer to "is this worth showing the agent at all" than "is this

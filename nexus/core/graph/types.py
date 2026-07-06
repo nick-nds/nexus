@@ -9,7 +9,7 @@ Why immutable dataclasses with slots:
 * The graph is built once per indexing run and then handed off to the
   store. Mutation after construction would only obscure the data flow.
 * ``slots=True`` is a meaningful memory win on the larger projects (the
-  helm-v7 fixture builds ~5000 nodes plus ~30k edges; the slot layout
+  largeapp fixture builds ~5000 nodes plus ~30k edges; the slot layout
   saves ~30% versus a vanilla dataclass).
 * Frozen instances are hashable, which lets the builder use them as
   dict keys for de-duplication during construction.
@@ -72,7 +72,7 @@ class NodeKind(StrEnum):
     SERVICE_PROVIDER = "service_provider"
 
     # Package bootstrap / facade entry point - e.g.
-    # ``Synthesq\Relay\Relay::boot()``. Detected by ClassClassifier
+    # ``Acme\Platform\Relay::boot()``. Detected by ClassClassifier
     # when a class has a public static ``boot()`` declared on itself
     # and is neither a Model nor a ServiceProvider. Audit P2-20.
     BOOTSTRAP = "bootstrap"

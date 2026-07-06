@@ -6,7 +6,7 @@ namespace SampleApp\Bootstrap;
 
 /**
  * Fixture for audit P2-20: a package entry-point class with a public
- * static ``boot()`` method. Mirrors the shape of ``Synthesq\Relay\Relay``
+ * static ``boot()`` method. Mirrors the shape of ``Acme\Platform\Relay``
  * and similar package facades. The classifier should tag this as
  * ``bootstrap`` to distinguish it from generic classes.
  */

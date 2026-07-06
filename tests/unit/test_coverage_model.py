@@ -114,7 +114,7 @@ def test_semantic_search_available_is_none_when_no_embedder_with_meta() -> None:
 def test_semantic_search_available_false_when_live_but_no_vectors_indexed() -> None:
     """Live embedder but ``meta.embedder_id is None`` → False.
 
-    This is the failure mode discovered on the synthesq-relay run:
+    This is the failure mode discovered on the acme-platform run:
     the indexer skipped the embed pass (no embedder wired into the
     pipeline context), so no vectors were written. But the query-time
     embedder is reachable. Without this check, ``semantic_search`` is

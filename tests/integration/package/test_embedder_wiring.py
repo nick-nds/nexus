@@ -1,7 +1,7 @@
 """Embedder wiring: PackageIndexer writes vectors when an embedder is injected.
 
 Pins down the fix for "package indexer skips embedding pass" (issue
-discovered on the synthesq-relay run). Without the wiring, the
+discovered on the acme-platform run). Without the wiring, the
 package indexer silently degraded to graph-only and wrote
 ``meta.embedder_id: null`` regardless of caller intent.
 

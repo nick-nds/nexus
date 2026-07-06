@@ -1,5 +1,5 @@
-# Only the tiny momskitchen sample is committed. Larger fixtures (crm,
-# helm-v7) are kept locally for stress-testing the loader against real
+# Only the tiny demoapp sample is committed. Larger fixtures (crm,
+# largeapp) are kept locally for stress-testing the loader against real
 # enterprise-scale documents but are too big for the repo.
 *.json
-!momskitchen.json
+!demoapp.json

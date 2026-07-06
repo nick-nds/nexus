@@ -97,7 +97,7 @@ class PhpExtractor:
             timeout_seconds: Maximum wall-clock time before the
                 subprocess is killed and :class:`ExtractorTimeoutError`
                 is raised. Defaults to 10 minutes - generous enough
-                for the largest projects we've seen (helm-v7 scale).
+                for the largest projects we've seen (largeapp scale).
             extra_args: Additional CLI flags to pass through to the
                 Artisan command (``--include-tests``, ``--include-vendor``,
                 ``--vendor-allowlist=...``). The pipeline assembles these

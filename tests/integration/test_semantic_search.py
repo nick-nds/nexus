@@ -23,7 +23,7 @@ from tests.integration.test_query_tools_basic import _StubProfile  # reuse the s
 pytestmark = pytest.mark.integration
 
 
-FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "momskitchen.json"
+FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "demoapp.json"
 DIMENSIONS = 4
 
 
@@ -50,7 +50,7 @@ class _FakeEmbedder:
 
 @pytest.fixture
 def populated_storage(tmp_path: Path) -> ProjectStorage:
-    """Storage with the momskitchen graph + a few synthetic vector rows."""
+    """Storage with the demoapp graph + a few synthetic vector rows."""
     storage = ProjectStorage(root=tmp_path / ".nexus", slug="sem")
     document = load_reflection(FIXTURE)
     graph = GraphBuilder().build(document, _StubProfile()).value

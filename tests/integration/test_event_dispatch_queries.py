@@ -1,7 +1,7 @@
 """Regression tests for ``find_dispatchers`` against real FIRES edges.
 
 The existing batch-3 tests only cover the empty / not-found shapes
-because the committed momskitchen fixture has no FIRES edges. That
+because the committed demoapp fixture has no FIRES edges. That
 gap let a real bug hide: ``event_dispatch`` findings create a
 ``FIRES`` edge whose target is the ``class:<fqn>`` node, while
 ``find_dispatchers`` resolved the event to the ``event:<fqn>`` form

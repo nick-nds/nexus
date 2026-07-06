@@ -15,7 +15,7 @@ The chunk-lookup walks the entire vector store once on first call,
 then caches the resulting ``node_id → chunk`` map keyed by the
 vector-store instance. Subsequent calls in the same session are O(1)
 on the chunk side. The cost of the first call is one full table scan
-(~50-100 ms at the helm-v7 scale).
+(~50-100 ms at the largeapp scale).
 
 A follow-up issue tracks lifting chunk metadata onto graph nodes at
 index time so this scan can be replaced with a direct attribute read.
@@ -215,7 +215,7 @@ class GetNodeBodyTool:
     input_model: ClassVar[type[ToolInput]] = GetNodeBodyInput
     output_model: ClassVar[type[ToolOutput]] = GetNodeBodyOutput
     # First call pays a one-time full scan of the vector store to
-    # build the node_id->chunk map (measured ~3.5 s at the synthesq-api
+    # build the node_id->chunk map (measured ~3.5 s at the acme-api
     # scale of ~20k chunks). Subsequent calls in the same session are
     # sub-millisecond. The budget is set to the cold-path cost so we
     # don't emit a misleading "over budget" warning on every first call.

@@ -20,7 +20,7 @@ use PhpParser\Node\Stmt\Return_;
  * Detects container-binding callsites that wrap their concrete in a
  * closure - the idiomatic Laravel ServiceProvider::register() pattern:
  *
- *   $this->app->singleton(SynthesQClient::class, fn ($app) => new SynthesQClient(...));
+ *   $this->app->singleton(AcmeClient::class, fn ($app) => new AcmeClient(...));
  *   $this->app->bind(MailerInterface::class, function () { return new SmtpMailer; });
  *   $this->app->scoped(TenantResolver::class, fn () => new EnvTenantResolver);
  *

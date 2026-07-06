@@ -1,6 +1,6 @@
 """Integration tests: every registered MCP tool returns a valid response.
 
-Builds a real engine backed by the momskitchen reflection fixture,
+Builds a real engine backed by the demoapp reflection fixture,
 wraps it in a :class:`FastMCP` server, and calls every tool via
 ``mcp.call_tool``. The goal is to prove the MCP serialisation layer
 handles all 15 tool output types without crashing.
@@ -33,17 +33,17 @@ from nexus.interfaces.mcp import build_mcp_server
 pytestmark = pytest.mark.integration
 
 
-FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "momskitchen.json"
+FIXTURE = Path(__file__).parent.parent / "fixtures" / "reflection-samples" / "demoapp.json"
 
 # ---------------------------------------------------------------------------
-# Known-good IDs from the momskitchen fixture (borrowed from existing tests)
+# Known-good IDs from the demoapp fixture (borrowed from existing tests)
 # ---------------------------------------------------------------------------
 
 CUSTOMERS_CONTROLLER = "App\\Http\\Controllers\\CustomersController"
 BASE_CONTROLLER = "App\\Http\\Controllers\\Controller"
 REFRESH_TOKEN_MODEL = "App\\Models\\RefreshToken"
 JWT_SERVICE = "App\\Services\\JwtService"
-CUSTOMER_ACTIVATED = "Synthesq\\Relay\\Modules\\CRM\\Customers\\Events\\CustomerActivated"
+CUSTOMER_ACTIVATED = "Acme\\Platform\\Modules\\CRM\\Customers\\Events\\CustomerActivated"
 
 
 # ---------------------------------------------------------------------------
@@ -87,7 +87,7 @@ class _FakeEmbedder:
 
 @pytest.fixture
 def engine(tmp_path: Path) -> QueryEngine:
-    """Engine backed by the momskitchen fixture; function-scoped so each test
+    """Engine backed by the demoapp fixture; function-scoped so each test
     owns its own SQLite connection (FastMCP dispatches handlers in a thread
     pool, and SQLite connections are not thread-safe across threads)."""
     storage = ProjectStorage(root=tmp_path / ".nexus", slug="mcp-test")

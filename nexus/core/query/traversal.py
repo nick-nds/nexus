@@ -10,7 +10,7 @@ Tools need a small set of common graph walks:
 The implementation reads the in-memory :class:`Graph` the storage
 layer hands back via ``storage.graph().load()``. For single-hop
 questions that's O(edge count) because we scan; that's fine at
-Phase 4's target latencies (the helm-v7 graph has ~72k edges and
+Phase 4's target latencies (the largeapp graph has ~72k edges and
 a filtered scan runs in ~5 ms). The recursive CTE pattern from
 the design doc becomes relevant once we grow into multi-million
 edge graphs; until then the in-memory walker is simpler and

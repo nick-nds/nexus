@@ -3,7 +3,7 @@
 Before this change, ``include_subclasses`` defaulted to ``false`` so
 abstract-class targets returned zero results. That made the tool
 useless for the dominant Laravel-codebase pattern: abstract base
-classes like ``Module``, ``SynthesQEvent``, ``BaseListener``.
+classes like ``Module``, ``AcmeEvent``, ``BaseListener``.
 
 The default flipped to ``true`` so a caller can ask
 ``find_implementations(interface_fqn="App\\Modules\\Module")`` and

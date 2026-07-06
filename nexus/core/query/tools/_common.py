@@ -197,8 +197,8 @@ def resolve_class_id(graph: Graph, fqn: str) -> tuple[str | None, str | None]:
 
     PHP autoloading is case-sensitive on POSIX filesystems, so FQNs in
     the graph are stored exactly. But LLM tool-use frequently mangles
-    casing in long FQNs (``synthesq\\relay\\events\\synthesqevent``
-    instead of ``Synthesq\\Relay\\Events\\SynthesQEvent``). Audit P1-17
+    casing in long FQNs (``acme\\relay\\events\\acmeevent``
+    instead of ``Acme\\Platform\\Events\\AcmeEvent``). Audit P1-17
     asked for an optional case-insensitive fallback that emits a
     warning so the agent can self-correct.
 

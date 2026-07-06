@@ -2,13 +2,13 @@
 
 Walks both ``IMPLEMENTS`` and ``EXTENDS`` edges backwards. Useful
 for both "who implements ``RepositoryInterface``?" and "what
-extends ``SynthesQEvent``?" - agents don't need to know in advance
+extends ``AcmeEvent``?" - agents don't need to know in advance
 whether the target is an interface or an abstract class.
 
 Audit P0-7: prior versions defaulted to ``IMPLEMENTS``-only, which
 returned zero results for abstract-class targets. Abstract base
 classes are the dominant Laravel-codebase abstraction (Module,
-SynthesQEvent, etc.), so the default flipped to inclusive. Set
+AcmeEvent, etc.), so the default flipped to inclusive. Set
 ``include_subclasses=false`` for the legacy IMPLEMENTS-only walk.
 """
 

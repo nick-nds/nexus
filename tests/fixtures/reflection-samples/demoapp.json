@@ -2,7 +2,7 @@
     "schema_version": "2.0.0",
     "generated_at": "2026-04-08T02:09:20+00:00",
     "project": {
-        "name": "Momskitchen",
+        "name": "DemoApp",
         "environment": "local",
         "laravel_version": "12.55.1",
         "php_version": "8.4.18",
@@ -87,9 +87,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [],
@@ -109,9 +109,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [],
@@ -131,9 +131,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [],
@@ -153,9 +153,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [
@@ -178,9 +178,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [
@@ -202,9 +202,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [
@@ -226,9 +226,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [
@@ -250,9 +250,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [
@@ -275,9 +275,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [
@@ -315,9 +315,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [],
@@ -337,9 +337,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [],
@@ -359,9 +359,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [
@@ -383,9 +383,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [
@@ -407,9 +407,9 @@
                     "middleware": [
                         "api",
                         "App\\Http\\Middleware\\JwtAuthMiddleware",
-                        "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectTenantScopedClient",
-                        "Synthesq\\Relay\\Http\\Middleware\\InjectActingUser"
+                        "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
+                        "Acme\\Platform\\Http\\Middleware\\InjectTenantScopedClient",
+                        "Acme\\Platform\\Http\\Middleware\\InjectActingUser"
                     ],
                     "wheres": [],
                     "parameters": [],
@@ -420,7 +420,7 @@
                     }
                 },
                 {
-                    "uri": "/api/v1/webhooks/synthesq",
+                    "uri": "/api/v1/webhooks/acme",
                     "methods": [
                         "POST"
                     ],
@@ -1918,49 +1918,49 @@
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Adapters\\CircuitBreaker",
+                    "abstract": "Acme\\Platform\\Adapters\\CircuitBreaker",
                     "shared": true,
                     "concrete": {
                         "kind": "closure",
-                        "file": "/var/www/vendor/synthesq/relay/src/RelayServiceProvider.php",
+                        "file": "/var/www/vendor/acme/platform/src/RelayServiceProvider.php",
                         "line": 26
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                    "abstract": "Acme\\Platform\\Adapters\\AcmeClient",
                     "shared": true,
                     "concrete": {
                         "kind": "closure",
-                        "file": "/var/www/vendor/synthesq/relay/src/RelayServiceProvider.php",
+                        "file": "/var/www/vendor/acme/platform/src/RelayServiceProvider.php",
                         "line": 32
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Adapters\\SynthesQEventNormalizer",
+                    "abstract": "Acme\\Platform\\Adapters\\AcmeEventNormalizer",
                     "shared": true,
                     "concrete": {
                         "kind": "class",
-                        "class": "Synthesq\\Relay\\Adapters\\SynthesQEventNormalizer"
+                        "class": "Acme\\Platform\\Adapters\\AcmeEventNormalizer"
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Http\\TransformerPipeline",
+                    "abstract": "Acme\\Platform\\Http\\TransformerPipeline",
                     "shared": true,
                     "concrete": {
                         "kind": "class",
-                        "class": "Synthesq\\Relay\\Http\\TransformerPipeline"
+                        "class": "Acme\\Platform\\Http\\TransformerPipeline"
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Modules\\CRM\\Customers\\CustomersModule",
+                    "abstract": "Acme\\Platform\\Modules\\CRM\\Customers\\CustomersModule",
                     "shared": true,
                     "concrete": {
                         "kind": "class",
-                        "class": "Synthesq\\Relay\\Modules\\CRM\\Customers\\CustomersModule"
+                        "class": "Acme\\Platform\\Modules\\CRM\\Customers\\CustomersModule"
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Modules\\CRM\\Customers\\Transformers\\CustomerTransformer",
+                    "abstract": "Acme\\Platform\\Modules\\CRM\\Customers\\Transformers\\CustomerTransformer",
                     "shared": false,
                     "concrete": {
                         "kind": "class",
@@ -1968,31 +1968,31 @@
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Modules\\Operations\\MasterProducts\\MasterProductsModule",
+                    "abstract": "Acme\\Platform\\Modules\\Operations\\MasterProducts\\MasterProductsModule",
                     "shared": true,
                     "concrete": {
                         "kind": "class",
-                        "class": "Synthesq\\Relay\\Modules\\Operations\\MasterProducts\\MasterProductsModule"
+                        "class": "Acme\\Platform\\Modules\\Operations\\MasterProducts\\MasterProductsModule"
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Modules\\Operations\\Products\\ProductsModule",
+                    "abstract": "Acme\\Platform\\Modules\\Operations\\Products\\ProductsModule",
                     "shared": true,
                     "concrete": {
                         "kind": "class",
-                        "class": "Synthesq\\Relay\\Modules\\Operations\\Products\\ProductsModule"
+                        "class": "Acme\\Platform\\Modules\\Operations\\Products\\ProductsModule"
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Modules\\Sales\\Orders\\OrdersModule",
+                    "abstract": "Acme\\Platform\\Modules\\Sales\\Orders\\OrdersModule",
                     "shared": true,
                     "concrete": {
                         "kind": "class",
-                        "class": "Synthesq\\Relay\\Modules\\Sales\\Orders\\OrdersModule"
+                        "class": "Acme\\Platform\\Modules\\Sales\\Orders\\OrdersModule"
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Modules\\Sales\\Orders\\Transformers\\OrderTransformer",
+                    "abstract": "Acme\\Platform\\Modules\\Sales\\Orders\\Transformers\\OrderTransformer",
                     "shared": false,
                     "concrete": {
                         "kind": "class",
@@ -2000,28 +2000,28 @@
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Tenancy\\TenantManager",
+                    "abstract": "Acme\\Platform\\Tenancy\\TenantManager",
                     "shared": true,
                     "concrete": {
                         "kind": "closure",
-                        "file": "/var/www/vendor/synthesq/relay/src/RelayServiceProvider.php",
+                        "file": "/var/www/vendor/acme/platform/src/RelayServiceProvider.php",
                         "line": 39
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware",
+                    "abstract": "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware",
                     "shared": true,
                     "concrete": {
                         "kind": "class",
-                        "class": "Synthesq\\Relay\\Tenancy\\TenantResolutionMiddleware"
+                        "class": "Acme\\Platform\\Tenancy\\TenantResolutionMiddleware"
                     }
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Tenancy\\TenantResolver",
+                    "abstract": "Acme\\Platform\\Tenancy\\TenantResolver",
                     "shared": true,
                     "concrete": {
                         "kind": "closure",
-                        "file": "/var/www/vendor/synthesq/relay/src/RelayServiceProvider.php",
+                        "file": "/var/www/vendor/acme/platform/src/RelayServiceProvider.php",
                         "line": 43
                     }
                 },
@@ -2858,24 +2858,24 @@
                     "class": "Laravel\\Pail\\Handler"
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Adapters\\CircuitBreaker",
-                    "class": "Synthesq\\Relay\\Adapters\\CircuitBreaker"
+                    "abstract": "Acme\\Platform\\Adapters\\CircuitBreaker",
+                    "class": "Acme\\Platform\\Adapters\\CircuitBreaker"
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Adapters\\SynthesQClient",
-                    "class": "Synthesq\\Relay\\Adapters\\SynthesQClient"
+                    "abstract": "Acme\\Platform\\Adapters\\AcmeClient",
+                    "class": "Acme\\Platform\\Adapters\\AcmeClient"
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Adapters\\SynthesQEventNormalizer",
-                    "class": "Synthesq\\Relay\\Adapters\\SynthesQEventNormalizer"
+                    "abstract": "Acme\\Platform\\Adapters\\AcmeEventNormalizer",
+                    "class": "Acme\\Platform\\Adapters\\AcmeEventNormalizer"
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Modules\\CRM\\Customers\\CustomersModule",
-                    "class": "Synthesq\\Relay\\Modules\\CRM\\Customers\\CustomersModule"
+                    "abstract": "Acme\\Platform\\Modules\\CRM\\Customers\\CustomersModule",
+                    "class": "Acme\\Platform\\Modules\\CRM\\Customers\\CustomersModule"
                 },
                 {
-                    "abstract": "Synthesq\\Relay\\Tenancy\\TenantManager",
-                    "class": "Synthesq\\Relay\\Tenancy\\TenantManager"
+                    "abstract": "Acme\\Platform\\Tenancy\\TenantManager",
+                    "class": "Acme\\Platform\\Tenancy\\TenantManager"
                 },
                 {
                     "abstract": "app",
@@ -3094,7 +3094,7 @@
                     ]
                 },
                 {
-                    "event": "Synthesq\\Relay\\Modules\\CRM\\Customers\\Events\\CustomerActivated",
+                    "event": "Acme\\Platform\\Modules\\CRM\\Customers\\Events\\CustomerActivated",
                     "listeners": [
                         {
                             "kind": "class",
@@ -3109,7 +3109,7 @@
                     ]
                 },
                 {
-                    "event": "Synthesq\\Relay\\Modules\\CRM\\Customers\\Events\\CustomerDeactivated",
+                    "event": "Acme\\Platform\\Modules\\CRM\\Customers\\Events\\CustomerDeactivated",
                     "listeners": [
                         {
                             "kind": "class",
@@ -3124,7 +3124,7 @@
                     ]
                 },
                 {
-                    "event": "Synthesq\\Relay\\Modules\\CRM\\Customers\\Events\\CustomerStatusChanged",
+                    "event": "Acme\\Platform\\Modules\\CRM\\Customers\\Events\\CustomerStatusChanged",
                     "listeners": [
                         {
                             "kind": "class",
@@ -3139,7 +3139,7 @@
                     ]
                 },
                 {
-                    "event": "Synthesq\\Relay\\Modules\\Operations\\MasterProducts\\Events\\VariantCreated",
+                    "event": "Acme\\Platform\\Modules\\Operations\\MasterProducts\\Events\\VariantCreated",
                     "listeners": [
                         {
                             "kind": "class",
@@ -3154,7 +3154,7 @@
                     ]
                 },
                 {
-                    "event": "Synthesq\\Relay\\Modules\\Operations\\MasterProducts\\Events\\VariantDeleted",
+                    "event": "Acme\\Platform\\Modules\\Operations\\MasterProducts\\Events\\VariantDeleted",
                     "listeners": [
                         {
                             "kind": "class",
@@ -3169,7 +3169,7 @@
                     ]
                 },
                 {
-                    "event": "Synthesq\\Relay\\Modules\\Operations\\Products\\Events\\ProductPriceChanged",
+                    "event": "Acme\\Platform\\Modules\\Operations\\Products\\Events\\ProductPriceChanged",
                     "listeners": [
                         {
                             "kind": "class",
@@ -3184,7 +3184,7 @@
                     ]
                 },
                 {
-                    "event": "Synthesq\\Relay\\Modules\\Sales\\Orders\\Events\\OrderCreated",
+                    "event": "Acme\\Platform\\Modules\\Sales\\Orders\\Events\\OrderCreated",
                     "listeners": [
                         {
                             "kind": "class",
@@ -3423,7 +3423,7 @@
                     "username": null,
                     "password": "«redacted»",
                     "timeout": null,
-                    "local_domain": "api.momskitchen.test"
+                    "local_domain": "api.demoapp.test"
                 },
                 "ses": {
                     "transport": "ses"
@@ -3484,9 +3484,9 @@
                     "key": "«redacted»",
                     "secret": "«redacted»",
                     "region": "us-east-1",
-                    "bucket": "momskitchen-local",
+                    "bucket": "demoapp-local",
                     "url": "«redacted»",
-                    "endpoint": "https://api.momskitchen.test:24566",
+                    "endpoint": "https://api.demoapp.test:24566",
                     "use_path_style_endpoint": true,
                     "throw": false,
                     "report": false
@@ -3583,16 +3583,16 @@
                     "without_overlapping": false,
                     "on_one_server": false,
                     "kind": "command",
-                    "command": "'/usr/local/bin/php' 'artisan' momskitchen:warm-eligibility"
+                    "command": "'/usr/local/bin/php' 'artisan' demoapp:warm-eligibility"
                 },
                 {
                     "expression": "*/5 * * * *",
                     "timezone": "UTC",
-                    "description": "Check SynthesQ webhook subscription health and reactivate + re-warm if disabled.",
+                    "description": "Check Acme webhook subscription health and reactivate + re-warm if disabled.",
                     "without_overlapping": false,
                     "on_one_server": false,
                     "kind": "command",
-                    "command": "'/usr/local/bin/php' 'artisan' momskitchen:webhook:health"
+                    "command": "'/usr/local/bin/php' 'artisan' demoapp:webhook:health"
                 }
             ]
         },
@@ -3699,7 +3699,7 @@
                                 "parameters": [
                                     {
                                         "name": "tenantManager",
-                                        "type": "Synthesq\\Relay\\Tenancy\\TenantManager",
+                                        "type": "Acme\\Platform\\Tenancy\\TenantManager",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -3751,7 +3751,7 @@
                                 "parameters": [
                                     {
                                         "name": "baseClient",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -3862,7 +3862,7 @@
                                 "parameters": [
                                     {
                                         "name": "baseClient",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -3924,7 +3924,7 @@
                                 "parameters": [
                                     {
                                         "name": "order",
-                                        "type": "Synthesq\\Relay\\Modules\\Sales\\Orders\\DTOs\\Order",
+                                        "type": "Acme\\Platform\\Modules\\Sales\\Orders\\DTOs\\Order",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -4180,13 +4180,13 @@
                     "source": "project",
                     "kinds": [],
                     "reflection": {
-                        "name": "App\\Extensions\\MomsKitchenExtension",
-                        "short_name": "MomsKitchenExtension",
+                        "name": "App\\Extensions\\DemoAppExtension",
+                        "short_name": "DemoAppExtension",
                         "namespace": "App\\Extensions",
-                        "file": "/var/www/app/Extensions/MomsKitchenExtension.php",
+                        "file": "/var/www/app/Extensions/DemoAppExtension.php",
                         "abstract": false,
                         "final": false,
-                        "parent": "Synthesq\\Relay\\Contracts\\Extension",
+                        "parent": "Acme\\Platform\\Contracts\\Extension",
                         "interfaces": [],
                         "traits": [],
                         "attributes": [],
@@ -4523,7 +4523,7 @@
                                     },
                                     {
                                         "name": "pipeline",
-                                        "type": "Synthesq\\Relay\\Http\\TransformerPipeline",
+                                        "type": "Acme\\Platform\\Http\\TransformerPipeline",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -4652,7 +4652,7 @@
                                     },
                                     {
                                         "name": "pipeline",
-                                        "type": "Synthesq\\Relay\\Http\\TransformerPipeline",
+                                        "type": "Acme\\Platform\\Http\\TransformerPipeline",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -4812,7 +4812,7 @@
                                     },
                                     {
                                         "name": "pipeline",
-                                        "type": "Synthesq\\Relay\\Http\\TransformerPipeline",
+                                        "type": "Acme\\Platform\\Http\\TransformerPipeline",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -4877,7 +4877,7 @@
                                     },
                                     {
                                         "name": "pipeline",
-                                        "type": "Synthesq\\Relay\\Http\\TransformerPipeline",
+                                        "type": "Acme\\Platform\\Http\\TransformerPipeline",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5038,7 +5038,7 @@
                                     },
                                     {
                                         "name": "pipeline",
-                                        "type": "Synthesq\\Relay\\Http\\TransformerPipeline",
+                                        "type": "Acme\\Platform\\Http\\TransformerPipeline",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5103,7 +5103,7 @@
                                 "parameters": [
                                     {
                                         "name": "normalizer",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQEventNormalizer",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeEventNormalizer",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5480,7 +5480,7 @@
                                 "parameters": [
                                     {
                                         "name": "event",
-                                        "type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\Events\\CustomerActivated",
+                                        "type": "Acme\\Platform\\Modules\\CRM\\Customers\\Events\\CustomerActivated",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5538,7 +5538,7 @@
                                 "parameters": [
                                     {
                                         "name": "event",
-                                        "type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\Events\\CustomerDeactivated",
+                                        "type": "Acme\\Platform\\Modules\\CRM\\Customers\\Events\\CustomerDeactivated",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5596,7 +5596,7 @@
                                 "parameters": [
                                     {
                                         "name": "event",
-                                        "type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\Events\\CustomerStatusChanged",
+                                        "type": "Acme\\Platform\\Modules\\CRM\\Customers\\Events\\CustomerStatusChanged",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5654,7 +5654,7 @@
                                 "parameters": [
                                     {
                                         "name": "event",
-                                        "type": "Synthesq\\Relay\\Modules\\Sales\\Orders\\Events\\OrderCreated",
+                                        "type": "Acme\\Platform\\Modules\\Sales\\Orders\\Events\\OrderCreated",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5712,7 +5712,7 @@
                                 "parameters": [
                                     {
                                         "name": "event",
-                                        "type": "Synthesq\\Relay\\Modules\\Operations\\Products\\Events\\ProductPriceChanged",
+                                        "type": "Acme\\Platform\\Modules\\Operations\\Products\\Events\\ProductPriceChanged",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5770,7 +5770,7 @@
                                 "parameters": [
                                     {
                                         "name": "event",
-                                        "type": "Synthesq\\Relay\\Modules\\Operations\\MasterProducts\\Events\\VariantCreated",
+                                        "type": "Acme\\Platform\\Modules\\Operations\\MasterProducts\\Events\\VariantCreated",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -5828,7 +5828,7 @@
                                 "parameters": [
                                     {
                                         "name": "event",
-                                        "type": "Synthesq\\Relay\\Modules\\Operations\\MasterProducts\\Events\\VariantDeleted",
+                                        "type": "Acme\\Platform\\Modules\\Operations\\MasterProducts\\Events\\VariantDeleted",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -6341,7 +6341,7 @@
                                 "parameters": [
                                     {
                                         "name": "client",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -6355,7 +6355,7 @@
                                     },
                                     {
                                         "name": "tenantManager",
-                                        "type": "Synthesq\\Relay\\Tenancy\\TenantManager",
+                                        "type": "Acme\\Platform\\Tenancy\\TenantManager",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -6496,14 +6496,14 @@
                                 "parameters": [
                                     {
                                         "name": "customers",
-                                        "type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\CustomersModule",
+                                        "type": "Acme\\Platform\\Modules\\CRM\\Customers\\CustomersModule",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
                                     },
                                     {
                                         "name": "client",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -6528,7 +6528,7 @@
                                         "by_reference": false
                                     }
                                 ],
-                                "return_type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\DTOs\\Customer",
+                                "return_type": "Acme\\Platform\\Modules\\CRM\\Customers\\DTOs\\Customer",
                                 "attributes": [],
                                 "line": 35
                             },
@@ -6547,7 +6547,7 @@
                                         "by_reference": false
                                     }
                                 ],
-                                "return_type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\DTOs\\Customer",
+                                "return_type": "Acme\\Platform\\Modules\\CRM\\Customers\\DTOs\\Customer",
                                 "attributes": [],
                                 "line": 25
                             },
@@ -6573,7 +6573,7 @@
                                         "by_reference": false
                                     }
                                 ],
-                                "return_type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\DTOs\\CustomerCollection",
+                                "return_type": "Acme\\Platform\\Modules\\CRM\\Customers\\DTOs\\CustomerCollection",
                                 "attributes": [],
                                 "line": 20
                             },
@@ -6599,7 +6599,7 @@
                                         "by_reference": false
                                     }
                                 ],
-                                "return_type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\DTOs\\Customer",
+                                "return_type": "Acme\\Platform\\Modules\\CRM\\Customers\\DTOs\\Customer",
                                 "attributes": [],
                                 "line": 77
                             },
@@ -6625,7 +6625,7 @@
                                         "by_reference": false
                                     }
                                 ],
-                                "return_type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\DTOs\\Customer",
+                                "return_type": "Acme\\Platform\\Modules\\CRM\\Customers\\DTOs\\Customer",
                                 "attributes": [],
                                 "line": 107
                             }
@@ -6656,14 +6656,14 @@
                                 "parameters": [
                                     {
                                         "name": "customers",
-                                        "type": "Synthesq\\Relay\\Modules\\CRM\\Customers\\CustomersModule",
+                                        "type": "Acme\\Platform\\Modules\\CRM\\Customers\\CustomersModule",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
                                     },
                                     {
                                         "name": "client",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -6825,7 +6825,7 @@
                                 "parameters": [
                                     {
                                         "name": "baseClient",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -6851,7 +6851,7 @@
                                 "parameters": [
                                     {
                                         "name": "client",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -6884,7 +6884,7 @@
                                 "parameters": [
                                     {
                                         "name": "tenant",
-                                        "type": "Synthesq\\Relay\\Tenancy\\Tenant",
+                                        "type": "Acme\\Platform\\Tenancy\\Tenant",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -7109,7 +7109,7 @@
                                 "parameters": [
                                     {
                                         "name": "client",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -7309,7 +7309,7 @@
                                 "parameters": [
                                     {
                                         "name": "client",
-                                        "type": "Synthesq\\Relay\\Adapters\\SynthesQClient",
+                                        "type": "Acme\\Platform\\Adapters\\AcmeClient",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -7347,7 +7347,7 @@
                                 "parameters": [
                                     {
                                         "name": "tenant",
-                                        "type": "Synthesq\\Relay\\Tenancy\\Tenant",
+                                        "type": "Acme\\Platform\\Tenancy\\Tenant",
                                         "optional": false,
                                         "variadic": false,
                                         "by_reference": false
@@ -7372,7 +7372,7 @@
                         "final": false,
                         "parent": null,
                         "interfaces": [
-                            "Synthesq\\Relay\\Contracts\\Transformer"
+                            "Acme\\Platform\\Contracts\\Transformer"
                         ],
                         "traits": [],
                         "attributes": [],
@@ -7430,7 +7430,7 @@
                         "final": false,
                         "parent": null,
                         "interfaces": [
-                            "Synthesq\\Relay\\Contracts\\Transformer"
+                            "Acme\\Platform\\Contracts\\Transformer"
                         ],
                         "traits": [],
                         "attributes": [],
@@ -9681,7 +9681,7 @@
             "findings": [
                 {
                     "kind": "event_dispatch",
-                    "target": "Synthesq\\Relay\\Jobs\\SynthesQEventJob",
+                    "target": "Acme\\Platform\\Jobs\\AcmeEventJob",
                     "in_class": "App\\Http\\Controllers\\WebhookController",
                     "in_method": "__invoke",
                     "file": "/var/www/app/Http/Controllers/WebhookController.php",
@@ -9919,7 +9919,7 @@
                 },
                 {
                     "kind": "job_dispatch",
-                    "target": "Synthesq\\Relay\\Jobs\\SynthesQEventJob",
+                    "target": "Acme\\Platform\\Jobs\\AcmeEventJob",
                     "in_class": "App\\Http\\Controllers\\WebhookController",
                     "in_method": "__invoke",
                     "file": "/var/www/app/Http/Controllers/WebhookController.php",

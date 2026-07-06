@@ -14,7 +14,7 @@ Path translation
 When the extractor runs inside docker, the reflection document
 contains container-relative paths like ``/var/www/app/...``. The
 chunker, on the other hand, runs on the host and needs host paths
-like ``/home/lockhart/projects/momskitchen/.../app/...``. The
+like ``/home/user/projects/demoapp/.../app/...``. The
 smoketest rewrites the paths by string replacement after the
 extractor runs but before the graph/chunk passes execute. This is
 fine for a smoke test; production (Phase 5) will either run the
@@ -73,7 +73,7 @@ class EmptyProfile:
 class DockerExecExtractor:
     """PhpExtractor-shaped adapter that execs PHP inside a docker container.
 
-    Momskitchen (and CRM, and helm-v7) run their PHP inside docker, so
+    DemoApp (and CRM, and largeapp) run their PHP inside docker, so
     we can't call the host ``php`` binary directly for the smoketest.
     This stub runs the command via ``docker exec``, copies the
     resulting reflection.json out, and rewrites container paths to
@@ -167,12 +167,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Phase 3 pipeline smoke test")
     parser.add_argument(
         "--project",
-        default="/home/lockhart/projects/momskitchen/api.momskitchen.test/main",
+        default="/home/user/projects/demoapp/api.demoapp.test/main",
         help="Host path to the Laravel project (for chunking)",
     )
     parser.add_argument(
         "--container",
-        default="momskitchen-app",
+        default="demoapp",
         help="Docker container to exec PHP in",
     )
     parser.add_argument(
@@ -213,7 +213,7 @@ def main() -> int:
 
     workspace = Path(tempfile.mkdtemp(prefix="nexus-phase3-"))
     try:
-        storage = ProjectStorage(root=workspace / ".nexus", slug="momskitchen-smoketest")
+        storage = ProjectStorage(root=workspace / ".nexus", slug="demoapp-smoketest")
         cache = EmbeddingCache(root=workspace / ".nexus" / "cache" / "embeddings")
 
         embedder_choice = args.embedder
@@ -285,7 +285,7 @@ def main() -> int:
             print(f"  embedder       : {meta.embedder_id or '<none>'}")
             print(f"  indexed_at     : {meta.indexed_at}")
 
-        print(f"\nArtefacts under: {workspace / '.nexus' / 'projects' / 'momskitchen-smoketest'}")
+        print(f"\nArtefacts under: {workspace / '.nexus' / 'projects' / 'demoapp-smoketest'}")
         return 0
     finally:
         # Keep the workspace around so the user can inspect the

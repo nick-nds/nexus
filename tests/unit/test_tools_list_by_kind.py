@@ -114,7 +114,7 @@ def test_kind_with_zero_matches_returns_empty_not_error() -> None:
 
 
 def test_middleware_kind_lists_user_authored_middleware_classes() -> None:
-    """Pinning P0-9 from the synthesq-relay audit.
+    """Pinning P0-9 from the acme-platform audit.
 
     Before the fix, ``list_by_kind(kind='middleware')`` returned a
     misleading redirect to other tools that didn't actually list
@@ -136,7 +136,7 @@ def test_middleware_kind_lists_user_authored_middleware_classes() -> None:
 
 
 def test_pagination_first_page_signals_more_when_limit_smaller_than_total() -> None:
-    """Pinning P1-13 from the synthesq-relay audit.
+    """Pinning P1-13 from the acme-platform audit.
 
     Before the fix, ``list_by_kind`` returned at most 100 rows and
     rejected any ``offset`` / ``limit`` arg. Items 101-247 were

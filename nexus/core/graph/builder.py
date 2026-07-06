@@ -229,8 +229,8 @@ class GraphBuilder:
         # can walk the inheritance chain when checking
         # ``profile.custom_bases``. Without this, only the IMMEDIATE
         # parent counts - but events like ``CustomerCreated extends
-        # SynthesQEvent`` were sometimes ``CustomerCreated extends
-        # CustomerEvent extends SynthesQEvent`` and the configured
+        # AcmeEvent`` were sometimes ``CustomerCreated extends
+        # CustomerEvent extends AcmeEvent`` and the configured
         # base sat two hops away.
         parent_chain: dict[str, str | None] = {
             e.reflection.name: e.reflection.parent for e in classes

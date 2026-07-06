@@ -1,7 +1,7 @@
 """Pinning audit P0-6: configurable domain-event detection.
 
 Before this change, classes that extended a project-specific event
-base class (``Synthesq\\Relay\\Events\\SynthesQEvent``,
+base class (``Acme\\Platform\\Events\\AcmeEvent``,
 ``App\\Events\\DomainEvent``, etc.) ended up as ``kind: "class"``.
 Every event-graph tool (``find_dispatchers``, ``find_listeners``)
 returned ``event_not_found`` even though the symbol existed.
@@ -10,7 +10,7 @@ The fix lets a user - via ``nexus.yml`` or a built-in profile -
 declare event base classes in ``custom_bases``:
 
     custom_bases:
-      Synthesq\\Relay\\Events\\SynthesQEvent: event
+      Acme\\Platform\\Events\\AcmeEvent: event
 
 The graph builder then walks the parent chain for every class node;
 if any ancestor matches, the kind is promoted to ``NodeKind.EVENT``.
@@ -85,16 +85,16 @@ def _doc(*entries: ClassEntry) -> ReflectionDocument:
 
 
 def test_immediate_parent_event_base_promotes_kind_to_event() -> None:
-    """``CustomerCreated extends SynthesQEvent`` → kind=event when configured."""
+    """``CustomerCreated extends AcmeEvent`` → kind=event when configured."""
     doc = _doc(
-        _class("Synthesq\\Relay\\Events\\SynthesQEvent"),
+        _class("Acme\\Platform\\Events\\AcmeEvent"),
         _class(
             "App\\Customers\\Events\\CustomerCreated",
-            parent="Synthesq\\Relay\\Events\\SynthesQEvent",
+            parent="Acme\\Platform\\Events\\AcmeEvent",
         ),
     )
     profile = _StubProfile(
-        custom_bases={"Synthesq\\Relay\\Events\\SynthesQEvent": "event"},
+        custom_bases={"Acme\\Platform\\Events\\AcmeEvent": "event"},
     )
 
     result = GraphBuilder().build(doc, profile)  # type: ignore[arg-type]
@@ -106,13 +106,13 @@ def test_immediate_parent_event_base_promotes_kind_to_event() -> None:
 
 
 def test_transitive_parent_event_base_promotes_kind() -> None:
-    """``Created extends BaseDomainEvent extends SynthesQEvent`` resolves
+    """``Created extends BaseDomainEvent extends AcmeEvent`` resolves
     through the chain (audit P0-6's chain-walking requirement)."""
     doc = _doc(
-        _class("Synthesq\\Relay\\Events\\SynthesQEvent"),
+        _class("Acme\\Platform\\Events\\AcmeEvent"),
         _class(
             "App\\Common\\BaseDomainEvent",
-            parent="Synthesq\\Relay\\Events\\SynthesQEvent",
+            parent="Acme\\Platform\\Events\\AcmeEvent",
         ),
         _class(
             "App\\Customers\\Events\\Created",
@@ -120,7 +120,7 @@ def test_transitive_parent_event_base_promotes_kind() -> None:
         ),
     )
     profile = _StubProfile(
-        custom_bases={"Synthesq\\Relay\\Events\\SynthesQEvent": "event"},
+        custom_bases={"Acme\\Platform\\Events\\AcmeEvent": "event"},
     )
 
     result = GraphBuilder().build(doc, profile)  # type: ignore[arg-type]
@@ -138,11 +138,11 @@ def test_transitive_parent_event_base_promotes_kind() -> None:
 def test_unrelated_class_is_not_promoted() -> None:
     """A class whose ancestry never touches a configured base stays CLASS."""
     doc = _doc(
-        _class("Synthesq\\Relay\\Events\\SynthesQEvent"),
+        _class("Acme\\Platform\\Events\\AcmeEvent"),
         _class("App\\Services\\PaymentService"),
     )
     profile = _StubProfile(
-        custom_bases={"Synthesq\\Relay\\Events\\SynthesQEvent": "event"},
+        custom_bases={"Acme\\Platform\\Events\\AcmeEvent": "event"},
     )
 
     result = GraphBuilder().build(doc, profile)  # type: ignore[arg-type]

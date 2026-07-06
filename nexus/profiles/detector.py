@@ -7,7 +7,7 @@ project tree, and returns a ranked :class:`ProfileMatch` list.
 The detector is intentionally cheap - it only touches the filesystem
 and ``composer.json``. No PHP invocation, no class loading, no
 container boot. The user can be shown a ranked profile list in a few
-hundred milliseconds even on the helm-v7-scale projects.
+hundred milliseconds even on the largeapp-scale projects.
 
 Signal kinds supported in v1:
 

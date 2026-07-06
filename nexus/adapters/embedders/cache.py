@@ -26,7 +26,7 @@ layout is:
 * Easy to prune - ``nexus cache clear`` (Phase 5) is a ``rm -rf``.
 * Cheap to write - no lock contention for concurrent processes.
 
-At scale (the helm-v7 project has ~6000 chunks) this produces 6000
+At scale (the largeapp project has ~6000 chunks) this produces 6000
 small files, which is fine for any modern filesystem. If that ever
 becomes a problem we can shard by the first two hex characters of
 the hash, but v1 keeps it flat.

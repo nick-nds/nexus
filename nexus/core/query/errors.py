@@ -19,7 +19,7 @@ Tool ``error_code`` taxonomy (audit P1-16)
 
 The query tools emit a stable ``error_code`` string on every
 non-success response. The taxonomy was audited and codified after
-the synthesq-relay MCP audit; see ``synthesq-relay-mcp-audit.md``
+the acme-platform MCP audit; see ``acme-platform-mcp-audit.md``
 P1-16. The families:
 
 * ``*_not_found`` - an exact lookup failed because the symbol isn't

@@ -18,11 +18,11 @@ from nexus.core.reflection.loader import (
 )
 
 FIXTURE_DIR = Path(__file__).parent.parent / "fixtures" / "reflection-samples"
-FIXTURE = FIXTURE_DIR / "momskitchen.json"
+FIXTURE = FIXTURE_DIR / "demoapp.json"
 
 
 class TestRealFixture:
-    """Loads the real momskitchen reflection.json captured during Phase 1.
+    """Loads the real demoapp reflection.json captured during Phase 1.
 
     This is the most important test in this suite: every model must
     accept the actual JSON Phase 1 emits without modification. If the
@@ -34,7 +34,7 @@ class TestRealFixture:
 
         assert isinstance(doc, ReflectionDocument)
         assert doc.schema_version.startswith("2.")
-        assert doc.project.name == "Momskitchen"
+        assert doc.project.name == "DemoApp"
         assert doc.project.laravel_version.startswith("12.")
 
     def test_routes_section_populated(self) -> None:
@@ -136,8 +136,8 @@ class TestErrorPaths:
 
 class TestExtraFixtures:
     """Stress-test the loader against any larger reflection samples that
-    happen to be present locally (crm, helm-v7). Always passes if only
-    the committed momskitchen fixture is available; never fails CI for
+    happen to be present locally (crm, largeapp). Always passes if only
+    the committed demoapp fixture is available; never fails CI for
     missing optional fixtures.
     """
 

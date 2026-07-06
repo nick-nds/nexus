@@ -180,7 +180,7 @@ def test_sample_per_kind_caps_fqns_but_reports_full_total() -> None:
 
 
 def test_fqns_truncation_is_signalled_explicitly() -> None:
-    """Pinning P1-14 from the synthesq-relay audit.
+    """Pinning P1-14 from the acme-platform audit.
 
     Before the fix, ``describe_module`` silently capped per-kind
     ``fqns`` at ``sample_per_kind`` while leaving ``truncated=false``
