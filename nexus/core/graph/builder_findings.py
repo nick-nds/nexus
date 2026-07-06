@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 
 from nexus.core.graph.ids import binding_id, class_id, gate_id, method_id
 from nexus.core.graph.types import Edge, EdgeKind, Node, NodeKind
+from nexus.core.outcome import Warning
 
 if TYPE_CHECKING:
     from nexus.core.graph.graph import Graph
@@ -47,11 +48,19 @@ def apply_static_findings(graph: Graph, findings: list[StaticAnalysisFinding]) -
       broadcast_channel node)
     * ``closure_binding`` → :attr:`EdgeKind.BOUND_TO` (creates binding
       node if Phase A's runtime extractor didn't see it)
+    * ``bus_dispatch`` → synthetic :attr:`EdgeKind.CALLS` (resolves the
+      dispatched message to its CQRS handler by naming convention)
 
     Findings without a resolvable source class or target are silently
     skipped - they represent dynamic dispatch the AST visitor
     couldn't statically resolve, which is expected and not an error.
     """
+    # A CQRS bus resolves handlers by convention at runtime, so the
+    # short-name index is only needed when bus_dispatch findings exist.
+    short_name_index: dict[str, list[str]] | None = None
+    if any(f.kind == "bus_dispatch" for f in findings):
+        short_name_index = _build_class_short_name_index(graph)
+
     for finding in findings:
         if finding.kind == "event_dispatch":
             _add_behavioural_edge(graph, finding, EdgeKind.FIRES)
@@ -71,6 +80,8 @@ def apply_static_findings(graph: Graph, findings: list[StaticAnalysisFinding]) -
             _add_broadcast_channel_edge(graph, finding)
         elif finding.kind == "closure_binding":
             _add_closure_binding_edge(graph, finding)
+        elif finding.kind == "bus_dispatch" and short_name_index is not None:
+            _add_bus_dispatch_edge(graph, finding, short_name_index)
         # form_request_rules and inline_validation are informational
         # findings without a cross-node edge in v1.
 
@@ -428,3 +439,147 @@ def _add_closure_binding_edge(
                 attributes=attrs,
             ),
         )
+
+
+# ---------------------------------------------------------------------------
+# CQRS bus-dispatch synthesis
+# ---------------------------------------------------------------------------
+
+#: Method names on a handler that receive the dispatched message, in
+#: priority order. ``handle`` is the Tactician/Laravel convention;
+#: ``__invoke`` covers single-action invokable handlers.
+_HANDLER_METHODS = ("handle", "__invoke")
+
+#: Message-class suffixes that a handler name may drop before appending
+#: ``Handler`` (e.g. ``CreateUserCommand`` → ``CreateUserHandler``).
+_MESSAGE_SUFFIXES = ("Command", "Query")
+
+
+def _build_class_short_name_index(graph: Graph) -> dict[str, list[str]]:
+    r"""Map each class short name to the FQNs that carry it.
+
+    CQRS handlers are conventionally named after their message's *short*
+    name (``FooQuery`` → ``FooQueryHandler``) but live in a different
+    sub-namespace (``...\Queries`` vs ``...\QueryHandlers``), so
+    handler resolution keys on the short name rather than the FQN.
+
+    Keyed off the ``class:<fqn>`` node id rather than ``NodeKind.CLASS``
+    or ``node.name``: a handler may carry a more specific NodeKind (e.g.
+    a profile classified it), and class nodes store their *short* name in
+    ``node.name`` - only the id reliably carries the full FQN.
+    """
+    prefix = "class:"
+    index: dict[str, list[str]] = {}
+    for node in graph.nodes:
+        if not node.id.startswith(prefix):
+            continue
+        fqn = node.id[len(prefix) :]
+        short = fqn.rsplit("\\", 1)[-1]
+        index.setdefault(short, []).append(fqn)
+    return index
+
+
+def _handler_short_name_candidates(message_short: str) -> list[str]:
+    """Candidate handler short names for a message short name.
+
+    The primary convention appends ``Handler`` to the full message name;
+    the fallback drops a ``Command``/``Query`` suffix first. Order is
+    significant: the first candidate that resolves wins.
+    """
+    candidates = [f"{message_short}Handler"]
+    for suffix in _MESSAGE_SUFFIXES:
+        if message_short.endswith(suffix) and len(message_short) > len(suffix):
+            stripped = f"{message_short[: -len(suffix)]}Handler"
+            if stripped not in candidates:
+                candidates.append(stripped)
+    return candidates
+
+
+def _add_bus_dispatch_edge(
+    graph: Graph,
+    finding: StaticAnalysisFinding,
+    short_name_index: dict[str, list[str]],
+) -> None:
+    """Synthesise a ``CALLS`` edge from a bus dispatch site to its handler.
+
+    A CQRS bus (``$queryBus->ask(new FooQuery())``) resolves the handler
+    by naming-convention reflection at runtime, so no static reference -
+    and therefore no LSP-derived ``CALLS`` edge - exists between the
+    dispatch site and ``FooQueryHandler::handle``. Without this,
+    ``find_callers`` on the handler returns only the bus's own
+    ``dispatch`` method, never the real dispatch sites.
+
+    We resolve the message to its handler *by short name* (handlers live
+    in a different sub-namespace than their message) and, only when the
+    handler class and its ``handle``/``__invoke`` method actually exist
+    as nodes, add a ``CALLS`` edge tagged ``via: bus_convention`` and
+    ``synthetic: True``. The provenance tags keep these convention-
+    inferred edges distinguishable from LSP-verified ones. Ambiguous
+    resolution (two handlers sharing a short name) is skipped rather than
+    guessed.
+    """
+    if not finding.target or not finding.in_class or not finding.in_method:
+        return
+
+    message_short = finding.target.rsplit("\\", 1)[-1]
+
+    handler_fqn: str | None = None
+    for candidate in _handler_short_name_candidates(message_short):
+        matches = short_name_index.get(candidate)
+        if not matches:
+            continue
+        if len(matches) == 1:
+            handler_fqn = matches[0]
+        else:
+            # More than one class shares the short name. Linking to all
+            # of them would be wrong and linking to one would be a guess,
+            # so we skip - but surface it rather than dropping silently.
+            graph.add_warning(
+                Warning(
+                    code="bus_handler_ambiguous",
+                    message=(
+                        f"Dispatch of {finding.target} was not linked to a handler: "
+                        f"{len(matches)} classes share the name {candidate!r}."
+                    ),
+                    context={
+                        "message": finding.target,
+                        "handler_short_name": candidate,
+                        "candidates": sorted(matches),
+                    },
+                ),
+            )
+        # Stop at the first candidate that resolves either way; a later
+        # candidate matching would be a weaker convention we don't prefer.
+        break
+
+    if handler_fqn is None:
+        return
+
+    target_id: str | None = None
+    for method_name in _HANDLER_METHODS:
+        candidate_id = method_id(handler_fqn, method_name)
+        if graph.node_by_id(candidate_id) is not None:
+            target_id = candidate_id
+            break
+
+    if target_id is None:
+        return
+
+    attrs: dict[str, object] = {
+        "via": "bus_convention",
+        "synthetic": True,
+        "message": finding.target,
+    }
+    if finding.file is not None:
+        attrs["file"] = finding.file
+    if finding.line is not None:
+        attrs["line"] = finding.line
+
+    graph.add_edge(
+        Edge(
+            source=method_id(finding.in_class, finding.in_method),
+            target=target_id,
+            kind=EdgeKind.CALLS,
+            attributes=attrs,
+        ),
+    )

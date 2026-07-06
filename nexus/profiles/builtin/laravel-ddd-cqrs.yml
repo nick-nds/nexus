@@ -5,6 +5,15 @@ description: |
   top of the standard DDD module layout. Detects command handlers,
   query handlers, commands, and queries via naming suffixes.
 
+  Command/query bus dispatches (``$bus->ask(new FooQuery())`` etc.) are
+  traced to their handler automatically: the extractor emits a
+  ``bus_dispatch`` finding and the graph builder synthesises a
+  ``CALLS`` edge (``via=bus_convention``) from the dispatch site to the
+  handler's ``handle``/``__invoke`` method, so ``find_callers`` answers
+  "who dispatches this command/query?" without an LSP. Resolution is by
+  short name (``FooQuery`` → ``FooQueryHandler``); no configuration is
+  required.
+
 detection:
   signals:
     - kind: path_exists
