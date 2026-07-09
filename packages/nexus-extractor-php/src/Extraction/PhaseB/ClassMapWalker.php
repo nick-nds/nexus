@@ -70,16 +70,19 @@ final class ClassMapWalker
             // ride.
             $isVendor = str_starts_with($absolute, $vendorDir);
 
-            // When a PackageScope is active, only entries under
-            // ``$scope->vendorPath`` belong in the index. Compute the
-            // in-scope flag once and use it as the authoritative
-            // include signal - it overrides every project-mode noise
-            // filter below so a target package whose realpath happens
-            // to live under ``/tests/fixtures/`` (e.g. the synthetic
-            // sample-package fixture, or any third-party clone the
-            // user keeps in a test-shaped directory) is not dropped.
-            $inScope = $scope !== null
-                && str_starts_with($absolute, rtrim($scope->vendorPath, '/').'/');
+            // When a PackageScope is active, membership is decided by the
+            // target's PSR-4 namespace, NOT by "lives under a directory".
+            // A self-developed package extracted in-repo has its checkout
+            // as the package root, so its own dependencies sit under
+            // ``<root>/vendor`` - a directory-prefix test would wrongly
+            // pull those deps in (and reflecting them can trigger PHP
+            // fatals on incompatible declarations, e.g. psysh under PHP
+            // 8.5). Namespace scoping captures exactly the package's own
+            // classes in both in-repo and Nexus-driven modes. It also
+            // overrides every project-mode noise filter below, so a target
+            // whose realpath happens to live under ``/tests/fixtures/`` is
+            // not dropped.
+            $inScope = $scope !== null && $scope->matchesNamespace((string) $class);
 
             if ($scope !== null && ! $inScope) {
                 continue;

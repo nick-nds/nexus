@@ -139,17 +139,31 @@ final class ExtractPackageCommand extends Command
         }
 
         [$vendor, $shortName] = explode('/', $name, 2);
-        $rawVendorPath = $app->basePath("vendor/$vendor/$shortName");
-        $vendorPath = realpath($rawVendorPath) ?: $rawVendorPath;
 
-        // Prefer reading version and PSR-4 map from the package's own installed
-        // composer.json (vendorPath/composer.json). This is more accurate than
-        // reading from the host app's composer.json, and it allows the command to
-        // run from a generic testbench skeleton host rather than inside the package.
-        $pkgComposerPath = rtrim($vendorPath, '/').'/composer.json';
-        $pkgComposer = is_file($pkgComposerPath)
-            ? (json_decode((string) file_get_contents($pkgComposerPath), associative: true) ?? [])
-            : $hostComposer;
+        // Locate the package's own composer.json to derive its PSR-4 map and
+        // source directory (the extraction scope). Prefer a vendor install
+        // (nexus-driven mode), but fall back to the working directory when the
+        // checkout is being extracted in place: an in-repo self-developed
+        // package is never installed under its own vendor/<vendor>/<name>, so
+        // reading the host skeleton's composer.json would scope extraction to
+        // the wrong tree and capture zero classes. $app->basePath() is not a
+        // candidate here - under Testbench it is the Laravel skeleton.
+        $located = self::selectPackageComposer([
+            $app->basePath("vendor/$vendor/$shortName"),
+            getcwd() === false ? null : (string) getcwd(),
+        ], $name);
+
+        if ($located !== null) {
+            $vendorPath = $located['dir'];
+            $pkgComposer = $located['composer'];
+        } else {
+            // Nothing named the target package; keep the historical fallback
+            // (raw vendor path + host composer) so extraction still produces a
+            // document rather than failing outright.
+            $rawVendorPath = $app->basePath("vendor/$vendor/$shortName");
+            $vendorPath = realpath($rawVendorPath) ?: $rawVendorPath;
+            $pkgComposer = $hostComposer;
+        }
 
         /** @var array<string, mixed> $pkgComposer */
         $version = isset($pkgComposer['version']) && is_string($pkgComposer['version'])
@@ -168,6 +182,36 @@ final class ExtractPackageCommand extends Command
             vendorPath: $vendorPath,
             namespaces: $namespaces,
         );
+    }
+
+    /**
+     * Select the target package's own composer.json from candidate directories.
+     *
+     * Returns the first directory whose ``composer.json`` names the target
+     * package (``vendor/name``), along with the decoded composer array. The
+     * name guard prevents accepting the Testbench Laravel skeleton's
+     * composer.json, which always exists at the host base path.
+     *
+     * @param  list<string|null>  $candidateDirs
+     * @return array{dir: string, composer: array<string, mixed>}|null
+     */
+    public static function selectPackageComposer(array $candidateDirs, string $name): ?array
+    {
+        foreach ($candidateDirs as $dir) {
+            if (! is_string($dir) || $dir === '') {
+                continue;
+            }
+            $path = rtrim($dir, '/').'/composer.json';
+            if (! is_file($path)) {
+                continue;
+            }
+            $raw = json_decode((string) file_get_contents($path), associative: true);
+            if (is_array($raw) && isset($raw['name']) && $raw['name'] === $name) {
+                return ['dir' => realpath($dir) ?: $dir, 'composer' => $raw];
+            }
+        }
+
+        return null;
     }
 
     /**

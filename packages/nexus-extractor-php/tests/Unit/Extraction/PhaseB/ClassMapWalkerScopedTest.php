@@ -110,6 +110,59 @@ final class ClassMapWalkerScopedTest extends TestCase
         $this->assertContains('App\\Foo', $classes);
     }
 
+    public function test_scope_excludes_package_own_vendored_dependencies(): void
+    {
+        // In-repo layout: the package checkout IS the root, so its own
+        // dependencies live under <root>/vendor. Scope filtering must key
+        // on the PSR-4 namespace, NOT "under the package root" - otherwise
+        // the package's own deps (e.g. psysh) get reflected and can trigger
+        // PHP fatals on incompatible class declarations.
+        $root = sys_get_temp_dir().'/nexus-walker-inrepo-'.uniqid('', true);
+        mkdir($root.'/src', 0o755, true);
+        mkdir($root.'/vendor/psy/psysh/src', 0o755, true);
+        mkdir($root.'/vendor/composer', 0o755, true);
+        file_put_contents($root.'/src/Service.php', '<?php');
+        file_put_contents($root.'/vendor/psy/psysh/src/FileLink.php', '<?php');
+
+        $classMapPhp = var_export([
+            'Synthesq\\Relay\\Service' => $root.'/src/Service.php',
+            'Psy\\Readline\\Hoa\\FileLink' => $root.'/vendor/psy/psysh/src/FileLink.php',
+        ], true);
+        file_put_contents($root.'/vendor/autoload.php', <<<PHP
+        <?php
+        \$loader = new \Composer\Autoload\ClassLoader();
+        \$loader->addClassMap({$classMapPhp});
+        return \$loader;
+        PHP);
+
+        // vendorPath is the package root itself (self-developed checkout).
+        $scope = new PackageScope(
+            vendor: 'synthesq',
+            name: 'relay',
+            version: 'dev-main',
+            vendorPath: $root,
+            namespaces: ['Synthesq\\Relay\\' => 'src/'],
+        );
+
+        $results = (new ClassMapWalker)->walk(
+            basePath: $root,
+            includeVendor: false,
+            vendorAllowlist: [],
+            includeTests: false,
+            scope: $scope,
+        );
+
+        $classes = array_column($results, 'class');
+        $this->assertContains('Synthesq\\Relay\\Service', $classes);
+        $this->assertNotContains(
+            'Psy\\Readline\\Hoa\\FileLink',
+            $classes,
+            "The package's own vendored dependency must not be captured.",
+        );
+
+        $this->rmdirRecursive($root);
+    }
+
     // -------------------------------------------------------------------------
 
     private function rmdirRecursive(string $dir): void
