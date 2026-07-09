@@ -103,6 +103,19 @@ def detect_mode(path: Path) -> IndexMode:
     return IndexMode.IN_REPO if (has_testbench and has_extractor) else IndexMode.NEXUS_DRIVEN
 
 
+def _vendor_path_for(mode: IndexMode, meta: ComposerMetadata, cache_root: Path) -> Path:
+    """Return the source-root prefix the path normalizer should strip.
+
+    In-repo: a self-developed checkout is never installed under its own
+    ``vendor/<vendor>/<name>`` - its source lives at the package root, so
+    that root is the prefix to strip. Nexus-driven: the package is installed
+    into the scratch Testbench vendor tree, so strip that path instead.
+    """
+    if mode == IndexMode.IN_REPO:
+        return meta.package_root
+    return scratch_dir_for(meta, base=cache_root) / "vendor" / meta.vendor / meta.name
+
+
 @dataclass(frozen=True, slots=True)
 class IndexResult:
     """Summary of a completed package indexing run.
@@ -215,15 +228,9 @@ class PackageIndexer:
                 f"Expected kind='package' in reflection.json, got {doc.kind!r}",
             )
 
-        # Compute vendor_path: where the package lives inside the
-        # Testbench vendor tree, so the path normalizer can strip
-        # the scratch prefix.
-        if mode == IndexMode.IN_REPO:
-            vendor_path = meta.package_root / "vendor" / meta.vendor / meta.name
-        else:
-            vendor_path = (
-                scratch_dir_for(meta, base=self.cache_root) / "vendor" / meta.vendor / meta.name
-            )
+        # Compute the source-root prefix so the path normalizer can rewrite
+        # extracted file paths to be <package_root>-relative.
+        vendor_path = _vendor_path_for(mode, meta, self.cache_root)
 
         log.info("package.index.normalize_paths", slug=meta.slug)
         normalized = normalize_paths(doc, package_root=meta.package_root, vendor_path=vendor_path)
