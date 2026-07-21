@@ -853,3 +853,36 @@ def test_incremental_with_no_old_calls_edges_still_queries_changed(tmp_path: Pat
     assert len(calls) == 1
     assert calls[0].source == "method:App\\Caller::invoke"
     assert calls[0].target == "method:App\\Foo::doFoo"
+
+
+def test_class_file_map_resolves_relative_paths_against_project_root(tmp_path: Path) -> None:
+    """Package indexes normalize file paths to <package_root>-relative
+    (decision #8). The LSP pass opens those files directly, so relative
+    paths must be resolved against ``ctx.project_path`` - otherwise the
+    read depends on CWD and CALLS enrichment silently yields nothing.
+    """
+    from nexus.pipeline.passes.enrich_with_lsp import _build_class_file_map
+
+    g = Graph()
+    g.add_node(
+        Node(
+            id="class:Acme\\Pkg\\Svc",
+            kind=NodeKind.CLASS,
+            name="Svc",
+            attributes={"file": "src/Svc.php"},  # package-relative
+        ),
+    )
+    g.add_node(
+        Node(
+            id="class:Acme\\Pkg\\Abs",
+            kind=NodeKind.CLASS,
+            name="Abs",
+            attributes={"file": str(tmp_path / "other" / "Abs.php")},  # absolute
+        ),
+    )
+
+    mapping = _build_class_file_map(g, tmp_path)
+
+    assert mapping["class:Acme\\Pkg\\Svc"] == tmp_path / "src" / "Svc.php"
+    # Absolute paths (project-mode indexes) must pass through untouched.
+    assert mapping["class:Acme\\Pkg\\Abs"] == tmp_path / "other" / "Abs.php"

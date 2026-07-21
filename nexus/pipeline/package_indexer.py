@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from nexus.adapters.embedders.cache import EmbeddingCache
     from nexus.adapters.package.composer_metadata import ComposerMetadata
     from nexus.core.graph.builder import GraphBuilder
-    from nexus.core.protocols import Embedder
+    from nexus.core.protocols import Embedder, Lsp
 
 log = structlog.get_logger(__name__)
 
@@ -166,6 +166,8 @@ class PackageIndexer:
         builder: GraphBuilder | None = None,
         cache: EmbeddingCache | None = None,
         embedder: Embedder | None = None,
+        lsp: Lsp | None = None,
+        lsp_server: str | None = None,
     ) -> None:
         self.cache_root = cache_root
         self.nexus_root = nexus_root
@@ -174,6 +176,8 @@ class PackageIndexer:
         self._builder = builder
         self._cache = cache
         self._embedder = embedder
+        self._lsp = lsp
+        self._lsp_server = lsp_server
 
     def index(self, meta: ComposerMetadata) -> IndexResult:  # pragma: no cover
         """Run the full package indexing flow.
@@ -266,9 +270,16 @@ class PackageIndexer:
                 "No built-in profiles found; cannot build pipeline context.",
             )
 
+        # CALLS enrichment runs against ``ctx.project_path`` - the real
+        # package checkout on disk - which is the same in both extraction
+        # modes (a Nexus-driven build only path-installs *from* it). So
+        # enrichment is valid whenever an LSP was supplied.
+        use_lsp = self._lsp is not None
+
         pipeline = build_post_extraction_pipeline(
             builder=self._builder,
             cache=self._cache,
+            include_lsp=use_lsp,
         )
 
         ctx = PipelineContext(
@@ -276,6 +287,8 @@ class PackageIndexer:
             storage=storage,
             profile=profile,
             embedder=self._embedder,
+            lsp=self._lsp if use_lsp else None,
+            lsp_server=self._lsp_server if use_lsp else None,
         )
         ctx.reflection = normalized
 
@@ -300,11 +313,14 @@ class PackageIndexer:
 
         last_commit = self._git_head(meta.package_root)
         # The EmbedAndPersistPass already wrote a meta.json with
-        # embedder_id (or None) and timing. We rewrite it here to
-        # attach package-specific fields (kind, attribution, build
-        # mode, source path, last commit) - but the pipeline's
-        # embedder_id signal must be preserved so query-time coverage
-        # can reflect whether vectors were actually written.
+        # embedder_id (or None), lsp_server, and timing. We rewrite it
+        # here to attach package-specific fields (kind, attribution,
+        # build mode, source path, last commit) - but the pipeline's
+        # signals must be preserved so query-time coverage stays
+        # truthful: embedder_id reflects whether vectors were written,
+        # and lsp_server drives ``Coverage.calls_indexed``. Dropping the
+        # latter would make ``find_callers`` report "not indexed" even
+        # though CALLS edges are present in the graph.
         embedder_id = self._embedder.model_id if self._embedder is not None else None
         package_meta = ProjectMeta(
             project_slug=meta.slug,
@@ -318,6 +334,7 @@ class PackageIndexer:
             node_count=len(ctx.graph.nodes) if ctx.graph is not None else None,
             edge_count=len(ctx.graph.edges) if ctx.graph is not None else None,
             embedder_id=embedder_id,
+            lsp_server=ctx.lsp_server,
         )
         storage.write_meta(package_meta)
         log.info("package.index.meta_written", slug=meta.slug)

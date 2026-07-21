@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from nexus.adapters.embedders.cache import EmbeddingCache
     from nexus.adapters.extractor import PhpExtractor
     from nexus.core.graph.builder import GraphBuilder
+    from nexus.pipeline.pass_protocol import Pass
 
 
 def build_default_pipeline(
@@ -68,6 +69,7 @@ def build_post_extraction_pipeline(
     *,
     builder: GraphBuilder | None = None,
     cache: EmbeddingCache | None = None,
+    include_lsp: bool = False,
 ) -> Pipeline:
     """Build a :class:`Pipeline` that starts from an already-loaded reflection.
 
@@ -77,20 +79,25 @@ def build_post_extraction_pipeline(
     ``RunExtractorPass`` is intentionally omitted - the context must have
     ``ctx.reflection`` populated before :meth:`Pipeline.run` is called.
 
-    LSP enrichment is also omitted: Testbench-booted packages run inside
-    a scratch environment where no language server is wired up.
+    LSP enrichment is opt-in via ``include_lsp``. It is off by default
+    because a Nexus-driven build extracts from a transient scratch
+    Testbench tree, where CALLS enrichment would be meaningless. In-repo
+    mode extracts a real checkout on disk, so a language server can
+    resolve references there and populate ``CALLS`` edges.
 
     Args:
         builder: Optional :class:`GraphBuilder` override (tests).
         cache: Optional :class:`EmbeddingCache` override (tests).
+        include_lsp: Insert :class:`EnrichWithLspPass` after graph
+            construction. The pass reads ``ctx.lsp``; when that is
+            ``None`` it degrades to a no-op.
 
     Returns:
         A ready-to-run :class:`Pipeline` starting from ``BuildGraphPass``.
     """
-    return Pipeline(
-        [
-            BuildGraphPass(builder=builder),
-            ChunkPass(),
-            EmbedAndPersistPass(cache=cache),
-        ],
-    )
+    passes: list[Pass] = [BuildGraphPass(builder=builder)]
+    if include_lsp:
+        passes.append(EnrichWithLspPass())
+    passes.extend([ChunkPass(), EmbedAndPersistPass(cache=cache)])
+
+    return Pipeline(passes)
