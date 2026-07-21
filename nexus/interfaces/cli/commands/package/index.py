@@ -12,6 +12,7 @@ from nexus.adapters.package.composer_metadata import (
     ComposerMetadataError,
     read_composer_metadata,
 )
+from nexus.interfaces.cli.commands._index_helpers import resolve_lsp_for_run
 from nexus.interfaces.cli.embedder import build_embedder_from_config
 from nexus.pipeline.package_indexer import PackageIndexer, PackageIndexError
 
@@ -55,6 +56,18 @@ def _extractor_root() -> Path:
     show_default=True,
     help="Extraction timeout in seconds.",
 )
+@click.option(
+    "--lsp",
+    "lsp_choice",
+    default="auto",
+    metavar="CHOICE",
+    help=(
+        "LSP server for CALLS-edge enrichment: 'auto' (default - detect "
+        "intelephense or phpactor), 'none' to skip, or an explicit binary "
+        "name/path. Enrichment runs against the package checkout, so it "
+        "applies to both in-repo and Nexus-driven extraction."
+    ),
+)
 @click.pass_obj
 def index_command(
     cli_ctx: CliContext,
@@ -62,6 +75,7 @@ def index_command(
     name: str | None,
     version: str | None,
     timeout: int,
+    lsp_choice: str,
 ) -> None:
     """Index a Composer package at PATH.
 
@@ -101,12 +115,19 @@ def index_command(
             err=True,
         )
 
+    # Resolved up-front (mirrors project mode). The indexer only wires it
+    # in for in-repo extraction, where the checkout is a real on-disk tree
+    # a language server can resolve references against.
+    lsp, lsp_server = resolve_lsp_for_run(cli_ctx, lsp_choice)
+
     indexer = PackageIndexer(
         cache_root=cache_root,
         nexus_root=nexus_root,
         extractor_root=extractor_root,
         timeout_s=timeout,
         embedder=embedder,
+        lsp=lsp,
+        lsp_server=lsp_server,
     )
 
     try:

@@ -95,7 +95,7 @@ class EnrichWithLspPass:
             )
             return
 
-        file_for_class: dict[str, Path] = _build_class_file_map(ctx.graph)
+        file_for_class: dict[str, Path] = _build_class_file_map(ctx.graph, ctx.project_path)
         methods_by_file: dict[Path, list[tuple[int, Node]]] = _index_methods_by_file(
             method_nodes,
             file_for_class,
@@ -370,12 +370,19 @@ class EnrichWithLspPass:
 # ----------------------------------------------------------------------------
 
 
-def _build_class_file_map(graph: Graph) -> dict[str, Path]:
-    """Map class-node id → source file path.
+def _build_class_file_map(graph: Graph, root: Path) -> dict[str, Path]:
+    """Map class-node id → absolute source file path.
 
     Method nodes only carry a ``class_fqn`` attribute and a start line;
     the class node carries the file. We pre-build the lookup so the
     main loop is O(1) per method.
+
+    Paths are resolved against ``root`` (the pipeline's ``project_path``)
+    when relative. Project-mode indexes store absolute paths and pass
+    through unchanged; package indexes normalize theirs to
+    ``<package_root>``-relative (decision #8), and those must be rejoined
+    with the root or the source reads below would depend on the process
+    CWD and silently produce no CALLS edges.
     """
     mapping: dict[str, Path] = {}
     class_kinds = {
@@ -401,7 +408,8 @@ def _build_class_file_map(graph: Graph) -> dict[str, Path]:
             continue
         file = node.attributes.get("file")
         if isinstance(file, str):
-            mapping[node.id] = Path(file)
+            path = Path(file)
+            mapping[node.id] = path if path.is_absolute() else root / path
     return mapping
 
 

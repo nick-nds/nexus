@@ -36,7 +36,7 @@ from __future__ import annotations
 import contextlib
 import subprocess
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Protocol
 
 from nexus.adapters.embedders.cache import EmbeddingCache
 from nexus.adapters.storage import LanceVectorRecord, ProjectMeta
@@ -45,12 +45,25 @@ from nexus.core.outcome import Error, Warning
 from nexus.pipeline.progress import PassProgress
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
     from pathlib import Path
 
     from nexus.core.chunking import Chunk
     from nexus.core.graph.graph import Graph
     from nexus.pipeline.context import PipelineContext
+
+
+class _PurgeableVectorStore(Protocol):
+    """The slice of the vector store the orphan purge needs.
+
+    Declared locally rather than reusing :class:`VectorStore` because the
+    concrete Lance backend narrows the ``search``/``iter_records`` return
+    types, which the invariant protocol signature rejects.
+    """
+
+    def iter_records(self) -> Iterator[Any]: ...
+
+    def delete(self, ids: Iterable[str]) -> None: ...
 
 
 def _resolve_git_head(project_path: Path) -> str | None:
@@ -222,6 +235,16 @@ class EmbedAndPersistPass:
                 ),
             )
 
+        # Drop vectors left over from earlier builds. ChunkPass walks the
+        # whole reflection every run, so ``ctx.chunks`` is the complete
+        # set - any stored id missing from it belongs to a chunk that no
+        # longer exists (a renamed or deleted symbol mints a new id).
+        # The store only upserts current ids, so without this those rows
+        # stay searchable forever and semantic_search keeps returning
+        # stale hits. Runs after the batches so a mid-way embedding
+        # failure leaves the previous vectors intact.
+        self._purge_orphan_vectors(store, {chunk.id for chunk in ctx.chunks})
+
         ctx.progress.emit(
             PassProgress(
                 pass_name=self.name,
@@ -241,6 +264,18 @@ class EmbedAndPersistPass:
         if callable(close):
             with contextlib.suppress(Exception):
                 close()
+
+    @staticmethod
+    def _purge_orphan_vectors(store: _PurgeableVectorStore, current_ids: set[str]) -> None:
+        """Delete stored vectors whose chunk id is no longer produced.
+
+        Args:
+            store: The project's vector store.
+            current_ids: Every chunk id in this build.
+        """
+        orphans = {record.id for record in store.iter_records()} - current_ids
+        if orphans:
+            store.delete(orphans)
 
     def _batches(self, chunks: list[Chunk]) -> Iterator[list[Chunk]]:
         """Yield fixed-size slices of ``chunks``."""
