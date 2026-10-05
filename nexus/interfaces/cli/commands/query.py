@@ -87,6 +87,11 @@ def _iter_options(
     return out
 
 
+# The only tool that calls the embedder; every other tool skips the
+# per-call embedder liveness probe.
+_EMBEDDING_TOOL = "semantic_search"
+
+
 def _unwrap_optional(annotation: Any) -> tuple[Any, bool]:
     """Peel off ``Optional[X]`` / ``X | None`` into ``(X, True)``."""
     origin = getattr(annotation, "__origin__", None)
@@ -123,7 +128,8 @@ def _make_callback(tool_name: str) -> Any:
         # explicit None on every unset flag.
         payload = {k: v for k, v in kwargs.items() if v is not None}
         try:
-            result = cli_ctx.engine().query(tool_name, payload)
+            engine = cli_ctx.engine(probe_embedder=tool_name == _EMBEDDING_TOOL)
+            result = engine.query(tool_name, payload)
         except ToolInputError as e:
             print_error(cli_ctx, str(e), hint=f"check `nexus query {tool_name} --help`")
             raise click.exceptions.Exit(2) from e

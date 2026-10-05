@@ -134,8 +134,16 @@ class CliContext:
             self._storage = None
         self._engine = None
 
-    def engine(self) -> QueryEngine:
-        """Build the query engine lazily on first use."""
+    def engine(self, *, probe_embedder: bool = True) -> QueryEngine:
+        """Build the query engine lazily on first use.
+
+        Args:
+            probe_embedder: Run the live embedder probe that fills
+                ``coverage.semantic_search_available``. One-shot callers
+                running a tool that never embeds pass ``False`` to skip
+                the round-trip; the field is then ``None`` (no probe ran).
+                Only the first call's value matters - the engine is cached.
+        """
         if self._engine is None:
             from nexus.core.query.coverage import Coverage  # noqa: PLC0415
 
@@ -144,7 +152,10 @@ class CliContext:
             storage = cast("ProjectStorageProtocol", self.storage())
             embedder = self._load_embedder()
             vector_dimensions = getattr(embedder, "dimensions", None) if embedder else None
-            coverage = Coverage.from_meta(self.storage().read_meta(), embedder=embedder)
+            coverage = Coverage.from_meta(
+                self.storage().read_meta(),
+                embedder=embedder if probe_embedder else None,
+            )
             ctx = QueryContext(
                 storage=storage,
                 budget=ResponseBudget(),
