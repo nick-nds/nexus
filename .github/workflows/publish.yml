@@ -72,9 +72,10 @@ jobs:
         run: uv build
 
       - name: Verify with twine
-        run: |
-          uv run pip install twine
-          uv run twine check dist/*
+        # Isolated from the project env: ``uv run`` re-syncs to uv.lock, whose
+        # pinned ``packaging`` can lag the Metadata-Version the build backend
+        # emits (v1.4.0 failed on hatchling's Metadata-Version 2.5).
+        run: uvx twine check dist/*
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
