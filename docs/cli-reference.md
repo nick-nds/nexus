@@ -20,6 +20,7 @@ nexus [OPTIONS] COMMAND [ARGS]...
 | `--color / --no-color` | flag | `--color` | Enable or suppress ANSI colour codes. |
 | `-v, --verbose` | flag | off | Emit debug-level log output. |
 | `-y, --yes` | flag | off | Answer yes to all confirmation prompts (non-interactive mode). |
+| `--max-items` | int | `100` | Cap on rows in each list a query returns (`truncated_lists` reports what was cut). `0` returns every row, for scripts. |
 | `-V, --version` | flag | - | Print the installed Nexus version and exit. |
 
 ### Exit codes

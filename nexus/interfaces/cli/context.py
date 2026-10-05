@@ -24,6 +24,7 @@ from nexus.core.query import (
     ResponseBudget,
     ToolRegistry,
 )
+from nexus.core.query.budget import DEFAULT_MAX_LIST_ITEMS
 from nexus.core.query.context import QueryContext
 from nexus.core.query.tools import register_builtin_tools
 
@@ -64,6 +65,8 @@ class CliContext:
         verbose: ``--verbose`` increases log verbosity.
         yes: ``--yes`` / ``--non-interactive`` short-circuits
             confirmation prompts.
+        max_items: ``--max-items`` cap on each returned list; ``0``
+            means no cap.
     """
 
     storage_root: Path = field(default_factory=lambda: DEFAULT_ROOT)
@@ -73,6 +76,7 @@ class CliContext:
     color: bool | None = None
     verbose: bool = False
     yes: bool = False
+    max_items: int = DEFAULT_MAX_LIST_ITEMS
     _storage: ProjectStorage | None = field(default=None, init=False, repr=False)
     _engine: QueryEngine | None = field(default=None, init=False, repr=False)
 
@@ -158,7 +162,8 @@ class CliContext:
             )
             ctx = QueryContext(
                 storage=storage,
-                budget=ResponseBudget(),
+                # 0 means "no cap"; sys.maxsize keeps ResponseBudget's int contract.
+                budget=ResponseBudget(max_list_items=self.max_items or sys.maxsize),
                 embedder=embedder,
                 vector_dimensions=vector_dimensions,
                 coverage=coverage,

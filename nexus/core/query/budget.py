@@ -38,6 +38,9 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound="ToolOutput")
 
 
+DEFAULT_MAX_LIST_ITEMS = 100
+
+
 @dataclass(frozen=True, slots=True)
 class ResponseBudget:
     """Per-run output-size ceiling.
@@ -56,7 +59,7 @@ class ResponseBudget:
             stack trace or source excerpt leaking into a response.
     """
 
-    max_list_items: int = 100
+    max_list_items: int = DEFAULT_MAX_LIST_ITEMS
     max_string_chars: int = 4000
 
     def trim(self, output: T) -> T:
