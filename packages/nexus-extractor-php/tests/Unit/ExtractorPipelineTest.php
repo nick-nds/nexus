@@ -55,7 +55,7 @@ final class ExtractorPipelineTest extends TestCase
         $errors = new ErrorCollector;
 
         return new ExtractionContext(
-            app: $this->createMock(Application::class),
+            app: $this->createStub(Application::class),
             document: new ReflectionDocument($errors),
             errors: $errors,
             progress: new ProgressReporter(new NullOutput, quiet: true),
