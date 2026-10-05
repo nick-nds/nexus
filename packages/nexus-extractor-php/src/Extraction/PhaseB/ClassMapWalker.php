@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexus\Extractor\Extraction\PhaseB;
 
 use Composer\Autoload\ClassLoader;
+use Composer\ClassMapGenerator\ClassMapGenerator;
 use Nexus\Extractor\Extraction\Support\PackageScope;
 use Throwable;
 
@@ -35,11 +36,13 @@ final class ClassMapWalker
             return [];
         }
 
-        $classMap = $loader->getClassMap();
-
         $items = [];
         $base = rtrim($basePath, '/');
         $vendorDir = $base.'/vendor/';
+
+        // The dumped classmap wins where both know a class; the PSR-4 scan
+        // only fills in classes added since the last dump-autoload.
+        $classMap = $loader->getClassMap() + $this->scanProjectPsr4($loader, $base.'/', $vendorDir);
         $testsDirs = [$base.'/tests/', $base.'/Tests/'];
 
         foreach ($classMap as $class => $file) {
@@ -176,6 +179,33 @@ final class ClassMapWalker
         }
 
         return false;
+    }
+
+    /**
+     * Parse (without loading) the project's own PSR-4 roots so classes
+     * missing from a stale optimised classmap are still swept.
+     *
+     * @return array<string, string>
+     */
+    private function scanProjectPsr4(ClassLoader $loader, string $projectDir, string $vendorDir): array
+    {
+        $generator = new ClassMapGenerator;
+
+        foreach ($loader->getPrefixesPsr4() as $prefix => $dirs) {
+            foreach ($dirs as $dir) {
+                $absolute = realpath($dir);
+                if ($absolute === false || ! is_dir($absolute)) {
+                    continue;
+                }
+                $root = $absolute.'/';
+                if (! str_starts_with($root, $projectDir) || str_starts_with($root, $vendorDir)) {
+                    continue;
+                }
+                $generator->scanPaths($absolute, null, 'psr-4', $prefix);
+            }
+        }
+
+        return $generator->getClassMap()->getMap();
     }
 
     private function locateLoader(string $basePath): ?ClassLoader
