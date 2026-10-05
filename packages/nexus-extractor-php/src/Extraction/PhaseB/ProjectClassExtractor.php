@@ -42,6 +42,7 @@ final class ProjectClassExtractor implements Extractor
             vendorAllowlist: $context->vendorAllowlist,
             includeTests: $context->includeTests,
             scope: $context->package,
+            excludePaths: $context->excludePaths,
         );
 
         $items = [];

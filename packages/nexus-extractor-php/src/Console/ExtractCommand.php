@@ -48,6 +48,7 @@ final class ExtractCommand extends Command
         {--include-vendor : Include all vendor classes in the class sweep}
         {--vendor-allowlist=* : Composer package names to include from vendor (repeatable)}
         {--include-tests : Include the project\'s tests/ classes in the sweep}
+        {--exclude-path=* : Project-relative directory or glob to skip in the class sweep (repeatable)}
         {--profile= : Optional profile hint passed through to the document}
         {--quiet-progress : Suppress per-phase progress output}';
 
@@ -63,7 +64,7 @@ final class ExtractCommand extends Command
             return 2;
         }
 
-        $vendorAllowlist = $this->resolveVendorAllowlist();
+        $vendorAllowlist = $this->listOption('vendor-allowlist');
 
         $errors = new ErrorCollector;
         $document = new ReflectionDocument($errors);
@@ -87,6 +88,7 @@ final class ExtractCommand extends Command
             profileHint: $this->stringOption('profile'),
             includeTests: (bool) $this->option('include-tests'),
             classTracker: $tracker,
+            excludePaths: $this->listOption('exclude-path'),
         );
 
         $pipeline = new ExtractorPipeline($this->buildExtractors());
@@ -145,10 +147,10 @@ final class ExtractCommand extends Command
     /**
      * @return list<string>
      */
-    private function resolveVendorAllowlist(): array
+    private function listOption(string $name): array
     {
         /** @var array<int, string>|string|null $raw */
-        $raw = $this->option('vendor-allowlist');
+        $raw = $this->option($name);
 
         if ($raw === null) {
             return [];

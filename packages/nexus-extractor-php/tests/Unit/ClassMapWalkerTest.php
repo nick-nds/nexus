@@ -22,6 +22,8 @@ final class ClassMapWalkerTest extends TestCase
         $this->tmpDir = sys_get_temp_dir().'/nexus-classmap-'.uniqid('', true);
         mkdir($this->tmpDir.'/app/Models', 0o755, true);
         mkdir($this->tmpDir.'/tests/Unit', 0o755, true);
+        mkdir($this->tmpDir.'/tests/Fakes', 0o755, true);
+        mkdir($this->tmpDir.'/app/Legacy', 0o755, true);
         mkdir($this->tmpDir.'/vendor/composer', 0o755, true);
         mkdir($this->tmpDir.'/vendor/acme/lib/src', 0o755, true);
 
@@ -29,6 +31,8 @@ final class ClassMapWalkerTest extends TestCase
         // walker never requires them; it only maps class => file path.
         file_put_contents($this->tmpDir.'/app/Models/User.php', '<?php');
         file_put_contents($this->tmpDir.'/tests/Unit/UserTest.php', '<?php');
+        file_put_contents($this->tmpDir.'/tests/Fakes/FakeGateway.php', '<?php');
+        file_put_contents($this->tmpDir.'/app/Legacy/OldReport.php', '<?php');
         file_put_contents($this->tmpDir.'/vendor/acme/lib/src/Thing.php', '<?php');
 
         // Build a minimal vendor/autoload.php that returns a ClassLoader
@@ -38,6 +42,8 @@ final class ClassMapWalkerTest extends TestCase
         $classMapPhp = var_export([
             'App\\Models\\User' => $this->tmpDir.'/app/Models/User.php',
             'Tests\\Unit\\UserTest' => $this->tmpDir.'/tests/Unit/UserTest.php',
+            'Tests\\Fakes\\FakeGateway' => $this->tmpDir.'/tests/Fakes/FakeGateway.php',
+            'App\\Legacy\\OldReport' => $this->tmpDir.'/app/Legacy/OldReport.php',
             'Acme\\Lib\\Thing' => $this->tmpDir.'/vendor/acme/lib/src/Thing.php',
         ], true);
 
@@ -87,6 +93,66 @@ final class ClassMapWalkerTest extends TestCase
         $classes = array_map(static fn (array $e): string => $e['class'], $result);
 
         $this->assertContains('Tests\\Unit\\UserTest', $classes);
+    }
+
+    public function test_include_tests_skips_non_test_classes_in_tests_directory(): void
+    {
+        // Fakes and helpers under tests/ are often deliberately incomplete
+        // (e.g. a fake missing interface methods) and fatal on load, which
+        // aborts the whole extraction. Only *Test case classes are swept.
+        $result = (new ClassMapWalker)->walk(
+            $this->tmpDir,
+            includeVendor: false,
+            vendorAllowlist: [],
+            includeTests: true,
+        );
+
+        $classes = array_map(static fn (array $e): string => $e['class'], $result);
+
+        $this->assertNotContains('Tests\\Fakes\\FakeGateway', $classes);
+    }
+
+    public function test_exclude_paths_drop_classes_under_a_directory(): void
+    {
+        $result = (new ClassMapWalker)->walk(
+            $this->tmpDir,
+            includeVendor: false,
+            vendorAllowlist: [],
+            excludePaths: ['app/Legacy/'],
+        );
+
+        $classes = array_map(static fn (array $e): string => $e['class'], $result);
+
+        $this->assertNotContains('App\\Legacy\\OldReport', $classes);
+        $this->assertContains('App\\Models\\User', $classes);
+    }
+
+    public function test_exclude_paths_accept_glob_patterns(): void
+    {
+        $result = (new ClassMapWalker)->walk(
+            $this->tmpDir,
+            includeVendor: false,
+            vendorAllowlist: [],
+            excludePaths: ['app/Legacy/**'],
+        );
+
+        $classes = array_map(static fn (array $e): string => $e['class'], $result);
+
+        $this->assertNotContains('App\\Legacy\\OldReport', $classes);
+    }
+
+    public function test_exclude_paths_do_not_match_partial_directory_names(): void
+    {
+        $result = (new ClassMapWalker)->walk(
+            $this->tmpDir,
+            includeVendor: false,
+            vendorAllowlist: [],
+            excludePaths: ['app/Leg'],
+        );
+
+        $classes = array_map(static fn (array $e): string => $e['class'], $result);
+
+        $this->assertContains('App\\Legacy\\OldReport', $classes);
     }
 
     public function test_include_vendor_flag_pulls_in_vendor_classes(): void

@@ -272,7 +272,7 @@ class PhpExtractor:
 
     @staticmethod
     def _check_command_known(stdout: str, stderr: str, exit_code: int) -> None:
-        """Detect the "command not defined" error and remap to ExtractorMissingError.
+        """Remap "command not defined" and "option does not exist" to actionable errors.
 
         Laravel's Artisan prints "There are no commands defined in the
         'nexus' namespace" (or "Command … is not defined") when the
@@ -290,6 +290,16 @@ class PhpExtractor:
                 "The 'nexus:extract' Artisan command is not registered in this "
                 "project. Install the Composer package with: "
                 "composer require --dev nick-nds/nexus-extractor",
+                stderr=stderr,
+                exit_code=exit_code,
+            )
+        # The Python and PHP packages ship as a pair; a flag added on the
+        # Python side reaches an older extractor as an unknown option.
+        if "option does not exist" in combined:
+            raise ExtractorFailedError(
+                "The installed nexus-extractor is older than this nexus CLI and "
+                "rejected an option. Upgrade it with: "
+                "composer update nick-nds/nexus-extractor",
                 stderr=stderr,
                 exit_code=exit_code,
             )

@@ -24,9 +24,10 @@ final class ClassMapWalker
 {
     /**
      * @param  list<string>  $vendorAllowlist  e.g. ['spatie/laravel-permission']
+     * @param  list<string>  $excludePaths  project-relative directories or fnmatch globs, e.g. ['storage/', 'app/Legacy/**']
      * @return list<array{class: string, file: string, source: 'project'|'vendor'}>
      */
-    public function walk(string $basePath, bool $includeVendor, array $vendorAllowlist, bool $includeTests = false, ?PackageScope $scope = null): array
+    public function walk(string $basePath, bool $includeVendor, array $vendorAllowlist, bool $includeTests = false, ?PackageScope $scope = null, array $excludePaths = []): array
     {
         $loader = $this->locateLoader($basePath);
 
@@ -70,6 +71,10 @@ final class ClassMapWalker
             // ride.
             $isVendor = str_starts_with($absolute, $vendorDir);
 
+            if ($this->isExcluded($absolute, $base, $excludePaths)) {
+                continue;
+            }
+
             // When a PackageScope is active, membership is decided by the
             // target's PSR-4 namespace, NOT by "lives under a directory".
             // A self-developed package extracted in-repo has its checkout
@@ -104,8 +109,13 @@ final class ClassMapWalker
                 // The agent use case is also uninterested in test doubles
                 // for production code understanding. Users can opt in
                 // via --include-tests.
-                if (! $includeTests && ! $isVendor && $this->isInTestsDir($absolute, $testsDirs)) {
-                    continue;
+                if (! $isVendor && $this->isInTestsDir($absolute, $testsDirs)) {
+                    // Even when opted in, only sweep *Test case classes:
+                    // fakes and helpers are where the non-loadable stubs
+                    // live, and one fatal aborts the whole extraction.
+                    if (! $includeTests || ! str_ends_with((string) $class, 'Test')) {
+                        continue;
+                    }
                 }
 
                 // Defence in depth: drop any path containing
@@ -141,6 +151,26 @@ final class ClassMapWalker
     {
         foreach ($testsDirs as $dir) {
             if (str_starts_with($absolute, $dir)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  list<string>  $excludePaths
+     */
+    private function isExcluded(string $absolute, string $base, array $excludePaths): bool
+    {
+        if ($excludePaths === [] || ! str_starts_with($absolute, $base.'/')) {
+            return false;
+        }
+
+        $relative = substr($absolute, strlen($base) + 1);
+
+        foreach ($excludePaths as $pattern) {
+            if (str_starts_with($relative, rtrim($pattern, '/').'/') || fnmatch($pattern, $relative)) {
                 return true;
             }
         }
