@@ -26,6 +26,7 @@ use Nexus\Extractor\Output\ReflectionDocument;
 use Nexus\Extractor\Support\CurrentClassTracker;
 use Nexus\Extractor\Support\ErrorCollector;
 use Nexus\Extractor\Support\FatalErrorHandler;
+use Nexus\Extractor\Support\MemoryLimit;
 use Nexus\Extractor\Support\ProgressReporter;
 
 /**
@@ -42,6 +43,9 @@ use Nexus\Extractor\Support\ProgressReporter;
  */
 final class ExtractCommand extends Command
 {
+    /** Enough for a ~4k-class project's document plus its JSON encoding. */
+    private const MEMORY_LIMIT = '1G';
+
     /** @var string */
     protected $signature = 'nexus:extract
         {--output= : Path to write reflection.json (defaults to storage/app/nexus/reflection.json)}
@@ -57,6 +61,8 @@ final class ExtractCommand extends Command
 
     public function handle(Application $app, JsonWriter $writer): int
     {
+        MemoryLimit::ensureAtLeast(self::MEMORY_LIMIT);
+
         $output = $this->resolveOutputPath($app);
         if ($output === null) {
             $this->error('Invalid --output path.');
