@@ -71,7 +71,7 @@ final class ViewReturnVisitor extends ContextTrackingVisitor
         $this->emitViewArg($node->args[0], $node);
     }
 
-    private function emitViewArg(Node\Arg|Node\VariadicPlaceholder $arg, Node $node): void
+    private function emitViewArg(Node $arg, Node $node): void
     {
         if (! ($arg instanceof Node\Arg)) {
             return;

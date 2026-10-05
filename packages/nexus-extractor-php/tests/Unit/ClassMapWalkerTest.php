@@ -22,6 +22,8 @@ final class ClassMapWalkerTest extends TestCase
         $this->tmpDir = sys_get_temp_dir().'/nexus-classmap-'.uniqid('', true);
         mkdir($this->tmpDir.'/app/Models', 0o755, true);
         mkdir($this->tmpDir.'/tests/Unit', 0o755, true);
+        mkdir($this->tmpDir.'/tests/Fakes', 0o755, true);
+        mkdir($this->tmpDir.'/app/Legacy', 0o755, true);
         mkdir($this->tmpDir.'/vendor/composer', 0o755, true);
         mkdir($this->tmpDir.'/vendor/acme/lib/src', 0o755, true);
 
@@ -29,6 +31,8 @@ final class ClassMapWalkerTest extends TestCase
         // walker never requires them; it only maps class => file path.
         file_put_contents($this->tmpDir.'/app/Models/User.php', '<?php');
         file_put_contents($this->tmpDir.'/tests/Unit/UserTest.php', '<?php');
+        file_put_contents($this->tmpDir.'/tests/Fakes/FakeGateway.php', '<?php');
+        file_put_contents($this->tmpDir.'/app/Legacy/OldReport.php', '<?php');
         file_put_contents($this->tmpDir.'/vendor/acme/lib/src/Thing.php', '<?php');
 
         // Build a minimal vendor/autoload.php that returns a ClassLoader
@@ -38,6 +42,8 @@ final class ClassMapWalkerTest extends TestCase
         $classMapPhp = var_export([
             'App\\Models\\User' => $this->tmpDir.'/app/Models/User.php',
             'Tests\\Unit\\UserTest' => $this->tmpDir.'/tests/Unit/UserTest.php',
+            'Tests\\Fakes\\FakeGateway' => $this->tmpDir.'/tests/Fakes/FakeGateway.php',
+            'App\\Legacy\\OldReport' => $this->tmpDir.'/app/Legacy/OldReport.php',
             'Acme\\Lib\\Thing' => $this->tmpDir.'/vendor/acme/lib/src/Thing.php',
         ], true);
 
@@ -87,6 +93,136 @@ final class ClassMapWalkerTest extends TestCase
         $classes = array_map(static fn (array $e): string => $e['class'], $result);
 
         $this->assertContains('Tests\\Unit\\UserTest', $classes);
+    }
+
+    public function test_include_tests_skips_non_test_classes_in_tests_directory(): void
+    {
+        // Fakes and helpers under tests/ are often deliberately incomplete
+        // (e.g. a fake missing interface methods) and fatal on load, which
+        // aborts the whole extraction. Only *Test case classes are swept.
+        $result = (new ClassMapWalker)->walk(
+            $this->tmpDir,
+            includeVendor: false,
+            vendorAllowlist: [],
+            includeTests: true,
+        );
+
+        $classes = array_map(static fn (array $e): string => $e['class'], $result);
+
+        $this->assertNotContains('Tests\\Fakes\\FakeGateway', $classes);
+    }
+
+    public function test_exclude_paths_drop_classes_under_a_directory(): void
+    {
+        $result = (new ClassMapWalker)->walk(
+            $this->tmpDir,
+            includeVendor: false,
+            vendorAllowlist: [],
+            excludePaths: ['app/Legacy/'],
+        );
+
+        $classes = array_map(static fn (array $e): string => $e['class'], $result);
+
+        $this->assertNotContains('App\\Legacy\\OldReport', $classes);
+        $this->assertContains('App\\Models\\User', $classes);
+    }
+
+    public function test_exclude_paths_accept_glob_patterns(): void
+    {
+        $result = (new ClassMapWalker)->walk(
+            $this->tmpDir,
+            includeVendor: false,
+            vendorAllowlist: [],
+            excludePaths: ['app/Legacy/**'],
+        );
+
+        $classes = array_map(static fn (array $e): string => $e['class'], $result);
+
+        $this->assertNotContains('App\\Legacy\\OldReport', $classes);
+    }
+
+    public function test_exclude_paths_do_not_match_partial_directory_names(): void
+    {
+        $result = (new ClassMapWalker)->walk(
+            $this->tmpDir,
+            includeVendor: false,
+            vendorAllowlist: [],
+            excludePaths: ['app/Leg'],
+        );
+
+        $classes = array_map(static fn (array $e): string => $e['class'], $result);
+
+        $this->assertContains('App\\Legacy\\OldReport', $classes);
+    }
+
+    public function test_finds_project_classes_missing_from_a_stale_classmap(): void
+    {
+        // A class added after the last ``composer dump-autoload -o`` (e.g.
+        // after a worktree checkout) is absent from the dumped classmap
+        // but still autoloadable through PSR-4.
+        file_put_contents(
+            $this->tmpDir.'/app/Models/Invoice.php',
+            "<?php\nnamespace App\\Models;\nclass Invoice {}\n",
+        );
+        $this->writeAutoload(
+            ['App\\Models\\User' => $this->tmpDir.'/app/Models/User.php'],
+            ['App\\' => $this->tmpDir.'/app/'],
+        );
+
+        $result = (new ClassMapWalker)->walk($this->tmpDir, includeVendor: false, vendorAllowlist: []);
+
+        $files = array_column($result, 'file', 'class');
+        $this->assertSame(realpath($this->tmpDir.'/app/Models/Invoice.php'), $files['App\\Models\\Invoice'] ?? null);
+        $this->assertArrayHasKey('App\\Models\\User', $files);
+    }
+
+    public function test_does_not_scan_vendor_psr4_roots(): void
+    {
+        file_put_contents(
+            $this->tmpDir.'/vendor/acme/lib/src/Unlisted.php',
+            "<?php\nnamespace Acme\\Lib;\nclass Unlisted {}\n",
+        );
+        $this->writeAutoload([], ['Acme\\Lib\\' => $this->tmpDir.'/vendor/acme/lib/src/']);
+
+        $result = (new ClassMapWalker)->walk($this->tmpDir, includeVendor: true, vendorAllowlist: []);
+
+        $this->assertNotContains('Acme\\Lib\\Unlisted', array_column($result, 'class'));
+    }
+
+    public function test_does_not_scan_psr4_roots_outside_the_project(): void
+    {
+        // Under Testbench the project root is the skeleton app, while the
+        // package's own src/ and tests/ live elsewhere; scanning them would
+        // load arbitrary non-project classes.
+        $outside = sys_get_temp_dir().'/nexus-outside-'.uniqid('', true);
+        mkdir($outside);
+        file_put_contents($outside.'/Elsewhere.php', "<?php\nnamespace Other;\nclass Elsewhere {}\n");
+        $this->writeAutoload([], ['Other\\' => $outside.'/']);
+
+        $result = (new ClassMapWalker)->walk($this->tmpDir, includeVendor: false, vendorAllowlist: []);
+
+        $this->assertNotContains('Other\\Elsewhere', array_column($result, 'class'));
+
+        $this->rmdirRecursive($outside);
+    }
+
+    /**
+     * @param  array<string, string>  $classMap
+     * @param  array<string, string>  $psr4
+     */
+    private function writeAutoload(array $classMap, array $psr4): void
+    {
+        $classMapPhp = var_export($classMap, true);
+        $psr4Php = var_export($psr4, true);
+        file_put_contents($this->tmpDir.'/vendor/autoload.php', <<<PHP
+        <?php
+        \$loader = new \Composer\Autoload\ClassLoader();
+        \$loader->addClassMap({$classMapPhp});
+        foreach ({$psr4Php} as \$prefix => \$dir) {
+            \$loader->addPsr4(\$prefix, \$dir);
+        }
+        return \$loader;
+        PHP);
     }
 
     public function test_include_vendor_flag_pulls_in_vendor_classes(): void

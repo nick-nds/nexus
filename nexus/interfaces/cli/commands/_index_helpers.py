@@ -27,6 +27,7 @@ from nexus.adapters.extractor import (
     PhpExtractor,
 )
 from nexus.adapters.storage import ProjectMeta
+from nexus.config.project_profile import IndexingSettings, load_project_profile
 from nexus.interfaces.cli.output import print_error, render
 from nexus.interfaces.cli.progress import JsonLinesProgressReporter, RichProgressReporter
 from nexus.pipeline import Pipeline, PipelineContext
@@ -161,16 +162,17 @@ def run_pipeline(
             print_error(cli_ctx, f"embedder not ready: {problem}")
             raise click.exceptions.Exit(EXIT_USER_ACTION_REQUIRED)
 
+    settings = _project_indexing_settings(project_path)
     pipeline = _build_pipeline(
         php_binary=php_binary,
         container_project_path=container_project_path,
-        batch_size=_project_embed_batch_size(project_path),
+        batch_size=settings.embed_batch_size,
+        extractor_args=_extractor_args(settings, include_tests=include_tests),
     )
     pipe_ctx = PipelineContext(
         project_path=project_path,
         storage=storage,
         profile=profile,
-        include_tests=include_tests,
         embedder=embedder,
         lsp=lsp,
         lsp_server=lsp_server,
@@ -193,7 +195,7 @@ def run_pipeline(
             print_error(
                 cli_ctx,
                 f"extractor timed out: {e}",
-                hint="raise the timeout or prune `exclude_paths` in nexus.yml",
+                hint="run `php artisan nexus:extract` in the project to see where it stalls",
             )
             raise click.exceptions.Exit(1) from e
         except ExtractorFailedError as e:
@@ -356,6 +358,7 @@ def _build_pipeline(
     php_binary: str | None = None,
     container_project_path: Path | None = None,
     batch_size: int | None = None,
+    extractor_args: tuple[str, ...] = (),
 ) -> Pipeline:
     """Build the default pipeline with a stock :class:`PhpExtractor`.
 
@@ -373,35 +376,53 @@ def _build_pipeline(
         batch_size: Chunks embedded per request, from the project's
             ``nexus.yml`` ``indexing.embed_batch_size``. ``None`` uses
             the pass default.
+        extractor_args: Artisan flags from :func:`_extractor_args`.
     """
     return build_default_pipeline(
         extractor=PhpExtractor(
             php_binary=php_binary,
             container_project_path=container_project_path,
+            extra_args=extractor_args,
         ),
         batch_size=batch_size,
     )
 
 
-def _project_embed_batch_size(project_path: Path) -> int | None:
-    """Read ``indexing.embed_batch_size`` from ``<project_path>/nexus.yml``.
+def _project_indexing_settings(project_path: Path) -> IndexingSettings:
+    """Read the ``indexing:`` block from ``<project_path>/nexus.yml``.
 
-    Returns ``None`` when there is no ``nexus.yml``, it has no override,
-    or it fails to parse - the pipeline then uses its default batch size
-    rather than aborting the run on a malformed project file (mirrors the
-    tolerance of the embedder-spec resolution).
+    Returns the defaults when there is no ``nexus.yml`` or it fails to
+    parse - the pipeline then indexes with stock settings rather than
+    aborting the run on a malformed project file (mirrors the tolerance
+    of the embedder-spec resolution).
     """
     from nexus.config.loader import ConfigError  # noqa: PLC0415
-    from nexus.config.project_profile import load_project_profile  # noqa: PLC0415
 
     nexus_yml = project_path / "nexus.yml"
     if not nexus_yml.exists():
-        return None
+        return IndexingSettings()
     try:
         profile = load_project_profile(nexus_yml)
     except ConfigError:
-        return None
-    return profile.indexing.embed_batch_size
+        return IndexingSettings()
+    return profile.indexing
+
+
+def _extractor_args(settings: IndexingSettings, *, include_tests: bool) -> tuple[str, ...]:
+    """Translate ``indexing:`` settings into ``nexus:extract`` flags.
+
+    ``include_tests`` is the ``--include-tests`` CLI flag; it can only
+    turn tests on, so a ``nexus.yml`` opt-in survives flag-less runs
+    such as the post-commit ``index sync`` hook.
+    """
+    args: list[str] = []
+    if include_tests or settings.include_tests:
+        args.append("--include-tests")
+    if settings.include_vendor:
+        args.append("--include-vendor")
+    args.extend(f"--vendor-allowlist={package}" for package in settings.include_vendor_packages)
+    args.extend(f"--exclude-path={path}" for path in settings.exclude_paths)
+    return tuple(args)
 
 
 def _build_embedder(cli_ctx: CliContext, project_path: Path) -> Embedder | None:

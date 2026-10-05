@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 from nexus.config.project_profile import IndexingSettings
-from nexus.interfaces.cli.commands._index_helpers import _project_embed_batch_size
+from nexus.interfaces.cli.commands._index_helpers import _project_indexing_settings
 from nexus.pipeline.factory import build_default_pipeline
 from nexus.pipeline.passes import EmbedAndPersistPass
 
@@ -42,20 +42,20 @@ class TestProjectBatchSizeReader:
             "schema_version: '1.0'\nproject:\n  slug: demo\nindexing:\n  embed_batch_size: 64\n"
         )
 
-        assert _project_embed_batch_size(tmp_path) == 64
+        assert _project_indexing_settings(tmp_path).embed_batch_size == 64
 
     def test_none_when_no_nexus_yml(self, tmp_path: Path) -> None:
-        assert _project_embed_batch_size(tmp_path) is None
+        assert _project_indexing_settings(tmp_path).embed_batch_size is None
 
     def test_none_when_no_override(self, tmp_path: Path) -> None:
         (tmp_path / "nexus.yml").write_text("schema_version: '1.0'\nproject:\n  slug: demo\n")
 
-        assert _project_embed_batch_size(tmp_path) is None
+        assert _project_indexing_settings(tmp_path).embed_batch_size is None
 
     def test_none_when_malformed(self, tmp_path: Path) -> None:
         (tmp_path / "nexus.yml").write_text("{ not: valid: yaml :")
 
-        assert _project_embed_batch_size(tmp_path) is None
+        assert _project_indexing_settings(tmp_path).embed_batch_size is None
 
 
 class TestValidation:

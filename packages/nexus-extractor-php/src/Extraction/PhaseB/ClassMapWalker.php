@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexus\Extractor\Extraction\PhaseB;
 
 use Composer\Autoload\ClassLoader;
+use Composer\ClassMapGenerator\ClassMapGenerator;
 use Nexus\Extractor\Extraction\Support\PackageScope;
 use Throwable;
 
@@ -24,9 +25,10 @@ final class ClassMapWalker
 {
     /**
      * @param  list<string>  $vendorAllowlist  e.g. ['spatie/laravel-permission']
+     * @param  list<string>  $excludePaths  project-relative directories or fnmatch globs, e.g. ['storage/', 'app/Legacy/**']
      * @return list<array{class: string, file: string, source: 'project'|'vendor'}>
      */
-    public function walk(string $basePath, bool $includeVendor, array $vendorAllowlist, bool $includeTests = false, ?PackageScope $scope = null): array
+    public function walk(string $basePath, bool $includeVendor, array $vendorAllowlist, bool $includeTests = false, ?PackageScope $scope = null, array $excludePaths = []): array
     {
         $loader = $this->locateLoader($basePath);
 
@@ -34,11 +36,13 @@ final class ClassMapWalker
             return [];
         }
 
-        $classMap = $loader->getClassMap();
-
         $items = [];
         $base = rtrim($basePath, '/');
         $vendorDir = $base.'/vendor/';
+
+        // The dumped classmap wins where both know a class; the PSR-4 scan
+        // only fills in classes added since the last dump-autoload.
+        $classMap = $loader->getClassMap() + $this->scanProjectPsr4($loader, $base.'/', $vendorDir);
         $testsDirs = [$base.'/tests/', $base.'/Tests/'];
 
         foreach ($classMap as $class => $file) {
@@ -69,6 +73,10 @@ final class ClassMapWalker
             // catches any test scaffolding that comes along for the
             // ride.
             $isVendor = str_starts_with($absolute, $vendorDir);
+
+            if ($this->isExcluded($absolute, $base, $excludePaths)) {
+                continue;
+            }
 
             // When a PackageScope is active, membership is decided by the
             // target's PSR-4 namespace, NOT by "lives under a directory".
@@ -104,8 +112,13 @@ final class ClassMapWalker
                 // The agent use case is also uninterested in test doubles
                 // for production code understanding. Users can opt in
                 // via --include-tests.
-                if (! $includeTests && ! $isVendor && $this->isInTestsDir($absolute, $testsDirs)) {
-                    continue;
+                if (! $isVendor && $this->isInTestsDir($absolute, $testsDirs)) {
+                    // Even when opted in, only sweep *Test case classes:
+                    // fakes and helpers are where the non-loadable stubs
+                    // live, and one fatal aborts the whole extraction.
+                    if (! $includeTests || ! str_ends_with((string) $class, 'Test')) {
+                        continue;
+                    }
                 }
 
                 // Defence in depth: drop any path containing
@@ -146,6 +159,53 @@ final class ClassMapWalker
         }
 
         return false;
+    }
+
+    /**
+     * @param  list<string>  $excludePaths
+     */
+    private function isExcluded(string $absolute, string $base, array $excludePaths): bool
+    {
+        if ($excludePaths === [] || ! str_starts_with($absolute, $base.'/')) {
+            return false;
+        }
+
+        $relative = substr($absolute, strlen($base) + 1);
+
+        foreach ($excludePaths as $pattern) {
+            if (str_starts_with($relative, rtrim($pattern, '/').'/') || fnmatch($pattern, $relative)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Parse (without loading) the project's own PSR-4 roots so classes
+     * missing from a stale optimised classmap are still swept.
+     *
+     * @return array<string, string>
+     */
+    private function scanProjectPsr4(ClassLoader $loader, string $projectDir, string $vendorDir): array
+    {
+        $generator = new ClassMapGenerator;
+
+        foreach ($loader->getPrefixesPsr4() as $prefix => $dirs) {
+            foreach ($dirs as $dir) {
+                $absolute = realpath($dir);
+                if ($absolute === false || ! is_dir($absolute)) {
+                    continue;
+                }
+                $root = $absolute.'/';
+                if (! str_starts_with($root, $projectDir) || str_starts_with($root, $vendorDir)) {
+                    continue;
+                }
+                $generator->scanPaths($absolute, null, 'psr-4', $prefix);
+            }
+        }
+
+        return $generator->getClassMap()->getMap();
     }
 
     private function locateLoader(string $basePath): ?ClassLoader

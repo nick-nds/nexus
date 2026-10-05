@@ -65,9 +65,6 @@ class PipelineContext:
         progress: A :class:`ProgressReporter`. Defaults to a
             :class:`NullProgressReporter` so pass code can always call
             ``context.progress.emit(...)`` without a nil check.
-        include_tests: Whether to pass ``--include-tests`` to the PHP
-            extractor. Defaults to ``False`` matching the Phase 1
-            safety default.
 
     Populated by passes as they run:
         reflection: Set by RunExtractorPass after the extractor has
@@ -90,7 +87,6 @@ class PipelineContext:
     lsp: Lsp | None = None
     lsp_server: str | None = None
     progress: ProgressReporter = field(default_factory=NullProgressReporter)
-    include_tests: bool = False
     changed_files: set[Path] | None = None
 
     reflection: ReflectionDocument | None = None

@@ -54,7 +54,7 @@ If `composer` itself is missing, install it from [getcomposer.org](https://getco
 
 1. **Very large project** - try passing `--project-path` to a subdirectory, or add `exclude_paths` to `nexus.yml`.
 2. **Extractor subprocess crash** - run `php artisan nexus:extract --dry-run` directly to see the PHP error.
-3. **Low PHP `memory_limit`** - set `memory_limit = 512M` (or higher) in your `php.ini`.
+3. **Low PHP `memory_limit`** - the extractor raises its own limit to `1G` when PHP's is lower (a ~4k-class project peaks around 260 MB). For larger projects, pass a higher limit explicitly: `--php 'php -d memory_limit=2G'`.
 
 ---
 

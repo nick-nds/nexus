@@ -401,10 +401,10 @@ embedder:                   # written by `nexus init`; the per-project default
   model: BAAI/bge-small-en-v1.5
 
 indexing:
-  include_tests: false
-  exclude_paths:
+  include_tests: false      # true indexes *Test classes under tests/ (fakes/helpers are skipped)
+  exclude_paths:            # skipped by the class sweep; directory prefixes or globs
     - storage/
-    - bootstrap/cache/
+    - app/Legacy/**
   # embed_batch_size: 64      # chunks per embed request; lower for CPU-only Ollama
 ```
 

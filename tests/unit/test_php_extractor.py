@@ -144,6 +144,18 @@ class TestCommandNotRegistered:
         with pytest.raises(ExtractorMissingError, match="composer require"):
             extractor.extract(project, output_path=output)
 
+    def test_unknown_option_from_outdated_extractor_asks_for_upgrade(self, tmp_path: Path) -> None:
+        project = _make_project(tmp_path)
+        output = _output_path(tmp_path)
+        php = _write_fake_php(
+            tmp_path,
+            'echo "The \\"--exclude-path\\" option does not exist." >&2\nexit 1\n',
+        )
+
+        extractor = PhpExtractor(php_binary=str(php), extra_args=("--exclude-path=storage/",))
+        with pytest.raises(ExtractorFailedError, match="composer update nick-nds/nexus-extractor"):
+            extractor.extract(project, output_path=output)
+
 
 class TestNonZeroExit:
     def test_raises_with_stderr_preserved(self, tmp_path: Path) -> None:

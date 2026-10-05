@@ -20,6 +20,7 @@ nexus [OPTIONS] COMMAND [ARGS]...
 | `--color / --no-color` | flag | `--color` | Enable or suppress ANSI colour codes. |
 | `-v, --verbose` | flag | off | Emit debug-level log output. |
 | `-y, --yes` | flag | off | Answer yes to all confirmation prompts (non-interactive mode). |
+| `--max-items` | int | `100` | Cap on rows in each list a query returns (`truncated_lists` reports what was cut). `0` returns every row, for scripts. |
 | `-V, --version` | flag | - | Print the installed Nexus version and exit. |
 
 ### Exit codes
@@ -135,7 +136,7 @@ nexus index rebuild [OPTIONS]
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `--project-path PATH` | Path | `.` | Laravel project root. |
-| `--include-tests` | flag | off | Also index files under `tests/`. |
+| `--include-tests` | flag | off | Also index `*Test` classes under `tests/` (fakes and helpers are skipped). Set `indexing.include_tests: true` in `nexus.yml` to make it stick across `sync` runs. |
 
 **Behaviour on missing dependencies:**
 
@@ -157,7 +158,7 @@ nexus index sync [OPTIONS]
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `--project-path PATH` | Path | `.` | Laravel project root. |
-| `--include-tests` | flag | off | Also sync files under `tests/`. |
+| `--include-tests` | flag | off | Also index `*Test` classes under `tests/` (fakes and helpers are skipped). Set `indexing.include_tests: true` in `nexus.yml` to make it stick across `sync` runs. |
 
 **Exit codes:** `0` success · `1` pipeline error · `2` user action required.
 

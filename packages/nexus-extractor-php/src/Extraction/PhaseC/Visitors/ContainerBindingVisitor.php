@@ -124,7 +124,7 @@ final class ContainerBindingVisitor extends ContextTrackingVisitor
     }
 
     /**
-     * @param  array<int, Node\Arg|Node\VariadicPlaceholder>  $args
+     * @param  array<int, Node>  $args  call arguments; only plain ``Arg`` nodes are read
      */
     private function emitFromCall(Node $node, string $methodName, array $args): void
     {

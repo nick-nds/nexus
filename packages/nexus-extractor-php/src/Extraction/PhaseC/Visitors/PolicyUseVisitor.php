@@ -71,7 +71,7 @@ final class PolicyUseVisitor extends ContextTrackingVisitor
         $this->emit('gate_check', $ability, $node, ['form' => 'facade', 'method' => $method]);
     }
 
-    private function literalString(Node\Arg|Node\VariadicPlaceholder|null $arg): ?string
+    private function literalString(?Node $arg): ?string
     {
         if (! ($arg instanceof Node\Arg)) {
             return null;

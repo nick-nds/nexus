@@ -24,6 +24,7 @@ from pathlib import Path
 
 import click
 
+from nexus.core.query.budget import DEFAULT_MAX_LIST_ITEMS
 from nexus.interfaces.cli.context import (
     DEFAULT_ROOT,
     DEFAULT_SLUG,
@@ -74,6 +75,13 @@ from nexus.version import __version__
     default=False,
     help="Answer yes to every confirmation prompt (non-interactive mode).",
 )
+@click.option(
+    "--max-items",
+    type=click.IntRange(min=0),
+    default=DEFAULT_MAX_LIST_ITEMS,
+    show_default=True,
+    help="Cap on rows in each list a query returns. 0 = no cap (for scripts).",
+)
 @click.pass_context
 def main(
     click_ctx: click.Context,
@@ -83,6 +91,7 @@ def main(
     color: bool | None,
     verbose: bool,
     yes: bool,
+    max_items: int,
 ) -> None:
     """Nexus - Laravel code intelligence for AI agents."""
     # Route structured logs to stderr so stdout stays a clean data
@@ -100,6 +109,7 @@ def main(
         color=color,
         verbose=verbose,
         yes=yes,
+        max_items=max_items,
     )
     click_ctx.obj = ctx
     click_ctx.call_on_close(ctx.close)

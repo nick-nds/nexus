@@ -26,12 +26,12 @@ import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-import lancedb
-import pyarrow as pa
-
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator, Sequence
     from pathlib import Path
+
+    import lancedb
+    import pyarrow as pa
 
 
 @dataclass(frozen=True, slots=True)
@@ -96,10 +96,16 @@ class LanceDbVectorStore:
             # LanceDB creates the directory on connect if it doesn't
             # already exist - no explicit initialisation step needed.
             self._path.mkdir(parents=True, exist_ok=True)
+            # Deferred: ``lancedb`` costs ~2 s to import and CLI start-up
+            # must stay fast for tools that never touch vectors.
+            import lancedb  # noqa: PLC0415
+
             self._db = lancedb.connect(self._path)
         return self._db
 
     def _schema(self) -> pa.Schema:
+        import pyarrow as pa  # noqa: PLC0415
+
         return pa.schema(
             [
                 pa.field("id", pa.string(), nullable=False),

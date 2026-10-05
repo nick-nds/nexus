@@ -23,6 +23,7 @@ final class ExtractionContext
 {
     /**
      * @param  list<string>  $vendorAllowlist
+     * @param  list<string>  $excludePaths
      */
     public function __construct(
         public readonly Application $app,
@@ -35,5 +36,6 @@ final class ExtractionContext
         public readonly bool $includeTests = false,
         public readonly ?CurrentClassTracker $classTracker = null,
         public readonly ?PackageScope $package = null,
+        public readonly array $excludePaths = [],
     ) {}
 }
